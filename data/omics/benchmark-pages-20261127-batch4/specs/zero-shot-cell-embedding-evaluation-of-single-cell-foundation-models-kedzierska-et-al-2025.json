@@ -1,0 +1,870 @@
+{
+  "record_id": "gfm-guides-20261014-kedzierska2025-benchmark-zero-shot-scfm",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Kedzierska et al. 2025, Zero-shot evaluation reveals limitations of single-cell foundation models, Genome Biology 26:101, PMC full-text XML",
+      "description": "Full-text JATS XML of the article from NCBI PMC (PMC12007350) through E-utilities efetch.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12007350&rettype=xml",
+      "url": "https://doi.org/10.1186/s13059-025-03574-x",
+      "version": "Genome Biology 26:101, published 2025-04-18 (PMC12007350)",
+      "media_type": "application/xml",
+      "sha256": "79c085aca39fb917012f68e96d1b9a4e32cb9dc0a857697c08faa203aac7959b",
+      "retrieved_at": "2026-11-27T04:14:50Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "supplement",
+      "name": "Kedzierska et al. 2025, Additional file 1 (supplementary tables), converted to tab-separated text",
+      "description": "The publisher's Additional file 1 xlsx, converted cell by cell to tab-separated text with a short Python script (one block per sheet). The xlsx is kept beside it as artifacts/additional-file-1.xlsx. The sheet names in the file do not follow the numbering in the article's caption list.",
+      "file": "artifacts/additional-file-1.txt",
+      "artifact_url": "https://static-content.springer.com/esm/art%3A10.1186%2Fs13059-025-03574-x/MediaObjects/13059_2025_3574_MOESM1_ESM.xlsx",
+      "url": "https://doi.org/10.1186/s13059-025-03574-x",
+      "version": "Additional file 1 as served on 2026-11-27",
+      "media_type": "text/tab-separated-values",
+      "sha256": "25ce25997fbe933a385024bdefe8d26addd1ec5819e5a0ca8a4a94fb03b09d03",
+      "retrieved_at": "2026-11-27T04:15:28Z",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "microsoft/zero-shot-scfoundation README.md at commit ca9a1b49",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/microsoft/zero-shot-scfoundation/ca9a1b494971ef497f9c24881b7e66f395d79bac/README.md",
+      "url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "version": "git commit ca9a1b494971ef497f9c24881b7e66f395d79bac",
+      "media_type": "text/markdown",
+      "sha256": "796f77415f8dc9d1107601912662668ddc1416eefdbe883bd2ee6c42d56169b8",
+      "retrieved_at": "2026-11-27T04:15:22Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "install",
+      "name": "microsoft/zero-shot-scfoundation INSTALLATION_GUIDE.md at commit ca9a1b49",
+      "description": "Official repository installation guide, pinned to a commit.",
+      "file": "artifacts/installation-guide.md",
+      "artifact_url": "https://raw.githubusercontent.com/microsoft/zero-shot-scfoundation/ca9a1b494971ef497f9c24881b7e66f395d79bac/INSTALLATION_GUIDE.md",
+      "url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "version": "git commit ca9a1b494971ef497f9c24881b7e66f395d79bac",
+      "media_type": "text/markdown",
+      "sha256": "1398d2a1a202602ba4b8c0e387600fd94fb90e0dd9e3933c05a150f18606a5ef",
+      "retrieved_at": "2026-11-27T04:15:22Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "microsoft/zero-shot-scfoundation LICENSE at commit ca9a1b49",
+      "description": "Official repository licence file, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/microsoft/zero-shot-scfoundation/ca9a1b494971ef497f9c24881b7e66f395d79bac/LICENSE",
+      "url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "version": "git commit ca9a1b494971ef497f9c24881b7e66f395d79bac",
+      "media_type": "text/plain",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "retrieved_at": "2026-11-27T04:15:22Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "A single paper's test of whether the cell embeddings of scGPT and Geneformer are useful without any further training (zero-shot). Embeddings are scored on five human single-cell RNA-seq datasets for separating known cell types and for mixing batches, against 2,000 highly variable genes, Harmony and scVI; a third analysis checks how well each model performs its own pretraining reconstruction task. It is for researchers deciding whether to use a single-cell foundation model's embeddings directly, without fine-tuning.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Results and discussion; Methods",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "Foundation models such as scGPT and Geneformer have not been rigorously evaluated in a setting where they are used without any further training (i.e., zero-shot)."
+      },
+      {
+        "source": "@paper",
+        "text": "we used five distinct human tissue datasets"
+      },
+      {
+        "source": "@paper",
+        "text": "We standardize to 2000 HVG across all experiments."
+      },
+      {
+        "source": "@paper",
+        "text": "we evaluated the performance of these models on the gene expression reconstruction pretraining task"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The study asks whether single-cell foundation models produce cell embeddings that work without task-specific training, which matters in exploratory work where labels are unknown and fine-tuning is not possible. It scores three things: how well the embedding separates known cell types, how well it removes batch effects while keeping biology, and how well each model performs its own masked-language-model pretraining task of reconstructing gene expression.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Background; Results and discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Understanding the performance of models in zero-shot settings is critical to applications that exclude the ability to fine-tune, such as discovery settings where labels are unknown."
+          },
+          {
+            "source": "@paper",
+            "text": "In this work, we evaluated the cell embedding space for its ability to separate known cell types correctly and to integrate different batches."
+          },
+          {
+            "source": "@paper",
+            "text": "We also evaluated the performance of the models at the pretraining task by evaluating their reconstruction accuracy."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Five human datasets are used: Pancreas (16k cells, 14 labels, 6 batches, combining 5 studies), PBMC 12k (9 labels, 2 batches), PBMC 95k (10 labels, 1 batch), a cross-tissue Immune atlas (330k cells, 45 labels, 12 batches) and Tabula Sapiens (483k cells, 177 labels, 27 batches). The models are Geneformer and four scGPT variants: randomly initialised, and pretrained on kidney, blood and bone marrow, or whole-human data. Baselines are 2,000 highly variable genes (HVG), and scVI and Harmony trained on each dataset. Some evaluation data were seen in pretraining: part of Pancreas (GEO GSE84133) by Geneformer, and Tabula Sapiens and Immune by scGPT. The authors scored both the full Pancreas set and its non-overlapping subset and report that results were consistent.",
+        "source_ids": [
+          "@paper",
+          "@supplement"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines' and 'Datasets'; Additional file 1 sheets TableS1 and TableS2",
+        "quotes": [
+          {
+            "source": "@supplement",
+            "text": "Pancreas\tCells from human pancreas created by combining data spanning 5 studies.\t16k\t14.0\t6.0\t[25]"
+          },
+          {
+            "source": "@supplement",
+            "text": "Immune\tImmune cells extracted from 16 different tissues across 12 adult organ donors.\t330k\t45.0\t12.0\t[32]"
+          },
+          {
+            "source": "@supplement",
+            "text": "Tabula Sapiens\tCells from 24 different tissues across 15 human donors.\t483k\t177.0\t27.0\t[33]"
+          },
+          {
+            "source": "@paper",
+            "text": "we tested four different variants of scGPT: randomly initialized scGPT"
+          },
+          {
+            "source": "@paper",
+            "text": "which we trained on each individual dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "We conducted evaluations using both the complete Pancreas dataset and its non-overlapping subset."
+          },
+          {
+            "source": "@paper",
+            "text": "The Tabula Sapiens and Immune were included in the CellxGene collection"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Scoring largely follows Luecken et al. (scIB, version 1.0.4). Cell-type separation uses the average silhouette width (ASW) and AvgBIO, the mean of ASW, NMI and ARI, with NMI and ARI computed on Louvain clusters at the best of 20 resolutions. Batch mixing uses a batch integration score (silhouette with respect to batch, averaged across cell types, subtracted from 1) and the principal component regression (PCR) score; their mean is the Average Batch Score. All scores are on a 0 to 1 scale, higher is better. Scores are computed on the full embedding dimensions and again after UMAP projection. For reconstruction, all genes are left unmasked; scGPT is scored by mean squared error against a mean-prediction baseline and Geneformer by Pearson correlation between true and predicted rankings against an average-ranking baseline.",
+        "source_ids": [
+          "@paper",
+          "@supplement"
+        ],
+        "source_locator": "Paper: Methods 'Evaluation metrics', 'Biological preservation scores', 'Batch mixing scores', 'Reconstructing gene expression'; Code availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "AvgBIO is the arithmetic mean of three individual metrics"
+          },
+          {
+            "source": "@paper",
+            "text": "Briefly, the clustering is calculated across 20 resolutions, the resolution for which the clustering reported highest NMI metric is chosen."
+          },
+          {
+            "source": "@paper",
+            "text": "We additionally defined a counterpart to AverageBIO score—the Average Batch Score—which is computed as the arithmetic mean between the PCR and batch integration scores."
+          },
+          {
+            "source": "@paper",
+            "text": "genes unmasked as input"
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate Geneformer’s performance in its pretraining objective, we measured Pearson’s correlation between the true and predicted rankings."
+          },
+          {
+            "source": "@paper",
+            "text": "we used version 1.0.4 of the scib"
+          },
+          {
+            "source": "@supplement",
+            "text": "Table S7 Scores for UMAP of the cell embeddings generated by the models."
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The README's quick start clones the repository, downloads a data archive from figshare, and starts a Jupyter server in the published Docker image. The evaluation is run from three notebooks: one for scGPT, one for Geneformer and one for the HVG and scVI baselines. The code needs an NVIDIA GPU because scGPT requires flash-attention.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Dependencies; Quick Start (Docker - Recommended); Running the code",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "wget https://figshare.com/ndownloader/files/43480497 -O data.zip"
+          },
+          {
+            "source": "@readme",
+            "text": "[scGPT_zero_shot](notebooks/scGPT_zero_shot.ipynb) - notebook for running scGPT zero-shot evaluation"
+          },
+          {
+            "source": "@readme",
+            "text": "The code requires flash-attention for scGPT, which has strict GPU requirements."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Five human scRNA-seq datasets: Pancreas (16k cells), PBMC (12k), PBMC (95k), Immune (330k) and Tabula Sapiens (483k). The score tables also carry a Pancreas (8k) row. The paper says the complete Pancreas dataset and its subset without the Geneformer pretraining overlap were both evaluated, citing the two score tables, so this row is most likely that subset, although the files do not label it as such.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supplement",
+          "@paper"
+        ],
+        "source_locator": "Additional file 1 sheet TableS1; sheet TableS6; Paper: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@supplement",
+            "text": "Table S1 Overview of the used datasets."
+          },
+          {
+            "source": "@supplement",
+            "text": "PBMC\tPBMCs from a healthy donor.\t12k\t9.0\t2.0\t[30]"
+          },
+          {
+            "source": "@supplement",
+            "text": "PBMC\tPBMCs from a healthy donor.\t95k\t10.0\t1.0\t[31]"
+          },
+          {
+            "source": "@supplement",
+            "text": "Pancreas (8k)"
+          },
+          {
+            "source": "@paper",
+            "text": "We conducted evaluations using both the complete Pancreas dataset and its non-overlapping subset. The results were consistent between the two, leading us to include the entire Pancreas dataset for simplicity in this evaluation (Additional file 1: Tables S1 and S5)."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None: foundation models are applied zero-shot to each whole dataset, while scVI and Harmony are trained on each dataset. Scores are given on the whole dataset and on 10 repeats of a 10% subsample.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@supplement"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines'; Additional file 1 sheet TableS6",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "While this means that we deploy scGPT and Geneformer zero-shot but train scVI and Harmony on target data"
+          },
+          {
+            "source": "@supplement",
+            "text": "Scores calculated based on the whole dataset, as well in 10 repeats of subsampled for 10% of the dataset."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "AvgBIO (mean of ASW, NMI, ARI) for cell-type separation and Average Batch Score (mean of batch integration and PCR) for batch mixing, all 0 to 1, higher is better. Reconstruction: mean squared error for scGPT (lower is better) and Pearson correlation of rankings for Geneformer (higher is better).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Biological preservation scores', 'Batch mixing scores', 'Reconstructing gene expression'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "AvgBIO is normalized to a unit scale, with higher values indicating better alignment between clusters and ground truth labels."
+          },
+          {
+            "source": "@paper",
+            "text": "while 1 signifies a perfect batch mixing and integration"
+          },
+          {
+            "source": "@paper",
+            "text": "To evaluate the performance of scGPT in its pretraining objective, we used the mean squared error (MSE)"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "2,000 highly variable genes (HVG), scVI and Harmony for embeddings; a randomly initialised scGPT; mean expression and average ranking for reconstruction.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For baselines in evaluating cell embeddings, we compared Geneformer and scGPT against selecting highly variable genes (HVG)."
+          },
+          {
+            "source": "@paper",
+            "text": "For the evaluation of the pretraining objective, we used the mean estimates or average ranking as a reference."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Partial. Overlap with pretraining is reported per dataset rather than removed: part of Pancreas was in Geneformer's pretraining, and Tabula Sapiens and Immune were in scGPT's. Pancreas was also scored on its non-overlapping subset. The authors name this overlap as a limitation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'; Conclusions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We conducted evaluations using both the complete Pancreas dataset and its non-overlapping subset."
+          },
+          {
+            "source": "@paper",
+            "text": "One limitation of our analyses was that some of our evaluation datasets were used in pretraining"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Each score is given for the whole dataset and as a value with a bracketed range from 10 repeats on 10% subsamples. The caption does not say which statistic the value and range are. Reconstruction plots show mean and standard deviation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supplement",
+          "@paper"
+        ],
+        "source_locator": "Additional file 1 sheet TableS6; Paper: Fig. 2 legend",
+        "quotes": [
+          {
+            "source": "@supplement",
+            "text": "Scores calculated based on the whole dataset, as well in 10 repeats of subsampled for 10% of the dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "Mean and standard deviation range are shown as points and solid lines, respectively"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A cell, represented by its embedding; scores are computed per dataset.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "including their practices for extracting cell embeddings (i.e., latent representations of single-cells)"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human only.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we used five distinct human tissue datasets"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell RNA-seq; the authors note the datasets include only transcriptomic data.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Conclusions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "our datasets only include transcriptomic data"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Single-cell gene expression vectors, ranked for Geneformer and binned into 50 bins for scGPT. Foundation models do not receive batch labels; Harmony and scVI use batch labels in training.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Both models accept single-cell gene expression vectors as input but represent data differently."
+          },
+          {
+            "source": "@paper",
+            "text": "Importantly, both Harmony’s and scVI’s design inherently incorporates batch labels in its training process."
+          },
+          {
+            "source": "@paper",
+            "text": "In contrast, Geneformer and scGPT are not explicitly pretrained with batch labels."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot only for the foundation models; baselines are fitted to each dataset.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "While this means that we deploy scGPT and Geneformer zero-shot but train scVI and Harmony on target data"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Pretraining overlap is checked and reported for every dataset and model, and the overlapping Pancreas subset was rerun without the overlap.",
+        "source_ids": [
+          "@supplement",
+          "@paper"
+        ],
+        "source_locator": "Additional file 1 sheet TableS2; Paper: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@supplement",
+            "text": "Table S2 Source of the datasets and overlap with the data used for pretraining of the models."
+          },
+          {
+            "source": "@paper",
+            "text": "We conducted evaluations using both the complete Pancreas dataset and its non-overlapping subset."
+          }
+        ]
+      },
+      {
+        "text": "Simple baselines (HVG, a random-weight scGPT) are included alongside trained integration methods, so a reader can see whether pretraining adds anything.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results and discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we tested four different variants of scGPT: randomly initialized scGPT"
+          }
+        ]
+      },
+      {
+        "text": "Code is public under the MIT licence with a pinned environment (Docker image, scGPT v0.1.6, Geneformer commit 5d0082c, scib 1.0.4).",
+        "source_ids": [
+          "@paper",
+          "@license"
+        ],
+        "source_locator": "Paper: Code availability; LICENSE",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "It is released under the MIT License."
+          },
+          {
+            "source": "@license",
+            "text": "MIT License"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Some evaluation datasets were in the models' pretraining data, which the authors say confounds whether trends are general or due to prior exposure.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Conclusions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "confounding our ability to say if performance trends are general or due to prior exposure to specific datasets"
+          }
+        ]
+      },
+      {
+        "text": "Only two model families and five transcriptomic datasets are tested; the authors say the datasets do not represent all applications of single-cell analysis.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Conclusions",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We concentrated on specific models and selected a limited array of datasets that do not exhaustively represent all applications of single-cell analysis"
+          }
+        ]
+      },
+      {
+        "text": "The comparison is not like for like: baselines are trained on each target dataset and use batch labels, while foundation models are used zero-shot without batch labels. The authors chose this set-up deliberately.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Models and baselines'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we reason this set-up reflects practical settings where resources are often more readily available to train lightweight models than to fine-tune larger ones"
+          }
+        ]
+      },
+      {
+        "text": "There is no leaderboard or standard submission format; evaluation runs through notebooks that need an NVIDIA GPU, and the README's overview names only scVI and HVG as baselines although the paper also uses Harmony.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Project overview; Dependencies",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "This code has been developed and tested on Linux systems with NVIDIA GPUs."
+          },
+          {
+            "source": "@readme",
+            "text": "we compare the performance of Geneformer and scGPT against two baselines"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Kedzierska et al. 2025 zero-shot evaluation",
+      "steps": [
+        "Five human scRNA-seq datasets",
+        "Zero-shot cell embeddings (scGPT, Geneformer)",
+        "Baselines (HVG, Harmony, scVI)",
+        "scIB scores: AvgBIO and Average Batch Score",
+        "Rankings across datasets"
+      ],
+      "caption": "Each dataset is embedded by each model and baseline, and the embeddings are scored for cell-type separation and batch mixing; models are then ranked across datasets.",
+      "source_ids": [
+        "@paper",
+        "@supplement"
+      ],
+      "source_locator": "Paper: Fig. 1 legend; Additional file 1 sheet TableS3",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We compare Geneformer and scGPT to scVI, Harmony, and the selection of highly variable genes (HVG) on five diverse datasets."
+        },
+        {
+          "source": "@supplement",
+          "text": "Table S3 Rankings of median scores across datasets."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The supplementary xlsx's sheet names do not match the caption numbering in the article (for example the article's Table S7, the dataset overview, is the sheet named TableS1, and the article's Table S1, the embedding scores, is the sheet named TableS6). Citations on this page use the sheet names.",
+      "The meaning of the bracketed ranges in the score tables is not stated in the files read. The Pancreas (8k) row is not labelled, but the paper says the non-overlapping Pancreas subset was evaluated and cites the score tables, so it is most likely that subset.",
+      "The README states no licence for the figshare data archive, and the data's own terms were not fetched."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the PMC full-text XML (PMC12007350), Additional file 1 converted from xlsx, and the repository README, installation guide and LICENSE at commit ca9a1b494971ef497f9c24881b7e66f395d79bac, all fetched on 2026-11-27. The notebooks were not read. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Clone the evaluation code, download the prepared data, and open the zero-shot evaluation notebooks in the published Docker environment.",
+    "prerequisites": [
+      "A CUDA-compatible NVIDIA GPU (the README lists Ampere, Ada, Hopper and Turing cards), because scGPT needs flash-attention.",
+      "Docker with GPU support and the NVIDIA Container Toolkit.",
+      "The code is MIT licensed; the README states no licence for the figshare data archive."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/microsoft/zero-shot-scfoundation\ncd zero-shot-scfoundation\ngit checkout --detach ca9a1b494971ef497f9c24881b7e66f395d79bac",
+        "explanation": "Clone the repository as the README shows. The checkout line, added here, pins the commit this page was read at.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Quick Start (Docker - Recommended)",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "git clone https://github.com/microsoft/zero-shot-scfoundation"
+          },
+          {
+            "source": "@readme",
+            "text": "cd zero-shot-scfoundation"
+          }
+        ]
+      },
+      {
+        "title": "Download the data",
+        "shell": "wget https://figshare.com/ndownloader/files/43480497 -O data.zip\nunzip data.zip && rm data.zip",
+        "explanation": "Fetch and unpack the data archive the README names.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Quick Start (Docker - Recommended)",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "wget https://figshare.com/ndownloader/files/43480497 -O data.zip"
+          },
+          {
+            "source": "@readme",
+            "text": "unzip data.zip && rm data.zip"
+          }
+        ]
+      },
+      {
+        "title": "Start Jupyter in the Docker image",
+        "shell": "docker-compose up jupyter",
+        "explanation": "This pulls the pre-built image kzkedzierska/sc_foundation_evals:latest_notebook and serves Jupyter at http://localhost:8888. Open notebooks/scGPT_zero_shot.ipynb, notebooks/Geneformer_zero_shot.ipynb or notebooks/Baselines_HVG_and_scVI.ipynb and run it to produce the evaluation for that model.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Quick Start (Docker - Recommended); Running the code",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "docker-compose up jupyter"
+          },
+          {
+            "source": "@readme",
+            "text": "**Note:** This automatically pulls the pre-built Docker image `kzkedzierska/sc_foundation_evals:latest_notebook` from Docker Hub."
+          },
+          {
+            "source": "@readme",
+            "text": "Open <http://localhost:8888> to access Jupyter notebooks."
+          },
+          {
+            "source": "@readme",
+            "text": "[Baselines_HVG_and_scVI](notebooks/Baselines_HVG_and_scVI.ipynb) - notebook for running the baselines used in the paper, i.e. HVG and scVI."
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "The README does not describe the notebooks' outputs; the paper's results are the scores in Additional file 1."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The notebooks themselves were not read, so which datasets and metrics each one computes is not confirmed here.",
+      "The Docker image tag latest_notebook is not pinned to a version."
+    ],
+    "source_ids": [
+      "@readme",
+      "@install"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Cell-type clustering from zero-shot embeddings, full embedding dimensions",
+      "dataset": "Pancreas, PBMC (12k), PBMC (95k), Immune, Tabula Sapiens",
+      "size": 5,
+      "size_unit": "datasets",
+      "split": null,
+      "primary_metric": "AvgBIO",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "data_url": "https://figshare.com/ndownloader/files/43480497",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we used five distinct human tissue datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "AvgBIO is normalized to a unit scale, with higher values indicating better alignment between clusters and ground truth labels."
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/microsoft/zero-shot-scfoundation\">https://github.com/microsoft/zero-shot-scfoundation</ext-link> [<xref"
+        },
+        {
+          "source": "@paper",
+          "text": "It is released under the MIT License."
+        },
+        {
+          "source": "@readme",
+          "text": "wget https://figshare.com/ndownloader/files/43480497 -O data.zip"
+        }
+      ]
+    },
+    {
+      "task": "Batch integration from zero-shot embeddings, full embedding dimensions",
+      "dataset": "Pancreas, PBMC (12k), PBMC (95k), Immune, Tabula Sapiens",
+      "size": 5,
+      "size_unit": "datasets",
+      "split": null,
+      "primary_metric": "Average Batch Score",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "data_url": "https://figshare.com/ndownloader/files/43480497",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we used five distinct human tissue datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "We additionally defined a counterpart to AverageBIO score—the Average Batch Score—which is computed as the arithmetic mean between the PCR and batch integration scores."
+        },
+        {
+          "source": "@paper",
+          "text": "while 1 signifies a perfect batch mixing and integration"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/microsoft/zero-shot-scfoundation\">https://github.com/microsoft/zero-shot-scfoundation</ext-link> [<xref"
+        },
+        {
+          "source": "@paper",
+          "text": "It is released under the MIT License."
+        },
+        {
+          "source": "@readme",
+          "text": "wget https://figshare.com/ndownloader/files/43480497 -O data.zip"
+        }
+      ]
+    },
+    {
+      "task": "Cell embedding scoring after UMAP projection",
+      "dataset": "Pancreas, PBMC (12k), PBMC (95k), Immune, Tabula Sapiens",
+      "size": 5,
+      "size_unit": "datasets",
+      "split": null,
+      "primary_metric": "AvgBIO",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "data_url": "https://figshare.com/ndownloader/files/43480497",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we used five distinct human tissue datasets"
+        },
+        {
+          "source": "@supplement",
+          "text": "Table S7 Scores for UMAP of the cell embeddings generated by the models."
+        },
+        {
+          "source": "@paper",
+          "text": "AvgBIO is normalized to a unit scale, with higher values indicating better alignment between clusters and ground truth labels."
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/microsoft/zero-shot-scfoundation\">https://github.com/microsoft/zero-shot-scfoundation</ext-link> [<xref"
+        },
+        {
+          "source": "@paper",
+          "text": "It is released under the MIT License."
+        },
+        {
+          "source": "@readme",
+          "text": "wget https://figshare.com/ndownloader/files/43480497 -O data.zip"
+        }
+      ]
+    },
+    {
+      "task": "Geneformer pretraining-objective reconstruction",
+      "dataset": "Same five datasets as the cell embedding tasks",
+      "size": 5,
+      "size_unit": "datasets",
+      "split": null,
+      "primary_metric": "Pearson correlation between true and predicted rankings",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We evaluated the models on the same datasets as in the cell embedding tasks."
+        },
+        {
+          "source": "@paper",
+          "text": "we used five distinct human tissue datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "To evaluate Geneformer’s performance in its pretraining objective, we measured Pearson’s correlation between the true and predicted rankings."
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/microsoft/zero-shot-scfoundation\">https://github.com/microsoft/zero-shot-scfoundation</ext-link> [<xref"
+        },
+        {
+          "source": "@paper",
+          "text": "It is released under the MIT License."
+        }
+      ]
+    },
+    {
+      "task": "scGPT pretraining-objective reconstruction",
+      "dataset": "Same five datasets as the cell embedding tasks",
+      "size": 5,
+      "size_unit": "datasets",
+      "split": null,
+      "primary_metric": "Mean squared error",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/microsoft/zero-shot-scfoundation",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We evaluated the models on the same datasets as in the cell embedding tasks."
+        },
+        {
+          "source": "@paper",
+          "text": "we used five distinct human tissue datasets"
+        },
+        {
+          "source": "@paper",
+          "text": "To evaluate the performance of scGPT in its pretraining objective, we used the mean squared error (MSE)"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/microsoft/zero-shot-scfoundation\">https://github.com/microsoft/zero-shot-scfoundation</ext-link> [<xref"
+        },
+        {
+          "source": "@paper",
+          "text": "It is released under the MIT License."
+        }
+      ]
+    }
+  ],
+  "notes": "The Genome Biology article's own Code availability section also names a Zenodo archive (10.5281/zenodo.15123462), which was not fetched. The repository README still describes the earlier bioRxiv preprint title. Additional file 1 was converted from xlsx to text so that it can be quoted; its sheet names differ from the article's caption numbering, and this page cites sheet names. The record's description mentions a Pancreas (8k) row; the files show that row in the score tables without a label, and the paper's Datasets section says the non-overlapping Pancreas subset was also evaluated, so the row is most likely that subset. MSE direction (lower is better) follows from the paper's statement that scGPT underperforms a mean baseline in MSE, read with the paper's statement that MSE is the measure used as the model's loss."
+}

@@ -1,0 +1,500 @@
+# gene Regulatory Network Inference Benchmark (geneRNIB)
+
+[![Test](https://github.com/openproblems-bio/task_grn_inference/actions/workflows/test.yaml/badge.svg)](https://github.com/openproblems-bio/task_grn_inference/actions/workflows/test.yaml)
+[![Build](https://github.com/openproblems-bio/task_grn_inference/actions/workflows/build.yaml/badge.svg)](https://github.com/openproblems-bio/task_grn_inference/actions/workflows/build.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![bioRxiv](https://img.shields.io/badge/bioRxiv-2025.02.25-b31b1b.svg)](https://www.biorxiv.org/content/10.1101/2025.02.25.640181v1)
+[![Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://genernib-documentation.readthedocs.io/en/latest/)
+
+<p align="center">
+  <img src="thumbnail.svg" width="300"/>
+</p>
+
+A living benchmark for gene regulatory network (GRN) inference.  
+Paper: [geneRNIB (bioRxiv)](https://www.biorxiv.org/content/10.1101/2025.02.25.640181v1) | [Leaderboard](https://genernib-documentation.readthedocs.io/en/latest/leaderboard.html) | [Full docs](https://genernib-documentation.readthedocs.io/en/latest/)
+
+
+## Agentic AI assistance
+
+An agent instructions file is provided for AI agents to interact with the benchmark: run inference and evaluation, add new methods, and troubleshoot failures. Point your agent to `agentic/AGENT.md` at the repo root as its first context document.
+
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone --recursive git@github.com:openproblems-bio/task_grn_inference.git
+cd task_grn_inference
+```
+
+Then choose the setup that matches your environment:
+
+### Option A — With Docker (default)
+
+Install Docker, Java, and Viash following [these instructions](https://openproblems.bio/documentation/fundamentals/requirements).  
+No further setup needed — Docker images are built on first run.
+
+### Option B — Without Docker (conda + Singularity)
+
+- **Conda** — required for baseline inference methods and all evaluation:
+
+  ```bash
+  conda env create -f environment.yml   # creates the 'genernbi' env
+  conda activate genernbi
+  ```
+- **Singularity** — required only for advanced inference methods (e.g. GRNBoost2, scPRINT, Scenic/Scenic+, CellOracle, etc.).  
+  Pull the images (48G):
+
+  ```bash
+  pip install awscli
+
+  aws s3 sync s3://openproblems-data/resources/grn/singularity resources/singularity/ --no-sign-request
+  ```
+
+---
+
+## Download resources
+
+```bash
+pip install awscli
+# Core benchmark data (24 GB) — required for inference and evaluation
+aws s3 sync s3://openproblems-data/resources/grn/grn_benchmark resources/grn_benchmark/ --no-sign-request
+
+# Small test subset (380 MB) — use this to verify your setup first
+aws s3 sync s3://openproblems-data/resources_test/grn/grn_benchmark resources_test/grn_benchmark/ --no-sign-request
+```
+---
+
+## GRN Inference
+To infer a GRN for a dataset (e.g. `op`) using simple Pearson correlation:
+
+### With Docker (viash)
+
+```bash
+viash run src/methods/pearson_corr/config.vsh.yaml -- \
+  --rna resources/grn_benchmark/inference_data/op_rna.h5ad \
+  --tf_all resources/grn_benchmark/prior/tf_all.csv \
+  --prediction output/net.h5ad
+```
+
+Replace `pearson_corr` with any method under `src/methods/`.
+
+### Without Docker (conda or singularity)
+
+```bash
+bash src/methods/pearson_corr/run_local.sh \
+  --rna resources/grn_benchmark/inference_data/op_rna.h5ad \
+  --tf_all resources/grn_benchmark/prior/tf_all.csv \
+  --prediction output/net.h5ad
+```
+
+---
+
+## GRN Evaluation
+### With Docker
+
+```bash
+bash scripts/run_grn_evaluation.sh \
+  --prediction output/net.h5ad \
+  --dataset op \
+  --save_dir output/ \
+  --build_images true
+```
+
+`--build_images true` is only needed on first run. This outputs the scores into `output/score_uns.yaml`.
+
+### Without Docker
+
+```bash
+bash src/metrics/all_metrics/run_local.sh \
+  --prediction output/net.h5ad \
+  --dataset op \
+  --score output/score.h5ad
+```
+
+Available datasets: `op`, `parsebioscience`, `300BCG`, `replogle`, `xaira_HEK293T`, `xaira_HCT116`, `nakatake`, `norman`, `MSCIC`, `soundlife`, `soundlife_vaccine`.
+
+> If you are evaluating a new GRN model (not part of geneRNIB), first update the consensus prior:
+> ```bash
+> bash scripts/prior/run_consensus.sh --dataset op --new_model output/net.h5ad
+> ```
+
+## Add a GRN inference method, evaluation metric, or dataset
+
+To add a new component to the repository, follow the [Documentation](https://genernib-documentation.readthedocs.io/en/latest/).
+
+## Run the entire pipeline
+Due to the resource-intensive nature of the task, the pipeline is split into two steps: GRN inference and evaluation. Outputs are written to `resources/results/benchmark/`.
+### With Docker
+
+```bash
+bash scripts/run_grn_inference.sh --no_aws=true
+bash scripts/run_grn_evaluation.sh --no_aws=true
+```
+
+`--no_aws=true` runs the pipeline locally with Docker instead of submitting to AWS (the default). 
+
+### Without Docker
+
+```bash
+bash scripts/local_workflows/run_grn_inference.sh
+bash scripts/local_workflows/run_grn_evaluation.sh
+```
+
+
+
+
+## Authors & contributors
+
+| name              | roles       |
+|:------------------|:------------|
+| Jalil Nourisa     | author      |
+| Robrecht Cannoodt | author      |
+| Jérémie Kalfon    | contributor |
+| Antoine Passimier | contributor |
+| Marco Stock       | contributor |
+| Christian Arnold  | contributor |
+
+## How to cite
+If you use this framework, please cite
+```
+@article{nourisa2025genernib,
+  title={geneRNIB: a living benchmark for gene regulatory network inference},
+  author={Nourisa, Jalil and Passemiers, Antoine and Kalfon, Jeremie and Stock, Marco and Zeller-Plumhoff, Berit and Cannoodt, Robrecht and Arnold, Christian and Tong, Alexander and Hartford, Jason and Netea, Mihai G and others},
+  journal={bioRxiv},
+  pages={2025--02},
+  year={2025},
+  publisher={Cold Spring Harbor Laboratory}
+}
+```
+
+## API
+
+``` mermaid
+flowchart TB
+  file_atac_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-chromatin-accessibility-data'>chromatin accessibility data</a>")
+  comp_method[/"<a href='https://github.com/openproblems-bio/task_grn_inference#component-type-method'>method</a>"/]
+  file_prediction_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-grn-prediction'>GRN prediction</a>")
+  comp_metric[/"<a href='https://github.com/openproblems-bio/task_grn_inference#component-type-metrics'>metrics</a>"/]
+  file_score_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-score'>score</a>")
+  file_evaluation_bulk_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-perturbation-data--pseudo-bulk'>perturbation data (full SC or pseudo-bulk)</a>")
+  file_evaluation_de_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-perturbation-data-differential-expression'>perturbation data differential expression</a>")
+  file_evaluation_sc_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-perturbation-data--sc-'>perturbation data (sc)</a>")
+  file_rna_h5ad("<a href='https://github.com/openproblems-bio/task_grn_inference#file-format-gene-expression-data'>gene expression data</a>")
+  comp_control_method[/"<a href='https://github.com/openproblems-bio/task_grn_inference#component-type-control-method'>Control Method</a>"/]
+  file_atac_h5ad-.-comp_method
+  comp_method-.->file_prediction_h5ad
+  file_prediction_h5ad---comp_metric
+  comp_metric-->file_score_h5ad
+  file_evaluation_bulk_h5ad-.-comp_metric
+  file_evaluation_de_h5ad-.-comp_metric
+  file_evaluation_sc_h5ad-.-comp_metric
+  file_rna_h5ad---comp_method
+  file_rna_h5ad---comp_control_method
+  comp_control_method-.->file_prediction_h5ad
+```
+
+## File format: chromatin accessibility data
+
+Chromatin accessibility data
+
+Example file:
+`resources_test/grn_benchmark/inference_data//op_atac.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_type', 'donor_id'
+     uns: 'dataset_id', 'dataset_name', 'dataset_summary', 'dataset_organism', 'normalization_id'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_type"]` | `string` | (*Optional*) The annotated cell type of each cell based on RNA expression. |
+| `obs["donor_id"]` | `string` | (*Optional*) Donor id. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["dataset_name"]` | `string` | Nicely formatted name. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
+| `uns["normalization_id"]` | `string` | Which normalization was used. |
+
+</div>
+
+## Component type: method
+
+A GRN inference method
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--rna` | `file` | RNA expression data. |
+| `--atac` | `file` | (*Optional*) Chromatin accessibility data. |
+| `--prediction` | `file` | (*Optional, Output*) File indicating the inferred GRN. |
+| `--tf_all` | `file` | NA. Default: `resources_test/grn_benchmark/prior/tf_all.csv`. |
+| `--max_n_links` | `integer` | (*Optional*) NA. Default: `50000`. |
+| `--num_workers` | `integer` | (*Optional*) NA. Default: `2`. |
+| `--temp_dir` | `string` | (*Optional*) NA. Default: `output/temdir`. |
+| `--layer` | `string` | (*Optional*) NA. Default: `lognorm`. |
+| `--seed` | `integer` | (*Optional*) NA. Default: `32`. |
+| `--dataset_id` | `string` | (*Optional*) NA. Default: `op`. |
+| `--apply_tf_methods` | `boolean` | (*Optional*) NA. Default: `TRUE`. |
+
+</div>
+
+## File format: GRN prediction
+
+File indicating the inferred GRN.
+
+Example file: `resources_test/grn_models/op/collectri.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     uns: 'dataset_id', 'method_id', 'prediction'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["method_id"]` | `string` | A unique identifier for the inference method. |
+| `uns["prediction"]` | `object` | Inferred GRNs in the format of source, target, weight. |
+
+</div>
+
+## Component type: metrics
+
+A metric to evaluate the performance of the inferred GRN
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--prediction` | `file` | File indicating the inferred GRN. |
+| `--evaluation_data` | `file` | (*Optional*) Perturbation dataset for benchmarking. |
+| `--evaluation_data_sc` | `file` | (*Optional*) Perturbation dataset for benchmarking (sinlge cell). |
+| `--evaluation_data_de` | `file` | (*Optional*) Perturbation dataset for benchmarking (differential expression). |
+| `--score` | `file` | (*Output*) File indicating the score of a metric. |
+| `--layer` | `string` | (*Optional*) NA. Default: `lognorm`. |
+| `--max_n_links` | `integer` | (*Optional*) NA. Default: `50000`. |
+| `--tf_all` | `file` | (*Optional*) NA. |
+| `--num_workers` | `integer` | (*Optional*) NA. Default: `20`. |
+| `--n_top_genes` | `integer` | (*Optional*) NA. Default: `3000`. |
+
+</div>
+
+## File format: score
+
+File indicating the score of a metric.
+
+Example file: `resources_test/scores/score.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     uns: 'dataset_id', 'method_id', 'metric_ids', 'metric_values'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["method_id"]` | `string` | A unique identifier for the method. |
+| `uns["metric_ids"]` | `string` | One or more unique metric identifiers. |
+| `uns["metric_values"]` | `double` | The metric values obtained for the given prediction. Must be of same length as ‘metric_ids’. |
+
+</div>
+
+## File format: perturbation data (full SC or pseudo-bulk)
+
+Perturbation dataset for benchmarking
+
+Example file:
+`resources_test/grn_benchmark/evaluation_data/op_bulk.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_type', 'perturbation', 'donor_id', 'perturbation_type'
+     layers: 'X_norm'
+     uns: 'dataset_id', 'dataset_name', 'dataset_summary', 'dataset_organism', 'normalization_id'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_type"]` | `string` | The annotated cell type of each cell based on RNA expression. |
+| `obs["perturbation"]` | `string` | Name of the column containing perturbation names. |
+| `obs["donor_id"]` | `string` | (*Optional*) Donor id. |
+| `obs["perturbation_type"]` | `string` | (*Optional*) Name of the column indicating perturbation type. |
+| `layers["X_norm"]` | `double` | Normalized values. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["dataset_name"]` | `string` | Nicely formatted name. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
+| `uns["normalization_id"]` | `string` | Which normalization was used. |
+
+</div>
+
+## File format: perturbation data differential expression
+
+Perturbation dataset for benchmarking (differential expression)
+
+Example file:
+`resources_test/grn_benchmark/evaluation_data/replogle_de.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_type', 'perturbation', 'donor_id', 'perturbation_type'
+     uns: 'dataset_id', 'dataset_name', 'dataset_summary', 'dataset_organism', 'normalization_id'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_type"]` | `string` | The annotated cell type of each cell based on RNA expression. |
+| `obs["perturbation"]` | `string` | Name of the column containing perturbation names. |
+| `obs["donor_id"]` | `string` | (*Optional*) Donor id. |
+| `obs["perturbation_type"]` | `string` | (*Optional*) Name of the column indicating perturbation type. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["dataset_name"]` | `string` | Nicely formatted name. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
+| `uns["normalization_id"]` | `string` | Which normalization was used. |
+
+</div>
+
+## File format: perturbation data (sc)
+
+Perturbation dataset for benchmarking (sinlge cell).
+
+Example file:
+`resources_test/grn_benchmark/evaluation_data/norman_sc.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_type', 'perturbation', 'donor_id', 'perturbation_type'
+     layers: 'X_norm'
+     uns: 'dataset_id', 'dataset_name', 'dataset_summary', 'dataset_organism', 'normalization_id'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_type"]` | `string` | The annotated cell type of each cell based on RNA expression. |
+| `obs["perturbation"]` | `string` | Name of the column containing perturbation names. |
+| `obs["donor_id"]` | `string` | (*Optional*) Donor id. |
+| `obs["perturbation_type"]` | `string` | (*Optional*) Name of the column indicating perturbation type. |
+| `layers["X_norm"]` | `double` | Normalized values. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["dataset_name"]` | `string` | Nicely formatted name. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
+| `uns["normalization_id"]` | `string` | Which normalization was used. |
+
+</div>
+
+## File format: gene expression data
+
+RNA expression data.
+
+Example file: `resources_test/grn_benchmark/inference_data/op_rna.h5ad`
+
+Format:
+
+<div class="small">
+
+    AnnData object
+     obs: 'cell_type', 'donor_id'
+     layers: 'counts', 'X_norm'
+     uns: 'dataset_id', 'dataset_name', 'dataset_summary', 'dataset_organism', 'normalization_id'
+
+</div>
+
+Data structure:
+
+<div class="small">
+
+| Slot | Type | Description |
+|:---|:---|:---|
+| `obs["cell_type"]` | `string` | (*Optional*) The annotated cell type of each cell based on RNA expression. |
+| `obs["donor_id"]` | `string` | (*Optional*) Donor id. |
+| `layers["counts"]` | `double` | (*Optional*) Counts matrix. |
+| `layers["X_norm"]` | `double` | Normalized values. |
+| `uns["dataset_id"]` | `string` | A unique identifier for the dataset. |
+| `uns["dataset_name"]` | `string` | Nicely formatted name. |
+| `uns["dataset_summary"]` | `string` | Short description of the dataset. |
+| `uns["dataset_organism"]` | `string` | (*Optional*) The organism of the sample in the dataset. |
+| `uns["normalization_id"]` | `string` | Which normalization was used. |
+
+</div>
+
+## Component type: Control Method
+
+Quality control methods for verifying the pipeline.
+
+Arguments:
+
+<div class="small">
+
+| Name | Type | Description |
+|:---|:---|:---|
+| `--rna` | `file` | RNA expression data. |
+| `--rna_all` | `file` | (*Optional*) RNA expression data that contains all variability. Only used for positive control. |
+| `--prediction` | `file` | (*Optional, Output*) File indicating the inferred GRN. |
+| `--tf_all` | `file` | NA. Default: `resources_test/grn_benchmark/prior/tf_all.csv`. |
+| `--max_n_links` | `integer` | (*Optional*) NA. Default: `50000`. |
+| `--num_workers` | `integer` | (*Optional*) NA. Default: `20`. |
+| `--temp_dir` | `string` | (*Optional*) NA. Default: `output/temdir`. |
+| `--layer` | `string` | (*Optional*) NA. Default: `lognorm`. |
+| `--seed` | `integer` | (*Optional*) NA. Default: `32`. |
+| `--dataset_id` | `string` | (*Optional*) NA. Default: `op`. |
+| `--apply_tf_methods` | `boolean` | (*Optional*) NA. Default: `TRUE`. |
+
+</div>
+

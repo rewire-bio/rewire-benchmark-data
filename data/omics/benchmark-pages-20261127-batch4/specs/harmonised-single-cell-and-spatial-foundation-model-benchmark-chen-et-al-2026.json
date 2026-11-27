@@ -1,0 +1,1109 @@
+{
+  "record_id": "lit-cells-networks-20261011-chen2026-benchmark-harmonised-sc-spatial-fm",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text layer of Chen et al., Harmonised benchmarking of foundation models for single-cell and spatial transcriptomics reveals context-dependent generalisation, arXiv 2607.17227v2",
+      "description": "Text extracted with pdftotext -layout from the arXiv PDF. The PDF is kept beside it as artifacts/paper.pdf.",
+      "file": "artifacts/paper.txt",
+      "artifact_url": "https://arxiv.org/pdf/2607.17227v2",
+      "url": "https://arxiv.org/abs/2607.17227v2",
+      "version": "arXiv v2, updated 2026-09-17",
+      "media_type": "text/plain",
+      "sha256": "cbec227aed21a5b78277158e42bcda3c154ae3529928215e3a699d42dedea0c6",
+      "retrieved_at": "2026-11-27T04:25:59Z",
+      "store_bytes": false
+    },
+    {
+      "key": "arxiv-meta",
+      "name": "arXiv API metadata for 2607.17227v2",
+      "description": "arXiv Atom API response for the benchmark paper, giving its title and dates.",
+      "file": "artifacts/arxiv-meta.xml",
+      "artifact_url": "http://export.arxiv.org/api/query?id_list=2607.17227v2",
+      "url": "https://arxiv.org/abs/2607.17227v2",
+      "version": "API response of 2026-11-27",
+      "media_type": "application/xml",
+      "sha256": "0b844157aa6f79f715ab353a237fc424524a6435868a871de7623cafb15a4ce8",
+      "retrieved_at": "2026-11-27T04:26:03Z",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "iced-soda/FM-benchmark README.md at commit a9550573",
+      "description": "Official repository README, pinned to a commit.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/iced-soda/FM-benchmark/a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0/README.md",
+      "url": "https://github.com/iced-soda/FM-benchmark",
+      "version": "git commit a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0",
+      "media_type": "text/markdown",
+      "sha256": "1b077d61189ad1951148cede4e10441b860d16794a287aaac9a19a955d498842",
+      "retrieved_at": "2026-11-27T04:26:36Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "readme-genept",
+      "name": "iced-soda/FM-benchmark GenePT/README.md at commit a9550573",
+      "description": "Official repository README for the GenePT-w task folder, pinned to a commit. It lists the notebooks, the required packages and what each notebook computes.",
+      "file": "artifacts/readme-genept.md",
+      "artifact_url": "https://raw.githubusercontent.com/iced-soda/FM-benchmark/a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0/GenePT/README.md",
+      "url": "https://github.com/iced-soda/FM-benchmark",
+      "version": "git commit a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0",
+      "media_type": "text/markdown",
+      "sha256": "54d506100ecb3e8bea4907f302d32756bd817aec9920ef195fd0e4cb582b7e8e",
+      "retrieved_at": "2026-11-27T04:26:45Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "license",
+      "name": "iced-soda/FM-benchmark LICENSE at commit a9550573",
+      "description": "Official repository licence file, pinned to a commit.",
+      "file": "artifacts/license.txt",
+      "artifact_url": "https://raw.githubusercontent.com/iced-soda/FM-benchmark/a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0/LICENSE",
+      "url": "https://github.com/iced-soda/FM-benchmark",
+      "version": "git commit a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0",
+      "media_type": "text/plain",
+      "sha256": "c055df9e5fe2f01f9bb5f88e856b08dda2615ad1cb9a5931cb7e660c08841867",
+      "retrieved_at": "2026-11-27T04:26:36Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "One paper's harmonised benchmark of six single-cell and spatial foundation models (Nicheformer, CellPLM, scGPT-spatial, GenePT, scELMo, Novae) across scRNA-seq, spatial transcriptomics and Perturb-seq data. Five tasks are scored under shared metrics: zero-shot clustering, clustering after continual pretraining, supervised cell type annotation, marker-gene concordance and perturbation prediction. It is for researchers choosing which foundation model, if any, to use for a given modality and task.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Methods 'Downstream evaluation tasks'",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We benchmarked six representative models, Nicheformer, CellPLM,"
+      },
+      {
+        "source": "@paper",
+        "text": "scGPT-spatial, GenePT, scELMo and Novae, using a harmonised framework spanning"
+      },
+      {
+        "source": "@paper",
+        "text": "scRNA-seq, spatial transcriptomics and Perturb-seq."
+      },
+      {
+        "source": "@paper",
+        "text": "zero-shot clustering, continually-pretrained clustering, supervised fine-tuning, biomarker"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The benchmark asks when a foundation model's representation actually helps biological inference, and whether the answer holds across modalities. Clustering tasks ask whether an embedding separates reference cell types or spatial domains; the supervised task asks whether fine-tuning or adapting a model on labels gives accurate annotation; the marker-gene task asks whether clusters found in the embedding recover the same differentially expressed genes as the reference labels; the perturbation task asks whether a representation supports predicting post-perturbation expression for perturbations not seen in training. The authors report that model rankings shifted with modality, preprocessing, tokenisation, biological prior, domain shift and metric choice, and that no model dominated.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Introduction; Methods 'DEG Analysis' and 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "No model dominated across tasks,"
+          },
+          {
+            "source": "@paper",
+            "text": "and rankings shifted with modality, preprocessing, tokenisation, biological prior, domain shift"
+          },
+          {
+            "source": "@paper",
+            "text": "To assess the biological relevance of clustering results, we compared the biomarker genes"
+          },
+          {
+            "source": "@paper",
+            "text": "ensuring that perturbation conditions in the test set were not observed during training"
+          },
+          {
+            "source": "@paper",
+            "text": "We fine-tuned or adapted each model on ground-truth"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Three scRNA-seq datasets are used: ATAA (ascending aortic tissue from 11 individuals, 11 major cell types), BMMC (the NeurIPS 2021 challenge CITE-seq subset, bone marrow mononuclear cells from 12 healthy donors, 45 annotated cell types) and HS (human splenic dendritic cells, seven subtypes). Four spatial datasets are used: HBCA1 (10x Visium human breast cancer, 20 domain labels), MHPC (mouse hippocampus, Slide-seqV2, 14 domain labels), MOSTA (mouse organogenesis Stereo-seq, section E9.5 E1S1, 12 anatomical regions) and SEAAD (middle temporal gyrus MERFISH, 27 aged donors, a 140-gene panel, 24 annotated cell types). All spatial datasets except SEAAD came from the BenchmarkST data resource. Three Perturb-seq datasets in K562 cells are used: Adamson (87 single-gene perturbations), Norman (131 two-gene and 105 single-gene perturbations) and Replogle (genome-wide CRISPR interference). Reference labels are the original studies' annotations. Each model is run with its own recommended preprocessing, so the harmonisation is in the tasks, splits and metrics rather than in one shared input pipeline.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'; Methods 'Zero-shot cell type clustering'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The ATAA dataset comprises scRNA-seq profiles from ascending aortic tissue from"
+          },
+          {
+            "source": "@paper",
+            "text": "Curated marker-gene and expert annotations were used as reference labels, comprising 45"
+          },
+          {
+            "source": "@paper",
+            "text": "Seven dendritic-cell subtypes were used as ground-truth labels for"
+          },
+          {
+            "source": "@paper",
+            "text": "All spatial transcriptomics datasets except SEAAD were obtained from the BenchmarkST"
+          },
+          {
+            "source": "@paper",
+            "text": "The Adamson dataset contains gene expression data of 87 single-"
+          },
+          {
+            "source": "@paper",
+            "text": "The Norman dataset contains gene expression data of 131 two-gene"
+          },
+          {
+            "source": "@paper",
+            "text": "embeddings were extracted using the corresponding"
+          },
+          {
+            "source": "@paper",
+            "text": "pretrained model and its recommended preprocessing procedure"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Clustering: embeddings are clustered with Leiden, sweeping the resolution until the number of clusters matches the number of reference labels, and scored with adjusted Rand index (ARI), normalised mutual information (NMI) and silhouette score; k-means results are reported in the supplement for models that originally used it. Continual pretraining repeats this after two epochs of self-supervised adaptation on the target dataset, with other hyperparameters at each model's defaults. Supervised annotation uses a stratified 8:2 train and test split, 7:1:2 where a validation set is needed, and is scored with accuracy, precision, recall, macro F1, macro PR-AUC and macro ROC-AUC. Marker-gene concordance takes the top 20 differentially expressed genes per Leiden cluster and per reference cell type with Wilcoxon rank-sum tests in Scanpy, and compares the sets with pairwise Jaccard indices. Perturbation prediction follows a scGPT-style GEARS framework with the standard simulation split, and is scored with mean squared error and Pearson correlation over all genes and over the top 20 differentially expressed genes per condition, plus the same measures on the change from control. The paper fixes random seeds at 42; the GenePT-w folder's README also lists pytorch_lightning.seed_everything(202310).",
+        "source_ids": [
+          "@paper",
+          "@readme-genept"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering', 'Continually-pretrained cell type clustering', 'Cell type annotation', 'DEG Analysis', 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The Leiden"
+          },
+          {
+            "source": "@paper",
+            "text": "resolution was swept until the number of clusters matched the number of reference labels."
+          },
+          {
+            "source": "@paper",
+            "text": "Clustering performance was assessed using"
+          },
+          {
+            "source": "@paper",
+            "text": "adjusted Rand index (ARI), normalised mutual information (NMI) and silhouette score"
+          },
+          {
+            "source": "@paper",
+            "text": "the model was continually pretrained in a self-supervised manner for"
+          },
+          {
+            "source": "@paper",
+            "text": "we applied stratified sampling with a default 8:2 train/test split"
+          },
+          {
+            "source": "@paper",
+            "text": "Recall, macro F1-score, macro-PR-AUC, and macro-ROC-AUC"
+          },
+          {
+            "source": "@paper",
+            "text": "We then computed pairwise Jaccard indices between the biomarker gene sets of the Leiden clusters and the ground-truth cell"
+          },
+          {
+            "source": "@paper",
+            "text": "partitioned using the standard"
+          },
+          {
+            "source": "@paper",
+            "text": "Performance was assessed"
+          },
+          {
+            "source": "@paper",
+            "text": "using mean squared error (MSE) and Pearson correlation across all genes"
+          },
+          {
+            "source": "@paper",
+            "text": "Random seeds were fixed"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "Random seeds are fixed (`fix_seed(42)` / `pytorch_lightning.seed_everything(202310)`) for reproducibility"
+          }
+        ]
+      },
+      {
+        "title": "Task coverage differs by model",
+        "body": "Not every model runs every task. Novae is evaluated on spatial transcriptomics only. Perturbation prediction is restricted to CellPLM, scGPT-spatial, GenePT-w and scELMo, because Nicheformer and Novae provide no comparable workflow for the GEARS setting. Supervised annotation is restricted to datasets with cell-level labels: the three scRNA-seq datasets and the single-cell-resolution SEAAD MERFISH atlas, and for SEAAD a section-wise split is used to avoid leakage between train and test. Two tasks had to be implemented by the authors where the original model did not support them: Nicheformer's cell type annotation, Novae's annotation through a frozen encoder plus a small classifier, and CellPLM's continual pretraining, because its repository provided no such pipeline.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering', 'Cell type annotation', 'Continually-pretrained cell type clustering', 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Novae was evaluated on spatial transcriptomics datasets only."
+          },
+          {
+            "source": "@paper",
+            "text": "This task was restricted to models with compatible perturbation-prediction workflows or"
+          },
+          {
+            "source": "@paper",
+            "text": "Nicheformer and Novae were not included because they do not provide directly comparable"
+          },
+          {
+            "source": "@paper",
+            "text": "we perform a section-wise split to avoid data leakage between"
+          },
+          {
+            "source": "@paper",
+            "text": "Because Nicheformer did not evaluate cell type annotation in its original"
+          },
+          {
+            "source": "@paper",
+            "text": "Because the original repository did not"
+          },
+          {
+            "source": "@paper",
+            "text": "provide an explicit continual-pretraining pipeline, our implementation followed the model"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The code is public under the MIT licence and organised by model, one directory each for CellPLM, Nicheformer, scGPT-spatial, GenePT, scELMo and Novae, with each directory holding the model's codebase plus the notebooks or scripts that run the shared tasks. The GenePT folder's README lists three notebooks, one per task, the Python packages they need, and the gene embedding pickle they read from a local data folder. The repository documents no installation or command-line entry point, so running a task means opening the relevant notebook and supplying the dataset.",
+        "source_ids": [
+          "@readme",
+          "@readme-genept"
+        ],
+        "source_locator": "README.md: Overview and License; GenePT/README.md: Contents, Requirements, Data Layout",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The repository is organised by model:"
+          },
+          {
+            "source": "@readme",
+            "text": "Each directory contains the model codebase plus a set of notebooks or scripts that run the shared benchmarking tasks."
+          },
+          {
+            "source": "@readme-genept",
+            "text": "| `zero_shot_clustering.ipynb` | Cluster cells using GenePT-w embeddings with no training (KMeans and Leiden) |"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "Only the GenePT-w gene embedding pickles are specific to this repo"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Ten datasets. scRNA-seq: ATAA (11 individuals, 11 major cell types), BMMC (12 healthy donors, 45 annotated cell types), HS (seven dendritic-cell subtypes). Spatial: HBCA1 (20 domains), MHPC (14 domain labels), MOSTA E9.5 E1S1 (12 anatomical regions), SEAAD (27 aged donors, 140-gene panel, 24 annotated cell types). Perturb-seq in K562: Adamson (87 single-gene perturbations), Norman (131 two-gene and 105 single-gene perturbations), Replogle (genome-wide CRISPR interference). Cell counts are not printed in the text.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The original study identified 11 major cell types through integrative clustering and marker-based"
+          },
+          {
+            "source": "@paper",
+            "text": "comprising 20"
+          },
+          {
+            "source": "@paper",
+            "text": "which contains 14"
+          },
+          {
+            "source": "@paper",
+            "text": "using 12 annotated anatomical regions"
+          },
+          {
+            "source": "@paper",
+            "text": "dataset, which includes samples from 27 aged donors, a 140-gene panel and 24 annotated cell types"
+          },
+          {
+            "source": "@paper",
+            "text": "The Replogle dataset contains genome-wide perturbations"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "By task. Clustering tasks have no split: the whole dataset is embedded and clustered. Supervised annotation uses a stratified 8:2 train and test split, with the training part cut 7:1 into train and validation where a model needs one (7:1:2 overall), except SEAAD, which is split section-wise with two sections held out as validation. Perturbation prediction uses the GEARS standard simulation split with seed 42, so test perturbation conditions are unseen in training.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Cell type annotation' and 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we applied stratified sampling with a default 8:2 train/test split"
+          },
+          {
+            "source": "@paper",
+            "text": "resulting in a 7:1:2 train/validation/test partition"
+          },
+          {
+            "source": "@paper",
+            "text": "For SEAAD, which"
+          },
+          {
+            "source": "@paper",
+            "text": "contains 69 tissue sections, we perform a section-wise split to avoid data leakage between"
+          },
+          {
+            "source": "@paper",
+            "text": "partitioned using the standard"
+          },
+          {
+            "source": "@paper",
+            "text": "simulation split with a fixed random seed of 42"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Clustering: ARI, NMI and silhouette score, higher is better. Supervised annotation: accuracy, precision, recall, macro F1, macro PR-AUC and macro ROC-AUC, higher is better. Marker-gene concordance: Jaccard index between top-20 gene sets, higher is better. Perturbation prediction: Pearson correlation (higher is better) and mean squared error (lower is better), over all genes and over the top 20 differentially expressed genes, and the same on the change from control.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering', 'Cell type annotation', 'DEG Analysis', 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "adjusted Rand index (ARI), normalised mutual information (NMI) and silhouette score"
+          },
+          {
+            "source": "@paper",
+            "text": "Model performance was evaluated using global Accuracy, Precision,"
+          },
+          {
+            "source": "@paper",
+            "text": "pairwise Jaccard indices"
+          },
+          {
+            "source": "@paper",
+            "text": "using mean squared error (MSE) and Pearson correlation across all genes, as well as MSE"
+          },
+          {
+            "source": "@paper",
+            "text": "and Pearson correlation restricted to the top 20 differentially expressed genes for each"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "The six foundation models are compared with each other; ground-truth annotations and ground-truth-label marker genes are the references. Ground-truth UMAPs were made with Scanpy on 2,000 highly variable genes and 40 principal components, but the result tables report no non-foundation-model baseline such as PCA or scVI.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Ground truth visualisation'; Methods 'Downstream evaluation tasks'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Ground-truth UMAPs for scRNA-seq datasets were generated"
+          },
+          {
+            "source": "@paper",
+            "text": "restricted to the top 2,000 highly variable genes using the cell_ranger method"
+          },
+          {
+            "source": "@paper",
+            "text": "visualised using UMAP based on a nearest-neighbour graph constructed from the top 40"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Per task, and partial. Perturbation prediction uses the GEARS simulation split so that test conditions are unseen. SEAAD annotation is split by tissue section to avoid leakage between train and test. Overlap between the evaluation datasets and each model's pretraining corpus is not controlled or reported; the authors say current foundation models remain vulnerable to domain shift.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Perturbation Prediction' and 'Cell type annotation'; Introduction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "ensuring that perturbation conditions in the test set were not observed during training"
+          },
+          {
+            "source": "@paper",
+            "text": "we perform a section-wise split to avoid data leakage between"
+          },
+          {
+            "source": "@paper",
+            "text": "models remain vulnerable to domain shift and limited interpretability"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None reported: no replicates, repeated splits or confidence intervals are described. The paper states a random seed of 42 for splits and stochastic steps; the GenePT-w folder's README also lists pytorch_lightning.seed_everything(202310).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme-genept"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering' and 'Cell type annotation'; GenePT/README.md: Requirements",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "at 42 for NumPy, Scanpy and PyTorch before stochastic operations, including PCA and"
+          },
+          {
+            "source": "@paper",
+            "text": "To ensure reproducibility, a random seed"
+          },
+          {
+            "source": "@paper",
+            "text": "of 42 was applied to all splitting and stochastic processes"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "Random seeds are fixed (`fix_seed(42)` / `pytorch_lightning.seed_everything(202310)`) for reproducibility"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A cell for clustering and annotation (a spot or cell with tissue coordinates for the spatial datasets), and a held-out perturbation condition for perturbation prediction, scored over a shared gene set.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering' and 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "spatial plots were generated using the provided tissue coordinates and model-derived cluster or domain assignments"
+          },
+          {
+            "source": "@paper",
+            "text": "For each held-out perturbation condition, predicted and observed post-perturbation expression"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human and mouse. Human: ATAA aortic tissue, BMMC bone marrow, HS spleen, HBCA1 breast cancer, SEAAD brain, and the K562 Perturb-seq screens. Mouse: MHPC hippocampus and MOSTA embryo.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The HS dataset comprised human splenic dendritic cells isolated from"
+          },
+          {
+            "source": "@paper",
+            "text": "The annotated Mouse Hippocampus (MHPC) dataset contains a single"
+          },
+          {
+            "source": "@paper",
+            "text": "profiles mouse organogenesis using Stereo-seq"
+          },
+          {
+            "source": "@paper",
+            "text": "perturbations from the K562 leukemia cell line perturbed by Perturb-seq"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "scRNA-seq and CITE-seq; spatial transcriptomics by 10x Visium, Slide-seqV2, Stereo-seq and MERFISH; Perturb-seq genetic screens including CRISPR interference. Labels are the original studies' expert or marker-based annotations.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We used the CITE-seq subset, which was profiled across multiple sites with a nested batch design."
+          },
+          {
+            "source": "@paper",
+            "text": "Genomics Visium section of human breast cancer"
+          },
+          {
+            "source": "@paper",
+            "text": "slice of the mouse hippocampus region sequenced using slide-seqV2"
+          },
+          {
+            "source": "@paper",
+            "text": "We used the middle temporal gyrus MERFISH"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Each model's own documented inputs, prepared by its own recommended preprocessing: raw counts for Nicheformer, library-size normalised and log1p counts for CellPLM, vocabulary-aligned binned expression for scGPT-spatial, normalised counts combined with text-derived gene embeddings for GenePT-w and scELMo, and spatial coordinates with neighbourhood graphs for Novae. Genes outside a checkpoint's vocabulary are discarded.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering', per-model paragraphs",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Raw gene expression values for the entire dataset were passed through the model to generate cell"
+          },
+          {
+            "source": "@paper",
+            "text": "Genes were aligned to the checkpoint"
+          },
+          {
+            "source": "@paper",
+            "text": "vocabulary, and out-of-vocabulary genes were discarded"
+          },
+          {
+            "source": "@paper",
+            "text": "Datasets were"
+          },
+          {
+            "source": "@paper",
+            "text": "loaded as AnnData objects with spatial coordinates, and cell neighbourhoods were"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Three settings are scored: zero-shot (frozen pretrained embeddings), continual pretraining (two epochs of self-supervised adaptation on the target dataset), and supervised annotation with each model's default or recommended set-up: most models are fine-tuned, GenePT-w uses a k=7 nearest-neighbour vote on its embeddings, and Novae trains a small classifier on a frozen encoder.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme-genept"
+        ],
+        "source_locator": "Paper: Methods 'Downstream evaluation tasks', 'Continually-pretrained cell type clustering', 'Cell type annotation'; GenePT/README.md: cell_type_annotation.ipynb",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the model was continually pretrained in a self-supervised manner for"
+          },
+          {
+            "source": "@paper",
+            "text": "two epochs on the corresponding dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "we performed supervised fine-tuning of each model on the cell type"
+          },
+          {
+            "source": "@paper",
+            "text": "while the Novae encoder weights remained frozen throughout training"
+          },
+          {
+            "source": "@paper",
+            "text": "We fine-tuned or adapted each model on ground-truth"
+          },
+          {
+            "source": "@paper",
+            "text": "For GenePT-w, cell type annotation was implemented using a k-nearest-"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "Cell types are predicted by **majority vote over the k=7 nearest neighbors**"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Tasks, splits, clustering procedure, metrics and seeds are the same across models, and where the Leiden resolution could bias the comparison it is swept to match the number of reference labels.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Zero-shot cell type clustering' and 'Continually-pretrained cell type clustering'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "resolution was swept until the number of clusters matched the number of reference labels."
+          },
+          {
+            "source": "@paper",
+            "text": "The evaluation procedures were also identical to those used for zero-shot"
+          }
+        ]
+      },
+      {
+        "text": "Perturbation metrics are computed on one shared gene set per dataset, the intersection of the dataset's genes with every evaluated model's vocabulary, so differences are not driven by unequal gene coverage.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "this gene set was defined as the shared intersection between the dataset gene"
+          },
+          {
+            "source": "@paper",
+            "text": "ensuring that differences in MSE, Pearson correlation and delta-based metrics"
+          },
+          {
+            "source": "@paper",
+            "text": "were not driven by unequal gene coverage"
+          }
+        ]
+      },
+      {
+        "text": "The per-model implementation details are written out, including checkpoints, batch sizes, learning rates, masking ratios and where the authors had to implement a task the original model did not provide.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, per-model paragraphs",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "continual pretraining was implemented by fine-tuning the pretrained"
+          },
+          {
+            "source": "@paper",
+            "text": "Training was performed for two epochs using the Adam optimiser with a learning rate of 1×10-4 and"
+          },
+          {
+            "source": "@paper",
+            "text": "a masking ratio of 0.20"
+          }
+        ]
+      },
+      {
+        "text": "The code that runs the tasks is public under the MIT licence, organised per model.",
+        "source_ids": [
+          "@paper",
+          "@license",
+          "@readme"
+        ],
+        "source_locator": "Paper: Data and Tool Availability; LICENSE; README.md: Overview",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The code for preprocessing, running the models and evaluation can be accessed at"
+          },
+          {
+            "source": "@license",
+            "text": "MIT License"
+          },
+          {
+            "source": "@readme",
+            "text": "The repository is organised by model:"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "No non-foundation-model baseline is reported in the result tables: the models are compared with each other and with ground-truth labels, so a reader cannot see whether a simple method such as highly variable genes or PCA would match them. Highly variable genes are used only for the ground-truth UMAPs.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Ground truth visualisation'; Methods 'Downstream evaluation tasks'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Ground-truth UMAPs for scRNA-seq datasets were generated"
+          },
+          {
+            "source": "@paper",
+            "text": "to assess unsupervised, self-supervised,"
+          },
+          {
+            "source": "@paper",
+            "text": "and supervised performance on single-cell and spatial transcriptomics datasets"
+          }
+        ]
+      },
+      {
+        "text": "Overlap between the evaluation datasets and the models' pretraining corpora is not checked, so a model may be scored on cells it was pretrained on.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Datasets'; Introduction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Recent zero-shot studies further show that widely used single-cell"
+          },
+          {
+            "source": "@paper",
+            "text": "foundation models can underperform simpler baselines and degrade under dataset or"
+          }
+        ]
+      },
+      {
+        "text": "No replicates or intervals are reported; the paper fixes its seeds at 42 and the GenePT-w README also lists a seed of 202310. The authors' own finding is that rankings shift with preprocessing and metric choice, so small differences between models should not be read as decisive.",
+        "source_ids": [
+          "@paper",
+          "@readme-genept"
+        ],
+        "source_locator": "Paper: Abstract; Methods 'Zero-shot cell type clustering'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "and rankings shifted with modality, preprocessing, tokenisation, biological prior, domain shift"
+          },
+          {
+            "source": "@paper",
+            "text": "at 42 for NumPy, Scanpy and PyTorch before stochastic operations, including PCA and"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "Random seeds are fixed (`fix_seed(42)` / `pytorch_lightning.seed_everything(202310)`) for reproducibility"
+          }
+        ]
+      },
+      {
+        "text": "Coverage is uneven and partly author-implemented: Novae is spatial only, perturbation prediction covers four of the six models, and the Nicheformer and Novae annotation tasks and the CellPLM continual pretraining pipeline were written by the authors because the original models did not provide them.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods 'Cell type annotation', 'Continually-pretrained cell type clustering', 'Perturbation Prediction'",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Nicheformer and Novae were not included because they do not provide directly comparable"
+          },
+          {
+            "source": "@paper",
+            "text": "Although Novae did not include cell type annotation as one of its original"
+          },
+          {
+            "source": "@paper",
+            "text": "provide an explicit continual-pretraining pipeline, our implementation followed the model"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Chen et al. 2026 harmonised benchmark",
+      "steps": [
+        "scRNA-seq, spatial and Perturb-seq datasets",
+        "Model-specific preprocessing and embedding",
+        "Zero-shot, continually pretrained or supervised setting",
+        "Shared task: clustering, annotation, marker genes or perturbation",
+        "Shared metrics per task"
+      ],
+      "caption": "Each dataset is embedded by each compatible model under its own preprocessing, then scored on the shared tasks and metrics in one of three adaptation settings.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Abstract; Methods 'Downstream evaluation tasks'",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "using a harmonised framework spanning"
+        },
+        {
+          "source": "@paper",
+          "text": "We evaluated the models across five benchmarking tasks"
+        },
+        {
+          "source": "@paper",
+          "text": "pretrained model and its recommended preprocessing procedure"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Cell counts per dataset, and the result values themselves, are in the paper's tables and figures; this page describes the design rather than the scores.",
+      "The repository documents no installation steps, environment file or command-line entry point, so the run guide's only command is getting the code.",
+      "The datasets are not redistributed by the benchmark: the spatial sets come from the BenchmarkST resource and the others from their original studies, and no dataset licence is stated in the sources read."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the full text layer of arXiv 2607.17227v2, its arXiv API metadata, and the repository README, GenePT/README.md and LICENSE at commit a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0, all fetched on 2026-11-27. The notebooks themselves were not read. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Get the benchmark code at a pinned commit, install the packages the task folder lists, and open that folder's notebook for the task you want in Jupyter. No saved file prints an install or run command. For GenePT-w, the README's table names zero_shot_clustering.ipynb while its Data Layout block shows genept/run_zero_shot_clustering.ipynb, so the notebook file name and the folder's letter case are not confirmed; check the folder listing.",
+    "prerequisites": [
+      "Python with the packages the GenePT folder lists: scanpy, anndata, numpy, pandas, scikit-learn, torch, matplotlib, seaborn, optionally hnswlib, plus gears and pytorch_lightning for the perturbation notebook. The README gives no versions and no install command.",
+      "The datasets, as .h5ad files; the repository does not redistribute them.",
+      "The repository's own code is MIT licensed, and each model's original licence is in its subdirectory."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/iced-soda/FM-benchmark\ncd FM-benchmark\ngit checkout --detach a9550573ea8b51ccaf7e6e3f7f2bfa9ce5620ff0",
+        "explanation": "Clone the repository the paper names as the code for preprocessing, running the models and evaluation. These three lines were written here from that address; the repository documents no clone command. The checkout pins the commit this page was read at.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Data and Tool Availability; README.md: Overview",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "https://github.com/iced-soda/FM-benchmark."
+          },
+          {
+            "source": "@readme",
+            "text": "# FM-benchmark"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "### `zero_shot_clustering.ipynb`"
+          },
+          {
+            "source": "@readme-genept",
+            "text": "├── run_zero_shot_clustering.ipynb"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "For the GenePT-w annotation notebook the README names accuracy, macro precision, recall and F1, macro PR-AUC and macro ROC-AUC; for the perturbation notebook, Pearson correlations of predicted against true mean expression per condition, on all genes and on differentially expressed genes, and the same on the change from control.",
+      "The README does not say what files the notebooks write."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The clone and checkout lines were written here from the repository address the paper prints; the repository documents no clone, install or run command, so the guide gives none.",
+      "The notebooks were not read, so what each one needs on disk beyond the dataset and the embedding pickle is not confirmed here.",
+      "Only the GenePT-w folder's README was fetched; the other five model folders may need different packages and inputs."
+    ],
+    "source_ids": [
+      "@readme",
+      "@readme-genept",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Zero-shot cell type and spatial domain clustering",
+      "dataset": "ATAA, BMMC, HS, HBCA1, MHPC, MOSTA",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "no split; whole dataset embedded and clustered",
+      "primary_metric": "ARI",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/iced-soda/FM-benchmark",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": "2026-07-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Zero-shot clustering was performed to evaluate whether pretrained model embeddings"
+        },
+        {
+          "source": "@paper",
+          "text": "adjusted Rand index (ARI), normalised mutual information (NMI) and silhouette score"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/iced-soda/FM-benchmark."
+        },
+        {
+          "source": "@license",
+          "text": "MIT License"
+        },
+        {
+          "source": "@arxiv-meta",
+          "text": "<published>2026-07-19T12:29:35Z</published>"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 2. Zero-shot cell type clustering results across three scRNA-seq and three spatial transcriptomics datasets."
+        },
+        {
+          "source": "@paper",
+          "text": "human breast cancer (BC/HBCA1), mouse hippocampus (MH/MHPC) and mouse embryo (ME/MOSTA E9.5)"
+        }
+      ]
+    },
+    {
+      "task": "Continually pretrained clustering",
+      "dataset": "ATAA, BMMC, HS, HBCA1, MHPC, MOSTA",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "two epochs of self-supervised adaptation on the target dataset, then clustered",
+      "primary_metric": "ARI",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/iced-soda/FM-benchmark",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": "2026-07-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "the model was continually pretrained in a self-supervised manner for"
+        },
+        {
+          "source": "@paper",
+          "text": "two epochs on the corresponding dataset"
+        },
+        {
+          "source": "@paper",
+          "text": "adjusted Rand index (ARI), normalised mutual information (NMI) and silhouette score"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/iced-soda/FM-benchmark."
+        },
+        {
+          "source": "@license",
+          "text": "MIT License"
+        },
+        {
+          "source": "@arxiv-meta",
+          "text": "<published>2026-07-19T12:29:35Z</published>"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 3. Continually pretrained cell type clustering results across three scRNA-seq and three spatial transcriptomics datasets."
+        },
+        {
+          "source": "@paper",
+          "text": "human breast cancer (BC/HBCA1), mouse hippocampus (MH/MHPC) and mouse embryo (ME/MOSTA E9.5)"
+        }
+      ]
+    },
+    {
+      "task": "Supervised cell type annotation",
+      "dataset": "ATAA, BMMC, HS, SEAAD",
+      "size": 4,
+      "size_unit": "datasets",
+      "split": "stratified 8:2 train/test, 7:1:2 where a validation set is needed; section-wise for SEAAD",
+      "primary_metric": "macro F1-score",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/iced-soda/FM-benchmark",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": "2026-07-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "this task was restricted to datasets with cell-level"
+        },
+        {
+          "source": "@paper",
+          "text": "annotations, including three scRNA-seq datasets and the single-cell-resolution SEAAD MERFISH spatial atlas"
+        },
+        {
+          "source": "@paper",
+          "text": "we applied stratified sampling with a default 8:2 train/test split"
+        },
+        {
+          "source": "@paper",
+          "text": "Recall, macro F1-score, macro-PR-AUC, and macro-ROC-AUC"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/iced-soda/FM-benchmark."
+        },
+        {
+          "source": "@license",
+          "text": "MIT License"
+        },
+        {
+          "source": "@arxiv-meta",
+          "text": "<published>2026-07-19T12:29:35Z</published>"
+        }
+      ]
+    },
+    {
+      "task": "Genetic perturbation prediction",
+      "dataset": "Adamson, Norman, Replogle",
+      "size": 3,
+      "size_unit": "datasets",
+      "split": "GEARS standard simulation split, seed 42",
+      "primary_metric": "Pearson correlation",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/iced-soda/FM-benchmark",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": "2026-07-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "using three Perturb-seq datasets: Adamson, Norman"
+        },
+        {
+          "source": "@paper",
+          "text": "simulation split with a fixed random seed of 42"
+        },
+        {
+          "source": "@paper",
+          "text": "using mean squared error (MSE) and Pearson correlation across all genes"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/iced-soda/FM-benchmark."
+        },
+        {
+          "source": "@license",
+          "text": "MIT License"
+        },
+        {
+          "source": "@arxiv-meta",
+          "text": "<published>2026-07-19T12:29:35Z</published>"
+        }
+      ]
+    },
+    {
+      "task": "Marker-gene concordance (DEG analysis)",
+      "dataset": "Datasets of the continually pretrained clustering task",
+      "size": null,
+      "size_unit": null,
+      "split": "top 20 differentially expressed genes per cluster and per reference cell type",
+      "primary_metric": "Jaccard index",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/iced-soda/FM-benchmark",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": "2026-07-19",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we compared the biomarker genes"
+        },
+        {
+          "source": "@paper",
+          "text": "identified from the continually pretrained clustering task with those from the ground-truth annotations"
+        },
+        {
+          "source": "@paper",
+          "text": "to identify the top 20 differentially expressed genes"
+        },
+        {
+          "source": "@paper",
+          "text": "pairwise Jaccard indices"
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/iced-soda/FM-benchmark."
+        },
+        {
+          "source": "@license",
+          "text": "MIT License"
+        },
+        {
+          "source": "@arxiv-meta",
+          "text": "<published>2026-07-19T12:29:35Z</published>"
+        }
+      ]
+    }
+  ],
+  "notes": "The record's dataset names use short codes (BC, MH, ME) where the paper writes HBCA1, MHPC and MOSTA; this page uses the paper's names. The paper's arXiv metadata gives 2026-07-19 as the first posting and 2026-09-17 as the v2 update; the released field carries the first posting. The clustering structured entries cover the six datasets of Tables 2 and 3 (three scRNA-seq and three spatial; SEAAD is used only for supervised annotation); sizes are dataset counts, because the paper does not print cell counts. The perturbation task covers four of the six models and Novae is spatial only, so a size in datasets does not mean every model ran every dataset. The GitHub repository states no numeric results and no leaderboard, and the paper names no data repository of its own."
+}

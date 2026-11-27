@@ -1,0 +1,2089 @@
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                   Beyond Expression Prediction: Benchmarking
+                 Differential Expression Classification in Single-Cell
+                                Perturbation Models
+
+                    Junwei Sun1 , Yuxun He1† , Ouyang Zhu2† , Yiqun T. Chen1,3*
+                    1
+                    Department of Biostatistics, Johns Hopkins University, Baltimore,
+                                              21205, MD, USA.
+                     2
+                       Department of Applied and Computational Mathematics and
+                   Statistics, University of Notre Dame, Notre Dame, 46556, IN, USA.
+                      3
+                        Department of Computer Science, Johns Hopkins University,
+                                        Baltimore, 21205, MD, USA.
+
+
+                         *Corresponding author(s). E-mail(s): yiqunc@jhu.edu;
+                  Contributing authors: jsun140@jh.edu; yhe142@jh.edu; ozhu@nd.edu;
+                            †
+                              These authors contributed equally to this work.
+
+
+                                                             Abstract
+                    Accurate predictions of transcriptomic responses to genetic perturbations could
+                    unlock our understanding of gene functions and regulatory networks. While a
+                    growing number of methods and benchmarks target this task, existing evaluations
+                    focus on mean expression accuracy alone. This overlooks differential expression
+                    (DE), which captures both mean and variance and forms the basis for biologi-
+                    cal interpretation and experimental follow-up. Here, we systematically evaluate
+                    a diverse set of deep learning and non-deep-learning methods for their ability
+                    to predict DE outcomes under two generalization regimes: unseen perturbations
+                    within the same cell line, and unseen cellular contexts across cell lines. We find
+                    that simple baselines, such as embedding-based nearest neighbors, are competi-
+                    tive and often outperform specialized deep learning models for DE classification
+                    across datasets and evaluation metrics. We further show that sparsity calibra-
+                    tion, motivated by the structure of single-cell data, substantially improves DE
+                    classification for deep learning models that do not explicitly account for sparsity.
+                    Together, our findings establish practical baselines and evaluation principles for
+                    benchmarking perturbation models on DE prediction.
+
+
+
+
+                                                                  1
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                           Keywords: Perturbation Modeling, Differential Expression Benchmarking,
+                           Benchmarking, Single-cell RNA sequencing, Model Calibration
+
+
+
+
+                    1 Introduction
+                    Understanding how cells respond to external perturbations such as small molecules
+                    and genetic modifications could unlock much-needed understanding of gene regulation
+                    and cellular biology. Recent technologies, such as Perturb-seq [1], pair CRISPR-based
+                    perturbations with single-cell RNA sequencing to measure transcriptomic profiles after
+                    gene knockdowns at scale. Perturb-seq experiments have yielded meaningful biological
+                    insights: for instance, perturbing ANK2, a gene linked to neurodevelopment, was found
+                    to significantly upregulate an interneuron-specific gene module, suggesting a role in
+                    interneuron maturation beyond its known functions [2].
+                        Despite their potential to further biological understanding, perturbational screens
+                    remain expensive. As a result, computational models that predict transcriptomic
+                    responses to genetic perturbations have become a major focus in computational biol-
+                    ogy and artificial intelligence, with the hope that accurate predictions could inform
+                    or even substitute for costly wet-lab experiments — an aspiration sometimes cap-
+                    tured by the term “virtual cells.” [3, 4] A key downstream application of these
+                    models is differential expression (DE) analysis [5–7], which classifies each gene’s
+                    response to a perturbation as up-regulated, down-regulated, or unchanged based on
+                    whether its expression significantly increases, decreases, or remains stable relative to
+                    an unperturbed control, respectively.
+                        Existing approaches [4] broadly fall into two categories. The first predicts continu-
+                    ous gene expression profiles, which are subsequently discretized into DE categories via
+                    statistical tests; representative methods include GEARS [8], scGPT [9], GenePert [10],
+                    VAE-based approaches (e.g., scVI [11], scGen [12]), transformer-based method (e.g.,
+                    STATE [13]), and models utilizing large language model (LLM) derived embeddings
+                    such as Scouter [14] and scPert [15]. The second category directly models DE outcomes
+                    as a classification problem, often leveraging LLM reasoning. Notable examples include
+                    PerturbQA [16], SynthPert [17], and rbio1 [18]. Beyond these, agentic approaches such
+                    as VCHarness [19] and CellForge [20] autonomously construct perturbation-response
+                    models by combining AI coding agents with multimodal biological foundation models.
+                        As the model space rapidly expands, rigorous and standardized evaluation has
+                    become increasingly important, which motivated a growing number of benchmarking
+                    effort [21–27]. Despite the extensive coverage of cell lines, models, and evaluation
+                    metrics of current benchmarks, DE classification has received little attention as an
+                    evaluation target. In particular, benchmarking model performance on more biologically
+                    interpretable DE labels (i.e., up-regulation, down-regulation, or no significant change)
+                    could be more relevant in downstream experimental design and validation, where a
+                    predicted effect’s significance must be judged against the variability inherent in the
+                    data rather than taken at face value [2, 28, 29]. In greater detail, existing benchmarks
+                    primarily assess models on continuous expression metrics (e.g., Pearson correlation,
+
+
+
+                                                                         2
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             mean absolute error). For those that do evaluate DE prediction, the most common
+             choice is a top-k DE gene overlap score: the overlap between the top-k predicted
+             and top-k true DE genes (both ranked by true absolute log2 fold change), divided
+             by k . This metric, however, overlooks class-wise performance across up-regulated,
+             down-regulated, and unchanged genes. Furthermore, as emerging methods increasingly
+             model discrete DE outcomes directly [16–18], systematically comparing simple discrete
+             classifiers against DE predictions derived from more complex deep learning models
+             could help establish best practices for DE prediction.
+                 We therefore present a benchmarking study centered on discrete differential gene
+             identification. We evaluate five deep learning models and three non-deep-learning
+             methods across four cell-line datasets and two generalization regimes: unseen per-
+             turbations within the same cell line, and unseen cellular contexts. Non-deep-learning
+             methods include a perturbation majority vote (i.e., predicts the DE outcome of a
+             gene by its most common behavior under training perturbations), embedding-based k-
+             nearest neighbor classifiers (i.e., classification based on KNN where perturbations are
+             represented by embeddings, specifically we use the GenePT embeddings [30]), and a
+             regularized logistic regression with perturbation embeddings as features. Deep learn-
+             ing methods include scVI [11], which we use both sampling-based and mean-expression
+             predictions, referred to as scVI sampling and scVI mean respectively, Scouter [14],
+             and a variational autoencoder adapted from scGen (referred to as VAE scGen) for the
+             within-cell-line setting [12]; STATE [13], TranScouter [31], scVI sampling, scVI mean,
+             and VAE scGen are additionally evaluated in the cross-cell-line setting (see Figure 1).
+             For details on individual models, see Methods at section 3. We evaluate across four
+             widely-used essential gene screen cell lines: K562 [32], RPE1 [32], Jurkat [33], and
+             HepG2 [33]. We also explore the effect of distribution calibration and subset sampling
+             on the benchmarking results (Figure 1). Our key findings are:
+             1. Simple classification baselines are competitive with, and often out-
+                perform, deep learning models on DE classification, across both unseen-
+                perturbation and unseen-cellular-context generalization tasks. Simple baselines
+                achieve this by providing high precision predictions (i.e., more precise DE gene
+                identification) while deep learning models tend to favor higher recall at the cost of
+                precision (i.e., more false positive DE calls).
+             2. Model rankings depend on the choice of evaluation metric, and no single model
+                uniformly outperforms across all settings. Moreover, better performance on
+                continuous expression metrics does not imply better DE prediction per-
+                formance, underscoring the need for a tailored metric panel when evaluating
+                single-cell perturbation models.
+             3. Calibrating predictions to the sparsity of real single-cell data con-
+                sistently improves DE classification for deep learning models that do not
+                explicitly account for sparsity, while offering limited benefit to models with built-
+                in distributional regularization. This points to calibration as a practical lever for
+                improving existing methods.
+             4. Data curation could inflate reported performance. While subsampling rare
+                classes could be an effective way to train models in the presence of rare DE classes,
+                model performance and ranking on the subsampled data could differ drastically
+
+
+                                                                  3
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                        from performance on the full dataset, which is more practically relevant to real-
+                        world deployment conditions.
+                        Related Work. Several recent work has focused on benchmarking single-cell
+                    perturbation models. Ahlmann-Eltze et al. [21] compared seven deep learning meth-
+                    ods against simple linear baselines on dataset by Norman et al. [34], finding that
+                    no deep learning model outperforms simple methods on continuous expression met-
+                    rics including root mean squared error and Pearson correlations. Wei et al. [24]
+                    extended this evaluation to 27 methods across 29 datasets using six complemen-
+                    tary metrics, and Radig et al. [23] developed scArchon, a benchmarking platform
+                    evaluating models through a composite of statistical (t-tests, Wasserstein distance)
+                    and biological metrics (UMAP visualizations, gene ontology annotation). Both works
+                    used the DE gene overlap score as the sole evaluation for DE prediction. Mao et al.
+                    [22] further showed that model performance is highly context-dependent and drops
+                    markedly in cellular context transfer. Others, such as Cole et al. [26], benchmarked
+                    foundation-model-derived perturbation embeddings in a KNN regression framework,
+                    and found that using interactome- and prior-knowledge-based embeddings often out-
+                    perform simple linear baselines in mean root squared error across genetic and chemical
+                    perturbations. Beyond model comparisons, several studies have scrutinized evaluation
+                    methodology itself. Viñas Torné et al. [25] showed that standard Pearson correlation
+                    metrics are dominated by systematic variation — the common, non-perturbation-
+                    specific expression shift shared across perturbed cells relative to controls — rather than
+                    perturbation-specific signal. Finally, Nicol et al. [35] demonstrated that reusing the
+                    same control population to define both predictions and ground truth systematically
+                    inflates reported performance.
+                        Across these efforts, evaluation has primarily focused on continuous expression
+                    metrics such as Pearson correlation and mean absolute error. The most similar
+                    approach to our DE evaluation is the top-k DE gene overlap score introduced in
+                    Section 1, which measures the overlap between top-k predicted and top-k true DE
+                    genes. This metric, however, does not capture class-specific performance. Our work
+                    complements existing studies in two key aspects. First, we focus on DE classification,
+                    which accounts for the variance in the expression data and is therefore more aligned
+                    with downstream biological analysis. Second, we expand the metric panel beyond
+                    DE overlap [13, 23, 24] to include balanced accuracy, macro F1, and class-wise F1,
+                    providing a richer characterization of model behavior across the three DE outcome
+                    classes. Finally, our experimental splits are derived from the same cell-line datasets
+                    as prior work [13, 16, 26], enabling direct comparison of absolute performance while
+                    contributing new findings on the classification axis.
+
+
+
+
+                                                                         4
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             2 Results
+             2.1 Benchmarking Results for Unseen Perturbation
+                 Generalization
+             Overall, scVI sampling is the best model, and tested non-deep-learning methods are
+             competitive with, and often outperform, the other deep learning models. In this eval-
+             uation, scVI sampling achieves the highest macro-F1 on three of the four datasets
+             (K562: 0.588, RPE1: 0.534, HepG2: 0.528, Jurkat: 0.444), placing second to 1-NN
+             (based on GenePT embedding distance) on Jurkat. Across macro-F1, balanced accu-
+             racy, and per-class F1, scVI sampling consistently ranks among the top two models
+             on nearly all datasets (Figure 2), establishing it as a top deep learning method for DE
+             classification in our benchmark for unseen perturbations.
+                 Among the non-deep-learning methods, 1-NN and regularized logistic regres-
+             sion stand out, matching scVI sampling on several metrics. 1-NN outperforms
+             scVI sampling on up-regulation F1 in RPE1 and Jurkat, and otherwise trails the best
+             model by only a small gap (< 13% across all DE classification metrics and datasets).
+             Regularized logistic regression leads on balanced accuracy with an average of 65.6%
+             (K562: 70.0%, RPE1: 63.1%, HepG2: 67.3%, Jurkat: 62.2%), exceeding the second
+             best model by 9% on average.
+                 We further investigate class-wise performance and find that the strong perfor-
+             mance of non-deep-learning methods comes from a more aggressive DE-class prediction
+             strategy: logistic regression labels approximately 14.7% of perturbation-gene pairs as
+             DE against a true prevalence of only 2.9% (Table 1), yielding high minority-class
+             recall (average up-regulated: 54.3%; average down-regulated: 55.9%) at the cost of
+             low precision (average up: 9.4%; average down: 11.7%). Sampling-based scVI, by con-
+             trast, closely tracks the true DE prevalence (4.3% predicted vs. 2.9% true), trading
+             minority-class recall for substantially higher precision.
+                 It turns out that sampling-based scVI is an exception and most deep learning
+             methods benchmarked for this task over-predict DE genes: VAE scGen (62.6% pre-
+             dicted DE), Scouter (64.1%), and scVI mean (73.4%) all predict DE signals much
+             higher than the true prevalence (Table 1). Since the non-DE class dominates the eval-
+             uation set, over-predicting DE leads to lower accuracy than methods that predict
+             less DE overall, an effect that is especially pronounced for low-fold-change perturba-
+             tions. Table 2 illustrates this quantitatively: after partitioning all perturbation-gene
+             pairs within each dataset into five equal-sized bins (Q1–Q5, with bin boundaries
+             determined independently per dataset) by true absolute log2 fold-change, scVI mean,
+             VAE scGen, and Scouter achieve less than 45% accuracy in Q1–Q4, where true DE is
+             rare, while scVI sampling and non-deep-learning methods maintain above 96% accu-
+             racy in the same bins. Crucially, these over-predicting models also fail to surpass
+             scVI sampling or the leading non-deep-learning methods even in Q5, where true DE
+             pairs are concentrated. This over-prediction pattern therefore offers little-to-none gain
+             in the DE-enriched regime while imposing a heavy cost elsewhere, leading to their
+             weak performance.
+                 Lastly, we investigate whether aggressive over-prediction brings an advantage in
+             capturing the most significant DE pairs. We use the metric DE overlap at k with
+
+
+                                                                  5
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    k = 50, i.e., as the percent overlap between the top-50 true and predicted DE genes.
+                    This metric reveals opposite ranking among deep learning methods than other classi-
+                    fication metrics: Scouter (avg. 19.7%), VAE scGen (avg. 18.2%), and scVI mean (avg.
+                    14.8%) now outperform scVI sampling (avg. 9.8%) (see Figure 2). This suggests that
+                    aggressive over-prediction might benefit models under top-k overlap metrics: by assign-
+                    ing DE signals to a larger fraction of genes, models are more likely to rank the most
+                    significant true DE genes within their top-50 predictions at the cost of lower precision
+                    overall.
+                        We observe the same rank reversal in continuous expression metrics such as mean
+                    squared error and Pearson delta, where the best performing model in DE classifica-
+                    tion has the highest MSE and lowest correlation with the ground truth (Figure C3).
+                    Together, these findings demonstrate that no single metric captures the full pic-
+                    ture of perturbation prediction performance, and that improved continuous-expression
+                    reconstruction, such as lower MSE, does not necessarily produce more accurate DE
+                    classifications.
+
+
+                    Table 1: Proportion of perturbation-gene pairs predicted as differentially expressed
+                    by each method on the unseen perturbation generalization (within-cell-line) task. True
+                    DE prevalence is shown for reference.
+                                                                       K562      RPE1        HepG2       Jurkat     Average
+                      Non-deep-learning methods
+                      Majority vote                                   0.00%       0.10%       0.00%       0.00%        0.03%
+                      10-NN                                            0.96%     1.55%        0.86%       0.28%       0.91%
+                      1-NN                                            4.27%      4.63%        2.98%       1.69%       3.39%
+                      Logistic regression                             18.48%     17.05%      12.88%      10.45%       14.72%
+                      Deep learning methods
+                      scVI sampling                                    4.09%     3.92%        3.75%      5.37%        4.28%
+                      VAE scGen                                       64.58%     65.91%      54.43%      65.65%       62.64%
+                      Scouter                                         67.13%     67.23%      55.07%      67.13%       64.14%
+                      scVI mean                                       76.89%     76.70%      66.97%      72.94%       73.37%
+                      True DE prevalence                              3.54%       3.94%      2.36%       1.75%        2.90%
+
+
+
+
+                    2.2 Benchmarking Results for Unseen Cellular Context
+                        Generalization
+                    Similar to the unseen perturbation task, on cellular context generalization distinct
+                    metrics reveal different model rankings, and a bulk of the deep learning methods do not
+                    show better performance in classifying DE status over non-deep-learning counterparts
+                    despite their training cost and complexity. 1-NN and STATE are the top perform-
+                    ing non-deep-learning and deep learning methods respectively in this task (Figure 3),
+                    where 1-NN achieves the highest macro-F1 on K562 and Jurkat (0.477 and 0.469,
+                    respectively), and STATE achieves the highest macro-F1 on RPE1 and HepG2 (0.522
+                    and 0.577, respectively). We also evaluate whether the two most accurate methods
+
+
+                                                                         6
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Table 2: Overall 3-class prediction accuracy by quantile of true | log2 FC| for the
+             within-cell-line task, averaged across four datasets (K562, RPE1, HepG2, Jurkat).
+             Quantile bins are computed per dataset and averaged, with approximate ranges shown
+             in column headers. Q1 contains pairs with the smallest absolute expression changes
+             and Q5 the largest.
+                                          Q1              Q2                 Q3                 Q4              Q5
+                                       (0–0.016)     (0.016–0.034)      (0.034–0.060)      (0.060–0.108)      (>0.108)
+               Non-deep-learning methods
+               Majority vote         99.99%              99.99%             99.94%             99.61%          85.99%
+               10-NN                 99.87%              99.84%             99.75%             99.27%          86.90%
+               1-NN                  98.76%              98.62%             98.22%             97.02%          84.65%
+               Logistic regression   92.36%              91.55%             89.60%             84.96%          70.58%
+               Deep learning methods
+               scVI sampling         98.11%              97.94%             97.50%             96.40%          86.55%
+               scVI mean             14.33%              16.07%             20.37%             30.44%          55.29%
+               VAE scGen             23.36%              25.79%             31.60%             43.48%          64.41%
+               Scouter               22.56%              24.90%             30.52%             42.03%          62.96%
+
+
+
+
+             Table 3: Proportion of perturbation-gene pairs predicted as differentially expressed
+             by each method on the cellular context generalization (cross-cell-line) task.
+                                                               K562       RPE1       HepG2        Jurkat     Average
+               Non-deep-learning methods
+               Majority vote                                   0.00%       0.00%       0.00%       0.00%        0.00%
+               10-NN                                            0.63%     0.49%        0.47%      0.73%        0.58%
+               1-NN                                            2.13%      2.16%        2.76%       3.18%       2.56%
+               Logistic regression                             12.91%     16.62%      18.90%      18.03%       16.61%
+               Deep learning methods
+               STATE                                           2.88%       2.60%      2.68%       0.77%         2.23%
+               scVI sampling                                   38.54%     27.43%      33.40%      26.10%       31.37%
+               VAE scGen                                       77.53%     73.45%      62.65%      71.27%       71.23%
+               TranScouter                                     79.69%     73.59%      62.12%      73.32%       72.18%
+               scVI mean                                       82.55%     82.64%      81.17%      79.33%       81.43%
+               True DE prevalence                              4.03%      4.41%       2.70%       2.09%        3.31%
+
+
+
+
+             produce better predictions through calibrated proportions of DE genes after pertur-
+             bation. We find that the two methods align closely in predicted DE proportions and
+             accuracy by signal strength (Table 3 and Table 4), and their predicted DE proportions
+             are the closest to the true DE prevalence across all four datasets. This reinforces our
+             finding from the unseen perturbation task that calibrated DE proportion is a strong
+             driver of downstream classification performance.
+                 Notably, scVI sampling, the best performer in the within-cell-line task, substan-
+             tially over-predictes DE pairs in cross-cell-line transfer (26–39% vs. a true prevalence
+
+
+
+                                                                  7
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    Table 4: Overall 3-class prediction accuracy by quantile of true | log2 FC| for the cross-
+                    cell-line task, averaged across four datasets (K562, RPE1, HepG2, Jurkat). Quantile
+                    bins are computed per dataset; approximate ranges are shown in column headers.
+                                                 Q1               Q2                Q3                 Q4              Q5
+                                              (0–0.017)      (0.017–0.037)     (0.037–0.065)      (0.065–0.116)      (>0.116)
+                      Non-deep-learning methods
+                      Majority vote         100.00%             99.99%             99.93%             99.46%          84.08%
+                      10-NN                 99.86%              99.83%             99.72%             99.12%          84.38%
+                      1-NN                   99.07%             98.94%             98.60%             97.51%          83.67%
+                      Logistic regression    89.03%             88.30%             86.50%             82.65%          68.43%
+                      Deep learning methods
+                      STATE                 99.36%              99.26%             98.99%             97.97%          85.81%
+                      scVI sampling         67.67%              68.48%             69.60%             70.38%          67.55%
+                      VAE scGen             19.70%              21.48%             25.53%             33.26%          48.96%
+                      TranScouter           19.71%              21.38%             25.20%             32.28%          46.21%
+                      scVI mean             11.00%              12.12%             14.83%             20.62%          38.13%
+
+
+
+
+                    of 2–4%), suggesting that different generalization tasks may favor different model char-
+                    acteristics. Both 10-NN and regularized logistic regression outperform TranScouter,
+                    VAE scGen, and scVI mean on macro-F1 and reveal predicted DE proportions closer
+                    to the true DE prevalence (Figure 3, Table 3), echoing with the finding in within-
+                    cell-line task that non-deep-learning methods remain competitive in DE predictions
+                    compared to deep learning models.
+                        Unlike within-cell-line prediction, the best performing deep learning model in DE
+                    classification, STATE, also shows leading performance in the majority of continuous
+                    expression metrics (Figure D4). However, we note that STATE is the worst-performer
+                    in per-gene Pearson correlation, which is defined as the Pearson correlation between a
+                    gene’s predicted and observed mean expression profile across all perturbations, aver-
+                    aged over genes (see Methods at section 3 for details). This could suggest that STATE
+                    fails to reproduce the gene-specific perturbation-response rankings that per-gene Pear-
+                    son correlation measures. Overall, this observation adds to our previous finding that
+                    a diverse metric panel is needed to fully assess perturbation models.
+
+                    2.3 Benchmarking Results for Post-Prediction Sparsity
+                        Calibration
+                    Motivated by the observation that most single-cell perturbation models produce
+                    predicted expression matrices denser than the ground truth, we apply a sparsity
+                    calibration post-prediction to align predicted expression sparsity to that of the unper-
+                    turbed control cells (Figure 4a). In the within-cell-line setting, three of the four deep
+                    learning models (Scouter, VAE scGen, and scVI mean) show gains in multiple metrics
+                    including balanced accuracy, macro-F1, and per-class F1 post-calibration (Figure E5).
+                    Macro-F1 improvements range from +0.065 (relative change: +32%) to +0.237 (rela-
+                    tive change: +99%), with the biggest improvement being scVI mean on prediction of
+                    unseen perturbations in HepG2 (Figure 4b). The same pattern holds for cross-cell-line
+
+
+                                                                         8
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             evaluation, where TranScouter, VAE scGen, and scVI mean again respond positively
+             (macro-F1 improvements from +0.037 to +0.172) (Figure 4c).
+                 By contrast, scVI sampling and STATE show negligible or slightly negative changes
+             in both evaluation scenarios. We observe that prior to calibration, their predicted
+             expression distributions are already closely aligned to that of the control cells, which
+             likely arise from their individual model design: STATE uses Maximum Mean Dis-
+             crepancy (MMD) loss [36] during training that matches the empirical distribution of
+             predicted single-cell expression vectors to that of the observed cells, and scVI sampling
+             explicitly learns a Zero-Inflated Negative Binomial (ZINB) distribution with a dedi-
+             cated zero-inflation parameter [11]. We therefore hypothesize that sparsity calibration
+             is a useful post-prediction technique as well as a notable factor in model design. Specif-
+             ically, when the underlying model does not account for the sparsity in the single-cell
+             data, calibration could boost a perturbation model’s DE prediction performance.
+                 With closer inspection, we find that across all improved models, the gain of cali-
+             bration is most pronounced in non-DE F1 (see Figure E5). In other words, calibration
+             primarily corrects for over-prediction of DE events, shifting predicted class propor-
+             tions closer to the true distribution in which non-DE genes overwhelmingly dominate,
+             consistent with what we have observed in previous benchmarking tasks.
+
+             2.4 Benchmarking Results of Models on Curated Subsets
+             Motivated by the growing use of curated perturbation datasets to account for class
+             imbalance (i.e., most genes remain non-DE post-perturbation) [16–18], we compare
+             model performance on the full dataset and on subsets curated by Wu et al. [16], which
+             downsamples non-DE pairs. We find that nearly all models show substantial improve-
+             ments in DE classification performance. Across both within-cell-line and cross-cell-line
+             evaluations, the most pronounced improvements are in non-deep-learning methods,
+             suggesting that classification-based approaches are more sensitive to data curation
+             (Figure 5a, Figure 5b), which is likely because they learn directly from DE labels.
+                 Deep learning models also show overall improvements in macro-F1 and balanced
+             accuracy, though the magnitude varies by dataset. In the within-cell-line setting,
+             almost all deep learning methods improve in macro-F1 across four datasets, with
+             the sole exception of scVI sampling in K562 (Figure 5a). In the cross-cell-line set-
+             ting, macro-F1 is broadly higher on the curated subset, with exception of STATE on
+             HepG2 and Jurkat (Figure 5b). Compared with non-deep-learning approaches, these
+             gains are generally more modest, suggesting that deep learning methods, which learn
+             from continuous expression profiles, are less dependent on class balance in the training
+             data. These results underscore a critical consideration for model evaluation: perfor-
+             mance metrics are meaningful relative to the data conditions under which a model was
+             trained and evaluated on. Improvements observed on curated subsets should be care-
+             fully interpreted as they could be reflecting the consequence of prior data sampling
+             rather than reflecting true model gains.
+
+
+
+
+                                                                  9
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    3 Methods
+                    3.1 Problem Setup and Evaluation Tasks
+                    Following Phillips et al. [17], we formulate differential expression prediction as a three-
+                    class classification problem. Let g denotes a gene, p a perturbation, and Ptrain the
+                    set of all training perturbations. Let yg,p be the observed DE status of gene g under
+                    perturbation p, and ŷg,p the predicted DE class. The task is to predict whether ŷg,p
+                    is: (1) non-differentially expressed (Non-DE), (2) up-regulated (Up), or (3) down-
+                    regulated (Down). We evaluate on two downstream tasks:
+                    Unseen Perturbation Generalization. This task evaluates how well a model
+                    can predict DE outcomes under an unseen perturbation from the same cell line of
+                    training samples (i.e., within-cell-line evaluation). In this task, the dataset from a cell
+                    line is split by perturbations into a 60% training and a 40% testing set, so that all
+                    perturbations in the test set are unseen during training. Dataset statistics are provided
+                    in Table 5. For all benchmarked methods, we train on this same train split and report
+                    performance on the same 40% test set (see training schematic in Figure 1) to ensure
+                    fair model comparisons.
+                    Cellular Context Generalization. This task evaluates how well a model can
+                    predict DE outcomes when provided a perturbation it has seen during training but in
+                    another cell line (i.e., cross-cell-line evaluation). Given a held-out cell line, all models
+                    are trained using perturbation-gene pairs from the other training cell lines and we
+                    report performance on the 40% test set of the held-out cell line (see training schematic
+                    in Figure 1). We train on the common gene space across four cell lines (6, 641 genes)
+                    to avoid introducing 0 expression for unobserved perturbation-gene pairs into the
+                    training data. For STATE [13] specifically, we include the 60% training set of the
+                    held-out cell line during model training (see training schematic in Figure 1) following
+                    training convention in the official codebase [37], so it is worth noting that STATE is
+                    performing a “few-shot” prediction rather than a “zero-shot” prediction in the sense
+                    that the referred version requires some observations in the new cell line.
+
+                    3.2 Benchmarked Datasets and Processing
+                    Dataset Processing. We benchmark on essential gene screens from K562 [32],
+                    RPE1 [32], Jurkat [33], and HepG2 [33] cell lines, chosen for their widespread use
+                    in perturbation modeling. For each dataset, we followed prior work [8, 13, 16] and
+                    normalized raw UMI counts by dividing by the total counts per cell, scaling to 10,000,
+                    and applying a log(1 + x) transformation.
+                    DE Statistics. DE statistics are obtained through Wilcoxon rank-sum tests fol-
+                    lowed by Benjamini-Hochberg correction per perturbation. A pair (p, g ) is considered
+                    DE if the adjusted p-value is less than 0.01. The sign of the log-fold change further
+                    determines up- or down-regulation. We employ this same procedure to obtain ground
+                    truth DE labels from observed expressions, and predicted DE labels from expressions
+                    predicted by deep learning models.
+
+
+
+                                                                         10
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Full vs. Curated Dataset. For each benchmarked cell line we train and evaluate
+             models on a full and a curated subset. First, we evaluate models on PerturbQA-
+             downsampled datasets where in Wu et al. [16] non-DE pairs were downsampled
+             to address the severe class imbalance present across all four datasets (95-98% non-
+             DE, see Table 5), which can bias both training and evaluation, and DE pairs were
+             restricted to those with top statistical significance. Second, we evaluate on the full
+             dataset without downsampling, reflecting the more realistic setting where no prior
+             knowledge of class distribution is available. We annotate our results to distinguish
+             between these two settings. In evaluating the downsampled dataset, we used the train-
+             test split defined by Wu et al. [16].
+
+
+                                  Table 5: Per-dataset DE statistics. “M” indicates
+                                  the unit of the measurement is in millions.
+                                                         K562      RPE1       HepG2       Jurkat
+                                    Total pairs (M)      17.61      20.93      23.03       21.25
+                                    Non-DE (%)           96.61      95.96      97.61       98.35
+                                    Up-reg (%)           1.44       1.51       0.99         0.50
+                                    Down-reg (%)         1.95       2.53       1.40         1.15
+                                    Train pairs (M)      10.56      12.55      13.81       12.74
+                                    Test pairs (M)        7.05       8.38      9.22         8.51
+                                    Perturbations        2,057      2,393      2,393       2,393
+                                    Genes                8,561      8,748      9,623       8,881
+
+
+
+
+             3.3 Benchmarked Methods
+             3.3.1 Perturbation Majority Vote
+             We first consider a simple majority vote rule based on the hypothesis that a gene’s
+             response to perturbation largely reflects its intrinsic properties rather than the spe-
+             cific perturbation applied. That is, if gene g tends to be up-regulated across most
+             training perturbations, we predict it will also be up-regulated under a new, unseen
+             perturbation. Formally, for each gene g , we assign the most frequent response class
+             observed across all training perturbations where ŷg,p = mode ({yg,p }p∈Ptrain ) , yg,p ∈
+             {Up, Down, Non-DE}. Because this baseline ignores perturbation identity entirely,
+             it produces the same prediction for gene g regardless of which perturbation is
+             applied. Models that fail to outperform this baseline may not be capturing meaningful
+             perturbation-specific signal.
+
+             3.3.2 Weighted K-Nearest Neighbors
+             To incorporate perturbation-specific information, we use a weighted K -nearest neigh-
+             bors (KNN) classifier with GenePT embeddings [30] to represent perturbations. For
+             each query pair (p, g ), we identify the K most similar training perturbations via cosine
+             similarity in embedding space and predict g ’s response through distance-weighted
+
+
+                                                                  11
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    voting. This method evaluates whether local neighborhoods in perturbation embed-
+                    ding space capture sufficient information for predicting gene responses. Our primary
+                    results used K ∈ {1, 10}; a larger value of K typically leads to suboptimal perfor-
+                    mance. We also conduct a sensitivity analysis comparing KNN classifiers trained using
+                    alternative embeddings and find consistent performance across embedding choices (see
+                    Appendix A).
+
+                    3.3.3 Regularized Logistic Regression
+                    We then ask whether a parametric linear classifier trained on the same embeddings can
+                    learn broader, transferable patterns of gene response. For each gene g , we train an ℓ2 -
+                    regularized multinomial logistic regression model that takes the GenePT embedding
+                    [30] of a query perturbation as input and predicts the DE class (with regularization
+                    strength = 0.01). Let yg has each entry yg,p denotes the observed DE class of gene g
+                    under perturbation p, W the matrix of embedding vectors where each row represents
+                    a perturbation, the logistic model finds parameters θ such that logit(yg ) = Wθ . The
+                    formulation is adapted from GenePert [10] and directly tests whether linear decision
+                    boundaries in embedding space generalize beyond what local neighborhood retrieval
+                    affords.
+
+                    3.3.4 Variational Autoencoder
+                    We adapt scGen [12] to predict perturbation effects for both within-cell-line and cross-
+                    cell-line settings (see Figure B2 for adapted model architecture). Denoting zp the
+                    low-dimensional latent representation of a cell under perturbation p, during training,
+                    the model reconstructs training cell expressions while conditioning on perturbation
+                    identity through the GenePT embeddings. For each perturbation p ∈ Ptrain , the model
+                    estimates its latent perturbation effect δ p as the difference between the average latent
+                    representations of the perturbed cells and control cells (i.e., δ p = avg(zp ) − avg(zctrl )).
+                    In the within-cell-line setting, to predict an unseen perturbation p, we select the k
+                    most similar training perturbations based on cosine similarity of GenePT embeddings:
+
+                                                                              k
+                                                                              X
+                                                            ẑp = zctrl +           wi δ pi ,
+                                                                              i=1
+
+                    where wi is proportional to the cosine similarity between p and the i-th selected
+                    perturbation. In the cross-cell-line setting, each δ pi is first averaged across training
+                    cell lines before the weighted combination:
+
+                                                                  k
+                                                                                                               !
+                                                                  X                 1       X
+                                            ẑp,c∗ = zctrl,c∗ +         wi                           δ pi ,c       ,
+                                                                  i=1
+                                                                              |Ctrain |
+                                                                                          c∈Ctrain
+
+
+                    where c∗ denotes the held-out target cell line, Ctrain denotes the set of training cell lines,
+                    and δ pi ,c represents latent perturbation effect of perturbation pi estimated from cell
+                    line c. In both settings, the predicted gene expression profile is obtained by decoding
+                    ẑp through the decoder.
+
+
+                                                                         12
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             3.3.5 scVI (Mean and Sampling)
+             We further benchmark on scVI [11] which is an autoencoder-based method that models
+             gene expression distributions taking into account technical noise and batch effects.
+             We adapt STATE’s benchmarking implementation of scVI [13, 38], which takes a
+             control-cell expression profile and a perturbation identity as input, and outputs the
+             predicted perturbed gene expression profile. Basal expression profiles from control cells
+             are encoded into a low-dimensional latent representation using a variational encoder.
+             Perturbation identities are represented with GenePT embeddings and concatenated
+             with the latent basal state, together with available technical covariates such as batch
+             labels. A decoder then maps this combined representation to the parameters of a
+             zero-inflated negative binomial distribution over genes, allowing the model to capture
+             both overdispersion and excess zeros in single-cell count data. We report two forms
+             of model output: one based directly on the mean of the learned output distribution
+             (scVI mean), and the other based on expression profiles sampled from that distribution
+             (scVI sampling).
+
+             3.3.6 Scouter and TranScouter
+             To include a more diverse set of models with varying loss functions we benchmark on
+             Scouter [14] and TranScouter [31], both use a compressor-generator architecture and
+             an autofocus direction-aware loss initially proposed in GEARS [8]. Scouter is designed
+             for within-cell-line prediction, generating transcriptional responses to genetic pertur-
+             bations within the same cell line used for training. TranScouter extends Scouter to the
+             cross-cell-line setting through two modifications: an encoded cell line representation
+             is reintroduced near the decoder bottleneck to preserve cell-line-specific information
+             during decoding, and condition-aware pairing is applied during training so that each
+             perturbed cell is matched only with control cells from the same cell line, rather than
+             pooled freely across conditions. Given a perturbation, both models take as input the
+             log-normalized gene expression profile of a randomly sampled control cell and the
+             LLM-based embedding of the perturbed gene, and output the predicted expression
+             profile of a perturbed cell.
+
+             3.3.7 STATE
+             STATE [13] is a transformer-based model that predicts perturbation-induced gene
+             expression shifts at the population level by operating on sets of cells rather than
+             individual observations. The core State Transition (ST) model constructs a composite
+             additive representation H = Hcell + Hpert + Hbatch for each cell set, where Hcell
+             encodes control expression profiles, Hpert encodes perturbation identity via a learned
+             embedding, and Hbatch encodes batch covariates. The ST model produces output
+             O = H + fST (H) via a residual connection over a transformer backbone, and is
+             trained to minimize a MMD loss between predicted and observed distributions. We
+             use STATE in the gene expression mode (without the pretrained State Embedding
+             component), operating directly on the common gene universe across all four cell lines;
+             see Appendix B for details on training procedures, including hyperparameters.
+
+
+
+                                                                  13
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    3.4 Sparsity Calibration
+                    We apply a post-hoc, gene-level zero calibration to align the sparsity of predicted
+                    expression with that observed in unperturbed control cells. For each gene g , we com-
+                    pute the zero-expression fraction zg across all control cells as an estimate of natural
+                    sparsity in the given dataset:
+
+                                                                #{i ∈ Sctrl : xig = 0}
+                                                         zg =                          ,
+                                                                       |Sctrl |
+
+                    where Sctrl denotes the set of control cells, xig the expression of gene g in cell i. A
+                    gene-specific calibration threshold Xg is then defined as the qg -th quantile of predicted
+                    expression values pooled across all perturbed cells, where qg = r · zg and r ∈ [0, 1]
+                    is a global scaling factor. Predicted expression values at or below Xg are set to zero;
+                    all other values and control cell measurements are left unchanged. We set the scaling
+                    factor to r = 1, which postulates that the sparsity level before and after perturbation
+                    should remain the same.
+
+                    3.5 Evaluation Metrics
+                    3.5.1 DE Classification Metrics
+                    Per-Class F1. For each DE class j ∈ {Up, Down, Non-DE}, precision and recall are
+                    defined as
+                                                       T Pj                    T Pj
+                                             Pj =              ,    Rj =               ,
+                                                   T Pj + F Pj             T Pj + F Nj
+                    where T Pj , F Pj , and F Nj denote true positives, false positives, and false negatives
+                    for class j , respectively. The per-class F1 score is calculated as
+
+                                                                         2 · P j · Rj
+                                                                F 1j =                .
+                                                                          Pj + Rj
+
+                    Macro F1. Macro F1 averages the per-class F1 scores equally across all J = 3
+                    classes, giving equal weight to each class regardless of its frequency:
+
+                                                                                J
+                                                                           1X
+                                                            F 1macro =           F 1j .
+                                                                           J j=1
+
+                    Balanced Accuracy. Balanced accuracy averages per-class recall across all classes,
+                    correcting for class imbalance:
+
+                                                                                          J
+                                                                                    1X
+                                                      Balanced Accuracy =                 Rj .
+                                                                                    J j=1
+
+
+
+
+                                                                         14
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             3.5.2 Continuous Expression Metrics
+             The following metrics operate on mean gene expression profiles (pseudobulks) com-
+             puted per perturbation. Let T denote the number of perturbations, G the number of
+             genes, p̄t ∈ RG the predicted pseudobulk for perturbation t, pt ∈ RG the observed
+             pseudobulk, and c ∈ RG the control pseudobulk. DE overlap at 50, mean absolute
+             error (MAE), mean squared error (MSE), and Pearson delta are all metrics originally
+             proposed in Adduri et al. [13].
+             DE Overlap at 50. For each perturbation t, the top-k differentially expressed genes
+             are selected from the true and predicted DE gene sets respectively by ranking all DE
+             genes in descending order of absolute log2 fold change. The overlap score at k = 50 is
+
+                                                                    (50)        (50)
+                                                                 |Gt,true ∩ Gt,pred |
+                                              Overlapt,50 =                             ,
+                                                                           50
+                        (50)          (50)
+             where Gt,true and Gt,pred denote the respective top-50 DE gene sets. The final metric
+             is the mean over all perturbations with at least one true DE gene.
+             Mean Absolute Error. MAE measures the average per-perturbation magnitude
+             of expression prediction errors across all genes:
+
+                                                T                    T   G
+                                             1 X                  1 XX
+                                  MAE =            ∥p̄t − pt ∥1 =           |(p̄t )g − (pt )g |.
+                                             T t=1                T t=1 g=1
+
+             Mean Squared Error. MSE penalizes large per-gene prediction errors quadrati-
+             cally:
+                                  T                     T   G
+                               1 X                   1 XX                      2
+                        MSE =        ∥p̄t − pt ∥22 =           (p̄t )g − (pt )g .
+                               T t=1                 T t=1 g=1
+
+             Pearson Global Correlation. A single Pearson correlation coefficient is computed
+             over all (T × G) perturbation-gene pairs by flattening both the predicted and observed
+             pseudobulk matrices:
+                                                                        
+                                             rglobal = Pearson p̄t t,g , pt t,g .
+
+             This provides a global measure of linear agreement between predicted and observed
+             expression levels across the entire perturbation-gene space.
+             Pearson Delta Correlation. Following Adduri et al. [13], we compute expression
+             deltas as the element-wise absolute deviation of each perturbation pseudobulk from
+             the control: ∆t = |p̄t −c| (predicted) and ∆∗t = |pt −c| (observed), where |·| denotes the
+             element-wise absolute value. The metric is the Pearson correlation computed jointly
+             over all (T × G) entries:
+                                                                   
+                                              r∆ = Pearson ∆t t,g , ∆∗t t,g .
+
+
+                                                                  15
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    This captures how accurately a model reproduces the magnitude of perturbation-
+                    induced expression shifts relative to the unperturbed baseline.
+                    Pearson Per-Gene Correlation. For each gene g , a Pearson correlation coefficient
+                    is computed between the predicted and observed mean expression of that gene across
+                    all T perturbations:
+                                                            T          T 
+                                          rg = Pearson (p̄t )g t=1 , (pt )g t=1 .
+
+                    Genes for which either the predicted or observed perturbation
+                                                                             P response vector is con-
+                    stant are excluded. The final metric is the mean r̄ = G1′ g rg over the G′ retained
+                    genes. This evaluates whether the model correctly captures which perturbations up-
+                    or down-regulate each individual gene.
+
+                    4 Discussion
+                    In this study, we presented a systematic benchmark of five deep learning expression
+                    models and three non-deep-learning classification methods on differential expression
+                    classification across four human cell-line datasets and two generalization regimes. Our
+                    results demonstrate that simple classification methods, in particular nearest-neighbor
+                    approaches with perturbations represented by LLM-derived embeddings, are broadly
+                    competitive with and often outperform deep learning models on DE classification.
+                    Moreover, no single method uniformly outperforms the rest across all datasets and
+                    metrics. We further showed that better performance on continuous expression metrics
+                    does not equate better DE classification performance, highlighting the need to eval-
+                    uate DE prediction directly rather than relying on continuous reconstruction metrics
+                    alone. We also found that post-prediction sparsity calibration emerged as an effective
+                    and practical correction for deep learning models that do not internally account for
+                    expression sparsity. A simple calibration based on control cell sparsity level consis-
+                    tently improved DE classification performance without requiring retraining. Finally,
+                    evaluation on a curated subset with downsampled non-DE pairs revealed that dataset
+                    composition profoundly shapes reported performance, particularly for classification-
+                    based baselines, reinforcing the need to interpret benchmark results in the context of
+                    the data distribution on which models are trained and assessed.
+                        Our current work is subject to a few limitations. First, we restrict our benchmark
+                    to four commonly used immortalized cancer cell lines in perturbation modeling. These
+                    datasets may not be representative of the broader landscape of cellular contexts rel-
+                    evant to biomedicine, including primary cells [39], patient-derived samples [40], and
+                    in vivo systems [2, 28]. As more perturbation datasets become available, future work
+                    should investigate whether our conclusions generalize to more biologically relevant set-
+                    tings. Second, we evaluate exclusively single-gene perturbations, leaving combinatorial
+                    perturbations [8, 34] and chemical perturbations [41] outside the scope of this bench-
+                    mark. A similar benchmark study on chemical perturbations could provide insight
+                    into the comparison of different model classes in that setting and verify whether our
+                    findings transfer. Third, the three-class DE label schema we adopt (up-regulated,
+                    down-regulated, unchanged) is inherently dependent on the statistical thresholds used
+
+
+                                                                         16
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             to assign labels. Therefore, our findings could change under alternative DE-calling pro-
+             cedures. However, by stratifying our results based on the magnitude of perturbation
+             effects, we partially mitigate this sensitivity concern.
+                 Other directions for future work include benchmarking on perturbation screens
+             from other species [42], and experimenting with recent developments in generative
+             model calibration [43] to assess whether novel calibration procedures that account for
+             the entire distribution of gene expression, instead of just sparsity or mean expression,
+             could provide better results — both for post-hoc calibration and for model training
+             and loss function design. Finally, as the field moves toward evaluating whether models
+             recover coordinated groups of DE genes rather than only classifying each gene inde-
+             pendently, it will be important to develop benchmarks that test whether predicted DE
+             patterns identify the same biological pathways, cell-state changes, and gene groups
+             affected by a perturbation. Such evaluations would better align model assessment with
+             the biological questions that motivate perturbation-response prediction.
+             Code and data availability. Code used to generate the analysis in this paper can
+             be found at https://github.com/ivysun14/Project-Perturb.
+
+
+
+
+                                                                  17
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                               Biological Setting                                                                                                                Benchmarking Tasks
+                                                                                                                                                                    Unseen Perturbation Generalization                                                                           Cellular Context Generalization
+                                                                     Genetic
+                                                                   Perturbation                                                                                              K562              RPE1          HepG2 Jurkat                                                         K562         RPE1              HepG2 Jurkat   target cell line
+
+
+
+                                                                                                               Pert 1
+                                                                                                               Pert 1                                        Pert 1                                                                                                Pert 1
+                                                                                                                                                             Pert 2                                                                                                Pert 2
+                                                                                                                  ......                                     Pert 3                                                                                   Train Set Pert 3                                                           Additional Train
+                                                                                                                                                                                                                                                                                                                                 Set for STATE
+                                                                                                               Pert n
+                                          Cell-by-Gene Matrix of Perturbed Expression
+                                                                                                                                                               ......                                                                                                   ......
+                               Datasets
+                               [PerturbQA & Full]
+                                                                                                                                                                                                                                                      Test Set                                                                    Test Set
+                                         K562 Essentials (Replogle et al., 2022)
+                                                                                                                                                             Pert n                                                                                                Pert n
+                                         RPE1 (Replogle et al., 2022)
+                                         HepG2 (Nadig et al., 2025)
+                                                                                                                                                                                                                                                                                         Train Set
+                                         Jurkat (Nadig et al., 2025)                                                                                                         One prediction task per cell line
+
+
+
+                                Benchmarking Methods
+
+                                             Non Deep Learning Methods                                                                                                     Deep Learning Methods                                                                                 Deep Learning Methods
+                                              KNN                                                                                                                            scGen                                                                                                 scGen
+                                              Majority Vote                                                                                                                  scVI                                                                                                  scVI
+                                              Logistic Regression                                                                                                            Scouter                                                                                               TranScouter
+                                                                                                                                                                                                                                                                                   STATE
+
+                                                     Classification Models                                                                                                                                 DE Calling via Wilcoxon Rank Sum + BH Correction
+
+                               Evaluation
+                                                                                 DE Classification Metrics                                                                                            +                                                                       Expression Metrics
+
+
+
+
+                                                                                                                                                                                                                                                                                          Predicted Expression
+                                                                                                                           Balanced Accuracy                                                                                         MAE, MSE
+
+                                Metric                                                                                     Macro F1                                                         DE overlap                               Peason Correlations
+                                                                                                                                                                                             (top 50)
+                                                                                                                           Per-Class Prec/Rec/F1                                                                                     Perturbation Delta
+
+                                                               Models                                                                                                                                                                                                                                                 True Expression
+
+                                                                                                                                                             Predicted expression per−gene sparsity              Control cell per−gene sparsity
+
+
+                                                                                                                                 6
+                      Post-Prediction Calibration
+                                                                                                                           Density
+                                                                                                                                 4
+                                                                                                                                     Calibration
+                                             Predicted Cell-by-Gene Matrix                                                       2
+                                                                                                                                                                               Calibrated Cell-by-Gene Matrix
+                                               Predicted expression per−gene sparsity   Control cell per−gene sparsity           0                                      Predicted expression per−gene sparsity       Control cell per−gene sparsity
+                                   Predicted expression per-gene sparsity                     Control cell per-gene sparsity
+                                                                                                                        0.00                                 Predicted
+                                                                                                                                                                   0.25 expression per-gene
+                                                                                                                                                                                       0.50 sparsity                          0.75
+                                                                                                                                                                                                                              Control             1.00
+                                                                                                                                                                                                                                      cell per-gene sparsity
+                           6                                                                                                                    6
+                                                                                                                                                                                   Per−gene Zero Proportion
+
+
+                      Density                                                                                                               Density
+                     Density                                                                                                             Density
+                           4                                                                                                                    4
+
+                           2                                                                                                                    2
+
+                           0                                                                                                                    0
+                                 0.00
+                                 0.00               0.25
+                                                     0.25                 0.50
+                                                                           0.50
+                                                                 Per−gene Zero Proportion
+                                                                                          0.75
+                                                                                           0.75
+                                                                                                                             1.00
+                                                                                                                              1.00
+                                                                                                                                                      0.00
+                                                                                                                                                      0.00                   0.25
+                                                                                                                                                                              0.25                 0.50
+                                                                                                                                                                                                    0.50            0.75
+                                                                                                                                                                                                                     0.75                               1.00
+                                                                                                                                                                                                                                                        1.00
+                                                                                                                                                                                                                                                                                                                                      Pre-calib
+                                                               Per-gene  Zero Proportion                                                                                                  Per−gene Zero
+                                                                                                                                                                                        Per-gene  ZeroProportion
+                                                                                                                                                                                                         Proportion
+                                                                                                                                                                                                                                                                                                                                      Post-calib
+
+                                                                                                                                                                                                                                                                 Expression
+
+
+                                                                                                                                                                                                                                                                                                     Metric
+                                                                                                                                                                                                                                                                         2
+                                                                                                                                                                                                                                                                         1
+                                                                                                                           Cells       Expression                                                                                                              Expression
+                                                                                                                                                                                                                                                                         0
+                                                                                                                                            2
+                                                                                                                                                                                                                                                                   2     −1
+                                                                                                                                            1
+                      Cells
+                     Cells
+                                                                                                                                            Cells
+                                                                                                                                         Cells                                                                                                                     1
+                                                                                                                                            0                                                                                                                            −2
+                                                                                                                                                                                                                                                                   0
+                                                                                                                                            −1
+                                                                                                                                                                                                                                                                   −1
+                                                                                                                                            −2
+                                                                                                                                                                                                                                                                   −2                                       Models
+                                                                                                                                                                                                                                                                                          Compare pre- vs. post-calibation metrics
+
+
+
+                                                                          Genes                                                                                                                       Genes
+                                                                        Genes                                                                                                                 Genes Genes
+
+
+
+                    Fig. 1: Study overview. Biological Setting: Single-cell perturbation data are col-
+                    lected through sequencing individual cells that have undergone genetic perturbations.
+                    Datasets: Four datasets corresponding to four cell lines collected this way are used
+                    for this study. Each dataset has a full, non-sampled version as well as a PerturbQA-
+                    downsampled variant that selects for highly significant DE pairs and downsamples
+                    non-DE pairs. Benchmarking Tasks: On both the full and PerturbQA-downsampled
+                    datasets, we evaluated two benchmarking tasks: unseen perturbation generalization
+                    and cellular context generalization. Benchmarking
+                                                               18        Methods: Each task is evaluated
+                    for three types of non-deep-learning methods and a varying number of deep learn-
+                    ing methods. Evaluation: We used both DE classification and continuous expression
+                    metrics to report performance. Post-Prediction Calibration: Post-prediction, we
+                    further evaluated how adjusting for sparsity in the predicted expression space might
+                    impact model performance on DE classification.
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                                                                        DE Classification Metrics
+
+                           Macro F1        Balanced Acc         Non-DE F1             Up-reg F1         Down-reg F1       DE overlap 50
+
+                 1.0
+
+                 0.8
+
+                 0.6
+
+
+                 0.4
+
+                 0.2
+                                                                                                                            N/A
+                                                                                                                            N/A
+                                                                                                                            N/A
+                                                                                                                            N/A
+                 0.0
+
+                 1.0
+
+                 0.8
+
+                 0.6
+
+
+                 0.4
+
+                 0.2
+                                                                                                                            N/A
+                                                                                                                            N/A
+                                                                                                                            N/A
+                                                                                                                            N/A
+                 0.0
+
+                 1.0
+
+                 0.8
+
+                 0.6
+
+
+                 0.4
+
+                 0.2
+                                                                                                                            N/A
+                                                                                                                            N/A
+                                                                                                                            N/A
+                 0.0
+                                                                                                                            N/A
+
+
+                 1.0
+
+                 0.8
+
+                 0.6
+
+
+                 0.4
+
+                 0.2
+                                                                                                                            N/A
+                                                                                                                            N/A
+                                                                                                                            N/A
+                 0.0
+                                                                                                                            N/A
+
+
+                       scVI_sampling   1-NN (GenePT)   10-NN (GenePT)       LogReg      Majority Vote   scVI_mean     VAE_scGen   Scouter
+
+
+
+
+             Fig. 2: Benchmark results for unseen perturbation generalization. Each subplot shows
+             model scoring on one of the DE classification metrics in a benchmarked dataset.
+             Datasets are represented on the rows, and each column is a DE classification metric.
+             For DE overlap at 50, non-deep-learning models receive ’NA’ since DE gene order-
+             ing requires predicted log2 fold change, which classification models don’t have. All
+             subplots received the same model ordering, where models are ranked from highest to
+             lowest based on macro-F1 on DE classification in the K562 dataset. For continuous
+             expression metrics on the unseen perturbation
+                                                      19 generalization task; see Figure C3.
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                                                                          DE Classification Metrics
+
+                                Macro F1        Balanced Acc        Non-DE F1                Up-reg F1        Down-reg F1       DE overlap 50
+
+                        1.0
+
+                         0.8
+
+                         0.6
+
+
+                         0.4
+
+                         0.2
+                                                                                                                                      N/A
+                                                                                                                               N/A    N/A
+                                                                                                                                      N/A
+                         0.0
+
+                        1.0
+
+                         0.8
+
+                         0.6
+
+
+                         0.4
+
+                         0.2
+                                                                                                                                      N/A
+                                                                                                                               N/A    N/A
+                         0.0
+                                                                                                                                      N/A
+
+
+                        1.0
+
+                         0.8
+
+                         0.6
+
+
+                         0.4
+
+                         0.2
+                                                                                                                                      N/A
+                                                                                                                               N/A    N/A
+                         0.0
+                                                                                                                                      N/A
+
+
+                         1.0
+
+                         0.8
+
+                         0.6
+
+
+                         0.4
+
+                         0.2
+                                                                                                                                      N/A
+                                                                                                                               N/A    N/A
+                                                                                                                                      N/A
+                         0.0
+
+
+                        1-NN (GenePT)   STATE   LogReg   10-NN (GenePT)      Majority Vote    scVI_sampling   VAE_scGen   scVI_mean     TranScouter
+
+
+
+
+                    Fig. 3: Benchmark results for cellular context generalization. Each subplot shows
+                    model scoring on one of the DE classification metrics in a benchmarked dataset.
+                    Datasets are represented on the rows and each column is a DE classification metric.
+                    For DE overlap at 50, non-deep-learning models receive ’NA’ since DE gene order-
+                    ing requires predicted log2 fold change, which classification models don’t have. All
+                    subplots received the same model ordering, where models are ranked from highest to
+                    lowest based on macro-F1 on DE classification in the K562 dataset. For continuous
+                    expression metrics on the cellular context20
+                                                               generalization task see Figure D4.
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             a                Pre-Calibration Distributions (Scouter RPE1)                                 Post-Calibration Distributions (Scouter RPE1)
+                       Mean                    Variance                  Sparsity Prop              Mean                   Variance                 Sparsity Prop
+                                                                                   Real                                                                Real
+                                                                                   Predicted                                                           Predicted
+
+
+
+
+             b
+                                                     Metric Comparison - Unseen Perturbation Generalization
+
+
+
+
+                                                                                         Macro-F1
+             c
+                                                        Metric Comparison - Cellular Context Generalization
+
+
+
+
+                                                                                         Macro-F1
+             Fig. 4: Pre- and Post-sparsity calibration effect for unseen perturbation general-
+             ization (within-cell-line prediction) and cellular context generalization (cross-cell-line
+             prediction). a) Pre-calibration per-gene expression mean, variance, and sparsity level
+             for Scouter on the RPE1 dataset. Grey distributions are plotted based on Scouter’s
+             predictions and blue distributions are from the ground truth dataset. These are com-
+             pared with post-sparsity calibration distributions to show distributional alignments.
+             b) Change in macro-F1 of the within-cell-line prediction task post-sparsity calibration
+             for models in all benchmarked datasets. c) Change in macro-F1 of the cross-cell-line
+             prediction task post-sparsity calibration.
+
+
+
+
+                                                                                               21
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                      a                                        Within-Cell-Line Comparison (Full Dataset vs. PerturbQA)
+
+
+                                                                                                                                                              Full
+                                                                                                                                                              PerturbQA
+
+
+
+
+                              1-NN (GenePT)       10-NN (GenePT)        Majority Vote        LogReg          Scouter        scVI_sampling         scVI_mean     VAE_scGen
+
+
+
+
+                       b                                       Cross-Cell-Line Comparison (Full Dataset vs. PerturbQA)
+
+                                                                                                                                                               Full
+                                                                                                                                                               PerturbQA
+
+
+
+
+                           1-NN (GenePT)      10-NN (GenePT)       Majority Vote        LogReg        TranScouter      scVI_sampling        VAE_scGen    scVI_mean     STATE
+
+
+
+
+                    Fig. 5: Benchmark results comparing model performance when trained on the full,
+                    unsampled dataset vs. down-sampled perturbQA dataset. a) Performance compari-
+                    son on the unseen perturbation generalization task (within-cell-line evaluation). b)
+                    Performance comparison on the cellular context generalization task (cross-cell-line
+                    evaluation).
+
+
+                                                                                                 22
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Appendix A                   KNN Sensitivity Analysis
+             To ensure model performance is not driven by embedding choice alone, we evalu-
+             ate four types of perturbation representations for the KNN classifier. (1) GenePT
+             [30] embeddings are 3,072-dimensional vectors produced by encoding NCBI/UniProt
+             gene descriptions with the OpenAI text-embedding-3-large model [44] and provide
+             full coverage of all perturbations in our datasets. (2) ESM2 embeddings are derived
+             from the ESM2 protein language model applied to canonical protein sequences [45].
+             (3) WikiCrow embeddings are produced by encoding WikiCrow-generated gene sum-
+             maries [46] with the same OpenAI text-embedding-3-large model used for GenePT.
+             (4) Co-pathway (co-path) representations are generated using the gseapy library [47]
+             in Python. Perturbation similarity is quantified by the Jaccard similarity of shared
+             pathway membership across MSigDB [48], KEGG [49], and Reactome gene sets [50],
+             pre-computed and stored as a ranked neighbor list per perturbation.
+                 These four representation types have different coverage of perturbations in the
+             benchmarked dataset. For coverage details see Figure A1a. To ensure that performance
+             differences across embedding types reflect representation quality rather than differ-
+             ences in the evaluated perturbation set, all sensitivity analysis applies a coverage filter
+             that restricts the evaluated perturbations to the intersection of perturbations covered
+             by all four representation types. Results of the sensitivity analysis can be found in
+             Figure A1b.
+
+
+
+
+                                                                  23
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                      a
+
+
+
+
+                      b                             Embedding Sensitivity (Within-Cell-Line Prediction)
+                                              K=1                                                         K=10
+
+
+
+
+                                                    Embedding Sensitivity (Cross-Cell-Line Prediction)
+                                              K=1                                                         K=10
+
+
+
+
+                    Fig. A1: a) Perturbation coverage by embedding types. Percentage of perturbation
+                    missing representations in each dataset by each type is quantified. b) Sensitivity anal-
+                    ysis of different embeddings for KNN classifiers in within-cell-line and cross-cell-line
+                    evaluation tasks for K=1 and K=10.
+
+
+
+                                                                           24
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Appendix B                   Training Specifications and Model
+                                          Details
+             scVI (Mean and Sampling). These models are trained by minimizing the ZINB
+             negative log-likelihood of the observed perturbed expression profile, together with a
+             KL divergence term that regularizes the latent basal representation toward a standard
+             normal prior. Models are optimized with Adam using mini-batches of 512 cells, a
+             learning rate of 5 × 10−4 , weight decay of 4 × 10−7 , gradient clipping at 10. Training
+             runs for up to 25,000 optimization steps, with validation performed every 500 steps.
+             Scouter and TranScouter. For each perturbation, the number of predictions gen-
+             erated was matched to the observed cell count for that perturbation in the original
+             dataset. Both models were trained using the Adam optimizer with exponential learning
+             rate decay (factor 0.9 per epoch), early stopping (patience 5, minimum improvement
+             0.001), and gradient clipping (max norm 1.0). Scouter was trained with a learning rate
+             of 0.001, a batch size of 256, and a maximum of 40 epochs. TranScouter was trained
+             with a learning rate of 0.0001, a batch size of 512, and a maximum of 50 epochs.
+             STATE. We trained STATE via the official CLI with cell set size = 64, hidden
+             dimension = 672, batch size = 32, learning rate = 10−3 , and 50,000 training steps, with
+             batch correction enabled using the sequencing run (gem group) as the batch covariate.
+             A random 10% of the target cell line’s training perturbations was reserved as a valida-
+             tion set. Perturbations absent from the training perturbation universe were identified
+             and excluded from evaluation since STATE is meant for context generalization and
+             cannot predict on a completely unseen perturbation.
+
+
+
+
+                                                                  25
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    Fig. B2: Overview of the adapted scGen model architecture. Perturbation conditions
+                    represented by embedding vectors are concatenated to the input expression profile and
+                    passed to the encoder. The decoder aims to recover input expression profile, through
+                    which the model learns a delta specific to the perturbation that captures expression
+                    profile change in the latent space.
+
+
+
+
+                                                                         26
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Appendix C                   Model Ranks on Continuous
+                                          Expression Metrics — Unseen
+                                          Perturbation Generalization
+
+
+                                                                   Expression Metrics
+
+                               MAE              MSE                Pearson Global         Pearson Delta       Pearson Per-gene
+                      1000
+                                                             1.0
+                       800
+                                                             0.8
+                       600
+                                                             0.6
+
+                       400
+                                                             0.4
+
+                       200
+                                                             0.2
+
+                        0                                    0.0
+                      1000
+                                                             1.0
+                       800
+                                                             0.8
+
+                       600
+                                                             0.6
+
+                       400
+                                                             0.4
+
+                       200                                   0.2
+
+                        0                                    0.0
+                      1000
+                                                             1.0
+                       800
+                                                             0.8
+
+                       600
+                                                             0.6
+
+                       400
+                                                             0.4
+
+                       200                                   0.2
+
+                         0                                   0.0
+                      1000
+                                                             1.0
+                       800
+                                                             0.8
+
+                       600
+                                                             0.6
+
+                       400
+                                                             0.4
+
+                       200                                   0.2
+
+                        0                                    0.0
+
+                                                 VAE_scGen         Scouter    scVI_mean       scVI_sampling
+
+
+
+
+                Fig. C3: Expression-based metrics for unseen perturbation generalization task.
+
+
+
+
+                                                                         27
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    Appendix D                   Model Ranks on Continuous
+                                                 Expression Metrics — Cellular
+                                                 Context Generalization
+
+
+                                                                               Expression Metrics
+
+                                      MAE                 MSE                  Pearson Global       Pearson Delta         Pearson Per-gene
+
+                             2000
+                                                                         1.0
+                             1750
+
+                             1500                                        0.8
+                             1250
+                                                                         0.6
+                             1000
+                              750                                        0.4
+                              500
+                                                                         0.2
+                              250
+
+                               0                                         0.0
+                             2000
+                                                                         1.0
+                             1750
+
+                             1500                                        0.8
+                             1250
+                                                                         0.6
+                             1000
+                              750                                        0.4
+                              500
+                                                                         0.2
+                              250
+
+                               0                                         0.0
+                             2000
+                             1750                                        1.0
+
+                             1500                                        0.8
+                             1250
+                                                                         0.6
+                             1000
+                              750                                        0.4
+                              500
+                                                                         0.2
+                              250
+
+                                0                                        0.0
+                             2000
+                                                                         1.0
+                             1750
+
+                             1500                                        0.8
+                             1250
+                                                                         0.6
+                             1000
+                              750                                        0.4
+                              500
+                                                                         0.2
+                              250
+
+                                0                                        0.0
+
+                                                  STATE         TranScouter        VAE_scGen    scVI_sampling       scVI_mean
+
+
+
+
+                          Fig. D4: Expression-based metrics for cellular context generalization task.
+
+
+
+
+                                                                                   28
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Appendix E                          Post-Sparsity-Calibration Metric
+                                                 Change
+
+             a               Change in Metrics Post-Sparsity Calibration    b       Change in Metrics Post-Sparsity Calibration
+                               (Unseen Perturbation Generalization)                     (Cellular Context Generalization)
+
+
+
+
+             Fig. E5: a) Change in DE classification metrics post-sparsity calibration for unseen
+             perturbation generalization. Calibration delta (∆) is calculated as metric post-
+             calibration minus metric pre-calibration. For the exact metric delta of each heatmap
+             entry, see Table E1. b) Change in DE classification metrics post-sparsity calibration
+             for cellular context generalization. For exact metric deltas see Table E2.
+
+
+
+
+                                                                           29
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    Table E1: Values accompanying Figure E5a. Values report absolute difference (post
+                    - pre) with relative change in parentheses. ↑ denotes higher is better.
+                                                Macro F1    Bal. Acc.   F1 Non-DE     F1 Up-reg     F1 Down-reg    DE Ovlp 50
+                      Model           Dataset
+                                                  (↑)          (↑)          (↑)          (↑)            (↑)           (↑)
+                                                 +0.065       +0.046      +0.112         +0.096        −0.012         −0.133
+                                      K562
+                                                (+31.6%)     (+8.7%)     (+22.7%)      (+189.2%)      (−16.0%)       (−80.8%)
+                                                 +0.118       +0.094      +0.242         +0.092        +0.022         −0.189
+                                      RPE1
+                                                (+57.9%)    (+19.1%)     (+49.6%)      (+184.5%)      (+28.2%)       (−65.7%)
+                      Scouter                    +0.109       +0.109      +0.202         +0.103        +0.021         −0.120
+                                      HepG2
+                                                (+45.8%)    (+20.5%)     (+32.7%)      (+264.8%)      (+38.9%)       (−65.6%)
+                                                 +0.091       +0.098      +0.225         +0.043        +0.004         −0.114
+                                      Jurkat
+                                                (+49.6%)    (+21.2%)     (+45.8%)      (+322.8%)      (+10.1%)       (−74.7%)
+                                                  +0.182     +0.077       +0.278         +0.252        +0.017         −0.108
+                                      K562
+                                                 (+85.0%)   (+15.2%)     (+53.5%)      (+532.4%)      (+21.6%)       (−63.3%)
+                                                  +0.211     +0.117       +0.367         +0.204        +0.063         −0.076
+                                      RPE1
+                                                (+103.2%)   (+25.5%)     (+73.6%)      (+448.2%)      (+89.5%)       (−29.3%)
+                      VAE scGen                   +0.208     +0.127       +0.309         +0.229        +0.085         −0.045
+                                      HepG2
+                                                 (+88.3%)   (+26.0%)     (+49.8%)      (+640.8%)     (+176.7%)       (−29.2%)
+                                                  +0.181     +0.130       +0.368         +0.142        +0.033         −0.088
+                                      Jurkat
+                                                 (+97.3%)   (+31.0%)     (+72.6%)     (+1,259.9%)     (+83.1%)       (−61.3%)
+                                                 +0.111      +0.181        +0.431        +0.151         −0.247         −0.044
+                                      K562
+                                                (+44.4%)    (+36.0%)     (+116.1%)     (+437.8%)      (−71.3%)       (−28.8%)
+                                                 +0.193      +0.216        +0.509        +0.155         −0.086         −0.015
+                                      RPE1
+                                                (+90.0%)    (+48.3%)     (+139.2%)     (+517.3%)      (−35.0%)        (−8.5%)
+                      scVI mean                  +0.237      +0.213        +0.454        +0.246         +0.012         +0.006
+                                      HepG2
+                                                (+99.5%)    (+41.4%)      (+92.1%)    (+1,063.0%)      (+6.0%)        (+4.5%)
+                                                 +0.174      +0.222        +0.486        +0.139         −0.101         −0.041
+                                      Jurkat
+                                                (+82.0%)    (+48.9%)     (+114.9%)    (+1,570.3%)     (−49.1%)       (−30.0%)
+                                                  −0.082      −0.020       −0.024        −0.028         −0.193        +0.001
+                                      K562
+                                                (−13.9%)     (−3.3%)      (−2.5%)       (−7.6%)       (−45.9%)       (+0.7%)
+                                                  −0.084      −0.036       −0.024        −0.058         −0.170        +0.002
+                                      RPE1
+                                                (−15.8%)     (−6.9%)      (−2.5%)      (−23.2%)       (−45.3%)       (+1.4%)
+                      scVI sampling               −0.020      −0.013       −0.001        −0.041         −0.018        +0.000
+                                      HepG2
+                                                 (−3.8%)     (−2.2%)      (−0.1%)      (−14.9%)        (−5.5%)       (+0.0%)
+                                                  −0.001      −0.001       −0.000        −0.002         −0.001        +0.000
+                                      Jurkat
+                                                 (−0.2%)     (−0.1%)      (−0.0%)       (−1.6%)        (−0.2%)       (+0.0%)
+
+
+
+
+                                                                         30
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             Table E2: Values accompanying Figure E5b, right. Values report absolute difference
+             (post - pre) with relative change in parentheses. ↑ denotes higher is better.
+                                         Macro F1    Bal. Acc.   F1 Non-DE     F1 Up-reg    F1 Down-reg     DE Ovlp 50
+               Model           Dataset
+                                           (↑)          (↑)          (↑)          (↑)           (↑)            (↑)
+                                          +0.040       +0.040      +0.084        +0.042         −0.006          +0.003
+                               K562
+                                         (+26.9%)     (+9.0%)     (+24.7%)     (+121.6%)       (−8.0%)         (+3.6%)
+                                          +0.085       +0.105      +0.223        +0.024         +0.007          +0.013
+                               RPE1
+                                         (+48.4%)    (+27.9%)     (+54.2%)     (+112.1%)       (+8.0%)        (+18.9%)
+               TranScouter                +0.037       +0.069      +0.080        +0.031         +0.000          +0.017
+                               HepG2
+                                         (+17.6%)    (+15.5%)     (+14.5%)     (+173.4%)       (+0.4%)        (+33.1%)
+                                          +0.048       +0.066      +0.122        +0.019         +0.002          −0.006
+                               Jurkat
+                                         (+29.8%)    (+15.1%)     (+28.9%)     (+142.0%)       (+5.4%)         (−9.2%)
+                                          +0.081      +0.072       +0.198        +0.049         −0.004          −0.001
+                               K562
+                                         (+50.4%)    (+16.1%)     (+53.9%)     (+135.9%)       (−5.2%)         (−0.9%)
+                                          +0.135      +0.106       +0.333        +0.042         +0.030          −0.010
+                               RPE1
+                                         (+76.1%)    (+25.4%)     (+80.4%)     (+137.1%)      (+34.5%)        (−14.1%)
+               VAE scGen                  +0.078      +0.075       +0.199        +0.041         −0.007          −0.003
+                               HepG2
+                                         (+36.1%)    (+15.8%)     (+36.6%)     (+184.4%)       (−8.5%)         (−6.6%)
+                                          +0.088      +0.094       +0.234        +0.024         +0.006          −0.002
+                               Jurkat
+                                         (+51.6%)    (+21.4%)     (+52.4%)     (+180.6%)      (+10.9%)         (−5.2%)
+                                           +0.118     +0.111        +0.364       +0.032         −0.043          +0.002
+                               K562
+                                          (+75.8%)   (+26.5%)     (+123.0%)    (+114.6%)      (−30.0%)         (+3.8%)
+                                           +0.172     +0.161        +0.496       +0.032         −0.012          +0.006
+                               RPE1
+                                         (+112.3%)   (+48.8%)     (+173.5%)    (+153.0%)       (−8.1%)        (+12.3%)
+               scVI mean                   +0.164     +0.152        +0.507       +0.034         −0.048          −0.005
+                               HepG2
+                                         (+100.5%)   (+37.4%)     (+161.4%)    (+211.1%)      (−30.3%)        (−11.0%)
+                                           +0.134     +0.165        +0.414       +0.021         −0.034          −0.004
+                               Jurkat
+                                          (+89.0%)   (+44.0%)     (+121.7%)    (+262.5%)      (−32.5%)         (−9.7%)
+                                           −0.058      −0.045       −0.113        +0.010       −0.071          −0.001
+                               K562
+                                         (−18.3%)     (−8.8%)     (−14.8%)      (+23.3%)      (−47.9%)        (−1.9%)
+                                           −0.017      −0.024       +0.010        +0.004       −0.064          −0.003
+                               RPE1
+                                          (−4.8%)     (−5.2%)      (+1.1%)       (+9.9%)      (−34.5%)        (−3.4%)
+               scVI sampling               +0.015      −0.003       +0.081        +0.036       −0.072          −0.002
+                               HepG2
+                                          (+4.5%)     (−0.5%)     (+10.1%)     (+128.2%)      (−39.7%)        (−3.3%)
+                                           −0.046      −0.031       −0.087        +0.007       −0.058          −0.004
+                               Jurkat
+                                         (−14.1%)     (−6.3%)     (−10.3%)      (+38.7%)      (−51.1%)        (−4.0%)
+                                           −0.045      +0.030       −0.017       −0.031        −0.086          −0.025
+                               K562
+                                          (−9.5%)     (+6.4%)      (−1.8%)      (−34.6%)      (−24.8%)        (−49.0%)
+                                           −0.037      +0.008       −0.010       −0.027        −0.074          −0.025
+                               RPE1
+                                          (−7.0%)     (+1.5%)      (−1.0%)      (−14.4%)      (−18.3%)        (−20.5%)
+               STATE                       −0.089      +0.004       −0.024       −0.043        −0.200          −0.036
+                               HepG2
+                                         (−15.4%)     (+0.7%)      (−2.5%)      (−13.6%)      (−46.3%)        (−35.6%)
+                                           −0.026      +0.025       −0.008       −0.020        −0.050          −0.012
+                               Jurkat
+                                          (−5.8%)     (+6.0%)      (−0.8%)      (−24.2%)      (−18.1%)        (−21.9%)
+
+
+
+
+                                                                  31
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    References
+                     [1] Dixit, A., Parnas, O., Li, B., Chen, J., Fulco, C.P., Jerby-Arnon, L., Marjanovic,
+                         N.D., Dionne, D., Burks, T., Raychowdhury, R., Adamson, B., Norman, T.M.,
+                         Lander, E.S., Weissman, J.S., Friedman, N., Regev, A.: Perturb-seq: Dissecting
+                         molecular circuits with scalable single-cell RNA profiling of pooled genetic screens.
+                         Cell 167(7), 1853–186617 (2016) https://doi.org/10.1016/j.cell.2016.11.038
+
+                     [2] Jin, X., Simmons, S.K., Guo, A., Shetty, A.S., Ko, M., Nguyen, L., Jokhi,
+                         V., Robinson, E., Oyler, P., Curry, N., Deangeli, G., Lodato, S., Levin, J.Z.,
+                         Regev, A., Zhang, F., Arlotta, P.: In vivo perturb-seq reveals neuronal and glial
+                         abnormalities associated with autism risk genes. Science 370(6520), 6063 (2020)
+                         https://doi.org/10.1126/science.aaz6063
+
+                     [3] Roohani, Y.H., Hua, T.J., Tung, P.-Y., Bounds, L.R., Yu, F.B., Dobin, A.,
+                         Teyssier, N., Adduri, A., Woodrow, A., Plosky, B.S., Mehta, R., Hsu, B., Sullivan,
+                         J., Ricci-Tam, C., Li, N., Kazaks, J., Gilbert, L.A., Konermann, S., Hsu, P.D.,
+                         Goodarzi, H., Burke, D.P.: Virtual cell challenge: Toward a turing test for the
+                         virtual cell. Cell 188(13), 3370–3374 (2025) https://doi.org/10.1016/j.cell.2025.
+                         06.008
+
+                     [4] Bunne, C., Roohani, Y., Rosen, Y., Gupta, A., Zhang, X., Roed, M., Alexan-
+                         drov, T., AlQuraishi, M., Brennan, P., Burkhardt, D.B., Califano, A., Cool, J.,
+                         Dernburg, A.F., Ewing, K., Fox, E.B., Haury, M., Herr, A.E., Horvitz, E., Hsu,
+                         P.D., Jain, V., Johnson, G.R., Kalil, T., Kelley, D.R., Kelley, S.O., Kreshuk, A.,
+                         Mitchison, T., Otte, S., Shendure, J., Sofroniew, N.J., Theis, F., Theodoris, C.V.,
+                         Upadhyayula, S., Valer, M., Wang, B., Xing, E., Yeung-Levy, S., Zitnik, M., Kar-
+                         aletsos, T., Regev, A., Lundberg, E., Leskovec, J., Quake, S.R.: How to build the
+                         virtual cell with artificial intelligence: Priorities and opportunities. Cell 187(25),
+                         7045–7063 (2024) https://doi.org/10.1016/j.cell.2024.11.015
+
+                     [5] Robinson, M.D., McCarthy, D.J., Smyth, G.K.: edgeR: a bioconductor package
+                         for differential expression analysis of digital gene expression data. Bioinformatics
+                         26(1), 139–140 (2010) https://doi.org/10.1093/bioinformatics/btp616
+
+                     [6] Love, M.I., Huber, W., Anders, S.: Moderated estimation of fold change and
+                         dispersion for RNA-seq data with DESeq2. Genome Biology 15(12), 550 (2014)
+                         https://doi.org/10.1186/s13059-014-0550-8
+
+                     [7] Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., Smyth, G.K.:
+                         limma powers differential expression analyses for RNA-sequencing and microarray
+                         studies. Nucleic Acids Research 43(7), 47–47 (2015) https://doi.org/10.1093/nar/
+                         gkv007
+
+                     [8] Roohani, Y., Huang, K., Leskovec, J.: Predicting transcriptional outcomes of
+                         novel multigene perturbations with GEARS. Nature Biotechnology 42(6), 927–
+                         935 (2024) https://doi.org/10.1038/s41587-023-01905-6
+
+
+                                                                         32
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+              [9] Cui, H., Wang, C., Maan, H., Pang, K., Luo, F., Duan, N., Wang, B.: scGPT:
+                  toward building a foundation model for single-cell multi-omics using gener-
+                  ative AI. Nature Methods 21(8), 1470–1480 (2024) https://doi.org/10.1038/
+                  s41592-024-02201-0
+
+             [10] Chen, Y., Zou, J.: GenePert: Leveraging GenePT embeddings for gene perturba-
+                  tion prediction. bioRxiv (2024) https://doi.org/10.1101/2024.10.27.620513
+
+             [11] Lopez, R., Regier, J., Cole, M.B., Jordan, M.I., Yosef, N.: Deep generative mod-
+                  eling for single-cell transcriptomics. Nature Methods 15(12), 1053–1058 (2018)
+                  https://doi.org/10.1038/s41592-018-0229-2
+
+             [12] Lotfollahi, M., Wolf, F.A., Theis, F.J.: scGen predicts single-cell perturba-
+                  tion responses. Nature Methods 16(8), 715–721 (2019) https://doi.org/10.1038/
+                  s41592-019-0494-8
+
+             [13] Adduri, A.K., Gautam, D., Bevilacqua, B., Imran, A., Shah, R., Naghipourfar,
+                  M., Teyssier, N., Ilango, R., Nagaraj, S., Dong, M., Ricci-Tam, C., Carpenter,
+                  C., Subramanyam, V., Winters, A., Tirukkovular, S., Sullivan, J., Plosky, B.S.,
+                  Eraslan, B., Youngblut, N.D., Leskovec, J., Gilbert, L.A., Konermann, S., Hsu,
+                  P.D., Dobin, A., Burke, D.P., Goodarzi, H., Roohani, Y.H.: Predicting cellu-
+                  lar responses to perturbation across diverse contexts with State. bioRxiv (2025)
+                  https://doi.org/10.1101/2025.06.26.661135
+
+             [14] Zhu, O., Li, J.: Scouter predicts transcriptional responses to genetic perturbations
+                  with large language model embeddings. Nature Computational Science 6(1), 21–
+                  28 (2026) https://doi.org/10.1038/s43588-025-00912-8
+
+             [15] Lu, M., You, N., Zhang, H., Zheng, L., Li, B., Jiang, W., Zhang, Y., Sun, H.,
+                  Zhou, Y.: A multi-modal LLM-knowledge fusion framework for predicting single-
+                  cell genetic perturbation effects. bioRxiv (2026) https://doi.org/10.64898/2026.
+                  04.24.720560
+
+             [16] Wu, M., Littman, R., Levine, J., Qiu, L., Biancalani, T., Richmond, D., Huetter,
+                  J.-C.: Contextualizing biological perturbation experiments through language. In:
+                  The Thirteenth International Conference on Learning Representations (2025).
+                  https://openreview.net/forum?id=5WEpbilssv
+
+             [17] Phillips, L., Martell, M.B., Misra, A., Stoisser, J.L., Prada-Medina, C.A.,
+                  Donovan-Maiye, R., Märtens, K.: SynthPert: Enhancing LLM Biological Reason-
+                  ing via Synthetic Reasoning Traces for Cellular Perturbation Prediction (2026).
+                  https://arxiv.org/abs/2509.25346
+
+             [18] Istrate, A.-M., Milletari, F., Castrotorres, F., Tomczak, J.M., Torkar, M., Li,
+                  D., Karaletsos, T.: rbio1 - training scientific reasoning LLMs with biological
+                  world models as soft verifiers. bioRxiv (2025) https://doi.org/10.1101/2025.08.
+                  18.670981
+
+
+                                                                  33
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                    [19] Cheng, X., Li, P., Guo, H., Liang, Y., Gong, J., Vazelhes, W., Gou, C., Xie, P.,
+                         Song, L., Xing, E.: Harnessing AI to build virtual cells. bioRxiv (2026) https:
+                         //doi.org/10.64898/2026.04.11.717183
+
+                    [20] Tang, X., Yu, Z., Chen, J., Cui, Y., Shao, D., Wang, W., Wu, F., Zhuang, Y.,
+                         Shi, W., Huang, Z., Cohan, A., Lin, X., Theis, F., Krishnaswamy, S., Gerstein,
+                         M.: CellForge: Agentic Design of Virtual Cell Models (2026). https://arxiv.org/
+                         abs/2508.02276
+
+                    [21] Ahlmann-Eltze, C., Huber, W., Anders, S.: Deep-learning-based gene perturba-
+                         tion effect prediction does not yet outperform simple linear baselines. Nature
+                         Methods 22(8), 1657–1661 (2025) https://doi.org/10.1038/s41592-025-02772-6
+
+                    [22] Mao, X., Zhang, S., Wen, Q., Wen, X., Jin, K., Wu, H., Chen, S., Li, Y., Bai,
+                         L., Liu, Q., Ding, N., Sun, S., Gao, Z.: Benchmarking virtual cell models for
+                         in-the-wild perturbation response (2026). https://arxiv.org/abs/2604.27646
+
+                    [23] Radig, J., Droit, R., Doncevic, D., Li, A., Bui, D.T., Herfurth, L., Kühn, T.,
+                         Herrmann, C.: scArchon: a scalable benchmarking framework for assessing single-
+                         cell perturbation models. Genome Biology 27(1), 162 (2026) https://doi.org/10.
+                         1186/s13059-026-04104-z
+
+                    [24] Wei, Z., Wang, Y., Gao, Y., Wang, S., Li, P., Si, D., Gao, Y., Wu, S., Li, D.,
+                         Dong, K., Yang, X., Tang, C., Fu, S., Chen, X., Li, W., You, Y., Zhang, C.,
+                         Liang, A., Chuai, G., Liu, Q.: Benchmarking algorithms for generalizable single-
+                         cell perturbation response prediction. Nature Methods 23(2), 451–464 (2026)
+                         https://doi.org/10.1038/s41592-025-02980-0
+
+                    [25] Viñas Torné, R., Wiatrak, M., Piran, Z., Fan, S., Jiang, L., Teichmann, S.A.,
+                         Nitzan, M., Brbić, M.: Systema: a framework for evaluating genetic perturbation
+                         response prediction beyond systematic variation. Nature Biotechnology (2025)
+                         https://doi.org/10.1038/s41587-025-02777-8
+
+                    [26] Cole, E., Huizing, G.-J., Addagudi, S., Ho, N., Hasanaj, E., Kuijs, M., John-
+                         stone, T., Carilli, M., Davi, A., Ellington, C., Feinauer, C., Li, P., Menegaux,
+                         R., Mohammadi, S., Shao, Y., Zhang, J., Lundberg, E., Song, L., Bar-Joseph, Z.,
+                         Xing, E.P.: Foundation models improve perturbation response prediction. bioRxiv
+                         (2026) https://doi.org/10.64898/2026.02.18.706454
+
+                    [27] Weidener, L., Brkić, M., Jovanović, M., Ulgac, E., Meduri, A.: VCBench: A multi-
+                         dimensional benchmark for single-cell foundation models. bioRxiv (2026) https:
+                         //doi.org/10.64898/2026.06.18.733146
+
+                    [28] Liu, S.J., Zou, C., Pak, J., Morse, A., Pang, D., Casey-Clyde, T., Borah, A.A.,
+                         Wu, D., Seo, K., O’Loughlin, T., Lim, D.A., Ozawa, T., Berger, M.S., Kam-
+                         ber, R.A., Weiss, W.A., Raleigh, D.R., Gilbert, L.A.: In vivo perturb-seq of
+                         cancer and microenvironment cells dissects oncologic drivers and radiotherapy
+
+
+                                                                         34
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                   responses in glioblastoma. Genome Biology 25(1), 256 (2024) https://doi.org/10.
+                   1186/s13059-024-03404-6
+
+             [29] Yang, B., Zhang, M., Shi, Y., Zheng, B.-Q., Shi, C., Lu, D., Yang, Z.-Z., Dong, Y.-
+                  M., Zhu, L., Ma, X., Zhang, J., He, J., Zhang, Y., Hu, K., Lin, H., Liao, J.-Y., Yin,
+                  D.: PerturbDB for unraveling gene functions and regulatory networks. Nucleic
+                  Acids Research 53(D1), 1120–1131 (2025) https://doi.org/10.1093/nar/gkae777
+
+             [30] Chen, Y., Zou, J.: Simple and effective embedding model for single-cell biology
+                  built from ChatGPT. Nature Biomedical Engineering 9(4), 483–493 (2025) https:
+                  //doi.org/10.1038/s41551-024-01284-6
+
+             [31] Zhu, O., Li, J.: Investigating cross-condition prediction of transcriptional response
+                  to gene perturbations with TranScouter. In submission (2026)
+
+             [32] Replogle, J.M., Saunders, R.A., Pogson, A.N., Hussmann, J.A., Lenail, A., Guna,
+                  A., Mascibroda, L., Wagner, E.J., Adelman, K., Lithwick-Yanai, G., Iremadze,
+                  N., Oberstrass, F., Lipson, D., Bonnar, J.L., Jost, M., Norman, T.M., Weissman,
+                  J.S.: Mapping information-rich genotype-phenotype landscapes with genome-
+                  scale perturb-seq. Cell 185(14), 2559–257528 (2022) https://doi.org/10.1016/j.
+                  cell.2022.05.013
+
+             [33] Nadig, A., Replogle, J.M., Pogson, A.N., Murthy, M., McCarroll, S.A., Weissman,
+                  J.S., Robinson, E.B., O’Connor, L.J.: Transcriptome-wide analysis of differen-
+                  tial expression in perturbation atlases. Nature Genetics 57(5), 1228–1237 (2025)
+                  https://doi.org/10.1038/s41588-025-02169-3
+
+             [34] Norman, T.M., Horlbeck, M.A., Replogle, J.M., Ge, A.Y., Xu, A., Jost, M.,
+                  Gilbert, L.A., Weissman, J.S.: Exploring genetic interaction manifolds con-
+                  structed from rich single-cell phenotypes. Science 365(6455), 786–793 (2019)
+                  https://doi.org/10.1126/science.aax4438
+
+             [35] Nicol, P.B., Shivakumar, S., Irizarry, R.A.: Spurious correlation inflates perfor-
+                  mance in single-cell perturbation prediction. bioRxiv (2026) https://doi.org/10.
+                  64898/2026.05.07.723486
+
+             [36] Gretton, A., Borgwardt, K.M., Rasch, M.J., Schölkopf, B., Smola, A.: A kernel
+                  two-sample test. J. Mach. Learn. Res. 13(null), 723–773 (2012)
+
+             [37] Arc Institute: STATE for Virtual Cell Challenge. Arc Institute (2025). https:
+                  //colab.research.google.com/drive/1QKOtYP7bMpdgDJEipDxaJqOchv7oQ- l
+
+             [38] Arc Institute: state-reproduce: Reproduce analyses and baselines from the State
+                  paper. https://github.com/ArcInstitute/state-reproduce. Version v0.1.0 (2026)
+
+             [39] Zhu, R., Dann, E., Yan, J., Retana, J.R., Goto, R., Guitche, R.C., Petersen,
+
+
+
+
+                                                                  35
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+                          L.K., Ota, M., Pritchard, J.K., Marson, A.: Genome-scale perturb-seq in pri-
+                          mary human CD4+ T cells maps context-specific regulators of T cell programs
+                          and human immune traits. bioRxiv (2025) https://doi.org/10.64898/2025.12.23.
+                          696273
+
+                    [40] Frangieh, C.J., Melms, J.C., Thakore, P.I., Geiger-Schuller, K.R., Ho, P., Luoma,
+                         A.M., Cleary, B., Jerby-Arnon, L., Malu, S., Cuoco, M.S., Zhao, M., Ager, C.R.,
+                         Rogava, M., Hovey, L., Rotem, A., Bernatchez, C., Wucherpfennig, K.W., John-
+                         son, B.E., Rozenblatt-Rosen, O., Schadendorf, D., Regev, A., Izar, B.: Multimodal
+                         pooled Perturb-CITE-seq screens in patient models define mechanisms of can-
+                         cer immune evasion. Nature Genetics 53(3), 332–341 (2021) https://doi.org/10.
+                         1038/s41588-021-00779-1
+
+                    [41] Srivatsan, S.R., McFaline-Figueroa, J.L., Ramani, V., Saunders, L., Cao, J.,
+                         Packer, J., Pliner, H.A., Jackson, D.L., Daza, R.M., Christiansen, L., Zhang, F.,
+                         Steemers, F., Shendure, J., Trapnell, C.: Massively multiplex chemical transcrip-
+                         tomics at single-cell resolution. Science 367(6473), 45–51 (2020) https://doi.org/
+                         10.1126/science.aax6234
+
+                    [42] Shi, T., Korshunova, M., Kim, S., DeTomaso, D., Zheng, X., Vishvanath, L.,
+                         Nyasulu, T., Huynh, N., Sun, A., Thompson, P.C., Zhang, Y., Wigdor, E.M.,
+                         Rohani, N., Ali, S., Qiu, H., Geralt, M., Zhao, Z., Rabhi, S., Yao, Z., Velthoven,
+                         C.T., Nery, J.R., Castanon, R.G., Dicks, S., Chen, T.J., Ecker, J.R., Zeng, H.,
+                         Zheng, G.X., Sanders, S.J., Sundaram, L., Jin, X.: Genome-scale functional map-
+                         ping of the mammalian whole brain with in vivo perturb-seq. bioRxiv (2026)
+                         https://doi.org/10.64898/2026.03.16.711480
+
+                    [43] Smith, H.D., Diamant, N.L., Trippe, B.L.: Calibrating Generative Models to
+                         Distributional Constraints (2026). https://arxiv.org/abs/2510.10020
+
+                    [44] Text-embedding-3-large Model. OpenAI (2024). https://developers.openai.com/
+                         api/docs/models/text-embedding-3-large
+
+                    [45] Lin, Z., Akin, H., Rao, R., Hie, B., Zhu, Z., Lu, W., Smetanin, N., Verkuil, R.,
+                         Kabeli, O., Shmueli, Y., Santos Costa, A., Fazel-Zarandi, M., Sercu, T., Candido,
+                         S., Rives, A.: Evolutionary-scale prediction of atomic-level protein structure with
+                         a language model. Science 379(6637), 1123–1130 (2023) https://doi.org/10.1126/
+                         science.ade2574
+
+                    [46] Skarlinski, M.D., Cox, S., Laurent, J.M., Braza, J.D., Hinks, M., Hammerling,
+                         M.J., Ponnapati, M., Rodriques, S.G., White, A.D.: Language agents achieve
+                         superhuman synthesis of scientific knowledge (2024). https://arxiv.org/abs/2409.
+                         13740
+
+                    [47] Fang, Z., Liu, X., Peltz, G.: GSEApy: a comprehensive package for performing
+                         gene set enrichment analysis in python. Bioinformatics 39(1), 757 (2023) https:
+                         //doi.org/10.1093/bioinformatics/btac757
+
+
+                                                                         36
+bioRxiv preprint doi: https://doi.org/10.64898/2026.07.20.739620; this version posted July 24, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is
+                                           made available under a CC-BY 4.0 International license.
+
+
+
+
+             [48] Liberzon, A., Birger, C., Thorvaldsdóttir, H., Ghandi, M., Mesirov, J.P., Tamayo,
+                  P.: The molecular signatures database hallmark gene set collection. Cell Systems
+                  1(6), 417–425 (2015) https://doi.org/10.1016/j.cels.2015.12.004
+
+             [49] Kanehisa, M., Goto, S.: KEGG: Kyoto encyclopedia of genes and genomes.
+                  Nucleic Acids Research 28(1), 27–30 (2000) https://doi.org/10.1093/nar/28.1.27
+
+             [50] Jassal, B., Matthews, L., Viteri, G., Gong, C., Lorente, P., Fabregat, A.,
+                  Sidiropoulos, K., Cook, J., Gillespie, M., Haw, R., Loney, F., May, B., Milacic,
+                  M., Rothfels, K., Sevilla, C., Shamovsky, V., Shorser, S., Varusai, T., Weiser,
+                  J., Wu, G., Stein, L., Hermjakob, H., D’Eustachio, P.: The reactome pathway
+                  knowledgebase. Nucleic Acids Research 48(D1), 498–503 (2020) https://doi.org/
+                  10.1093/nar/gkz1031
+
+
+
+
+                                                                  37
+

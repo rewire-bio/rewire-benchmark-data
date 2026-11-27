@@ -1,0 +1,744 @@
+{
+  "record_id": "model-coverage-scfoundation-cell-annotation",
+  "sources": [
+    {
+      "key": "supp",
+      "name": "Text layer of the scFoundation supplementary information PDF",
+      "description": "Text extracted with pdftotext -layout from the publisher's supplementary PDF for the scFoundation paper. The PDF is kept beside it as artifacts/supplementary.pdf. This file holds Supplementary Table 4, the cell type annotation comparison recorded here, and the macro F1 definition.",
+      "file": "artifacts/supplementary.txt",
+      "artifact_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41592-024-02305-7/MediaObjects/41592_2024_2305_MOESM1_ESM.pdf",
+      "url": "https://www.nature.com/articles/s41592-024-02305-7",
+      "version": "Supplementary Information of doi 10.1038/s41592-024-02305-7",
+      "media_type": "text/plain",
+      "sha256": "7526ac7cc6b6e9611ab456e2c18e92e69708200ec4b1314e96c83cc17cad05a8",
+      "retrieved_at": "2026-11-27T04:49:16Z",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "biomap-research/scFoundation README.md at commit 397631c495eddf9ad6644fc00c6ea8139e651245",
+      "description": "Official repository README, pinned to a commit. Names the cell type annotation task, where its code and data sit, and the licence split between code and model weights.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/biomap-research/scFoundation/397631c495eddf9ad6644fc00c6ea8139e651245/README.md",
+      "url": "https://github.com/biomap-research/scFoundation",
+      "version": "git commit 397631c495eddf9ad6644fc00c6ea8139e651245",
+      "media_type": "text/markdown",
+      "sha256": "02a7ae44cf2cc9948b5c1520b18a261b45abf9f17e3149e37d9f48072184f376",
+      "retrieved_at": "2026-11-27T04:49:51Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    },
+    {
+      "key": "annotation-readme",
+      "name": "biomap-research/scFoundation annotation/README.md at commit 397631c495eddf9ad6644fc00c6ea8139e651245",
+      "description": "The README of the repository folder for this task, pinned to a commit. Gives the steps and the data addresses.",
+      "file": "artifacts/annotation-readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/biomap-research/scFoundation/397631c495eddf9ad6644fc00c6ea8139e651245/annotation/README.md",
+      "url": "https://github.com/biomap-research/scFoundation/tree/main/annotation",
+      "version": "git commit 397631c495eddf9ad6644fc00c6ea8139e651245",
+      "media_type": "text/markdown",
+      "sha256": "cbec9bd71f339ead2360201016d59e578381605b3d5374f471d670587d9ff37e",
+      "retrieved_at": "2026-11-27T04:49:42Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "biomap-research/scFoundation LICENSE at commit 397631c495eddf9ad6644fc00c6ea8139e651245",
+      "description": "The repository code licence file.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/biomap-research/scFoundation/397631c495eddf9ad6644fc00c6ea8139e651245/LICENSE",
+      "url": "https://github.com/biomap-research/scFoundation/blob/main/LICENSE",
+      "version": "git commit 397631c495eddf9ad6644fc00c6ea8139e651245",
+      "media_type": "text/plain",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "retrieved_at": "2026-11-27T04:49:55Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "This is the cell type annotation comparison reported with scFoundation, not a standalone benchmark. Two published single-cell data sets are used, Zheng68K, a peripheral blood mononuclear cell set, and Segerstolpe, a pancreatic set, and seven methods are scored by macro-averaged F1 for assigning a cell type label to each cell. The saved sources print one number per method and data set: scFoundation 0.736 and 0.914, CellTypist 0.725 and 0.812, SingleCellNet 0.598 and 0.806, ACTINN 0.649 and 0.722, scBERT 0.670 and 0.670, Scanpy 0.547 and 0.540, scANVI 0.395 and 0.521. It is useful as a reference point for annotation methods on two well-known data sets, but the splits and the fitting details are not in the files that are open.",
+    "summary_source_ids": [
+      "@supp",
+      "@readme"
+    ],
+    "summary_source_locator": "Supplementary Table 4 and the macro F1 definition in the supplementary notes; README.md: Cell type annotation",
+    "summary_quotes": [
+      {
+        "source": "@supp",
+        "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+      },
+      {
+        "source": "@supp",
+        "text": "Macro F1 score             Zheng68K               Segerstolpe"
+      },
+      {
+        "source": "@supp",
+        "text": "scFoundation                 0.736                  0.914"
+      },
+      {
+        "source": "@supp",
+        "text": "CellTypist                 0.725                  0.812"
+      },
+      {
+        "source": "@readme",
+        "text": "| Annotation                  | Cell type annotation task on Pancreatic and PBMC data"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a method can put the right cell type label on each cell of a published data set. Two data sets are used, Zheng68K from blood and Segerstolpe from pancreas, and the comparison puts a foundation model's embedding against dedicated annotation tools and against plain pipelines. Because the score is a macro average over cell types, a method is judged on the rare types as much as the common ones: the per-cell-type table for Zheng68K shows where that bites, with CellTypist scoring an F1 of 0 on CD4-positive T helper 2 cells and scFoundation 0.17, against 0.85 and 0.86 on CD14-positive monocytes.",
+        "source_ids": [
+          "@supp",
+          "@readme"
+        ],
+        "source_locator": "Supplementary Tables 4 and 5; README.md: Cell type annotation",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+          },
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 5. Cell type level results on Zheng68K datasets."
+          },
+          {
+            "source": "@supp",
+            "text": "CD4+ T Helper2                 0            0        0         0.33       0.11       0.17"
+          },
+          {
+            "source": "@readme",
+            "text": "### Cell type annotation"
+          },
+          {
+            "source": "@supp",
+            "text": "CD14+ Monocyte 0.86 0.85 0.85 0.85 0.87 0.86"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The two data sets are taken as published, Zheng68K of blood cells and Segerstolpe of pancreatic cells, and the repository describes the task as cell type annotation on pancreatic and blood data. The repository ships the precomputed scFoundation embeddings for this task as a zip file and points to Figshare for the raw gene expression data, saying the embeddings can also be regenerated through the model's API or local code. How the cells were divided into training and test parts, how many cells were used, and which labels were kept are not stated in any of the saved files: the main text of the paper is behind a paywall and was not read. Supplementary Table 5 lists per-cell-type results for 11 Zheng68K cell types, counting its rows, which is the only label list in the saved files.",
+        "source_ids": [
+          "@supp",
+          "@readme",
+          "@annotation-readme"
+        ],
+        "source_locator": "Supplementary Table 5; README.md: data table; annotation/README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "| Annotation                  | Cell type annotation task on Pancreatic and PBMC data"
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "The raw gene expression data can be downloaded from Figshare: https://doi.org/10.6084/m9.figshare.24049200"
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "The corresponding embeddings can be obtained by using either API or local model code."
+          },
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 5. Cell type level results on Zheng68K datasets."
+          },
+          {
+            "source": "@supp",
+            "text": "CD14+ Monocyte                 0.86         0.85     0.85       0.85       0.87       0.86"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "The reported metric is the macro F1 score, defined in the supplementary notes as the average of the per-cell-type F1 scores, where each type's F1 is computed from its true positives, false positives and false negatives. Higher is better. Supplementary Table 4 gives one number per method and data set, with no interval, no seed count and no statistical test. A second table reports the same Zheng68K annotation task for three model sizes, 0.705 for the 3M model, 0.714 for the 10M and 0.736 for the 100M, and states that the experimental setting is the same as the cell type annotation downstream task. Supplementary Table 5 breaks Zheng68K down by cell type with precision, recall and F1 for CellTypist and scFoundation.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary notes, Macro F1 score; Supplementary Tables 2, 4 and 5",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+          },
+          {
+            "source": "@supp",
+            "text": "where TPi , FPi and FNi represent True Positive (TP), False Positive (FP), and False Negative (FN) values, respectively"
+          },
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 2. F1 score of 3M,10M, and 100M model on Zheng68K cell type annotation task. The experimental setting is the same as the cell type annotation downstream tasks."
+          },
+          {
+            "source": "@supp",
+            "text": "Zheng68K                   0.705                  0.714                        0.736"
+          },
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 5. Cell type level results on Zheng68K datasets."
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The repository has a folder for this task. Clone it, unzip the bundled annotation data into a data folder, and open the plotting notebook, which the folder README says holds the results. The raw expression data are on Figshare and the embeddings can be regenerated from the model, through its API or the local model code in the repository. The saved files give no training command, no split file and no scoring script for this task.",
+        "source_ids": [
+          "@annotation-readme",
+          "@readme"
+        ],
+        "source_locator": "annotation/README.md; README.md: Cell type annotation",
+        "quotes": [
+          {
+            "source": "@annotation-readme",
+            "text": "1. Unzip `annotation_data.zip` into `./data/` folder."
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "The plot results are in the `celltype-plot.ipynb`"
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "The corresponding embeddings can be obtained by using either API or local model code."
+          },
+          {
+            "source": "@readme",
+            "text": "You can find the code to reproduce results for the cell type annotation task in the `annotation` folder."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Two: Zheng68K, blood mononuclear cells, and Segerstolpe, pancreatic cells. No cell counts, gene counts or label counts are given for either in the saved files. Supplementary Table 5 reports per-cell-type results for 11 Zheng68K cell types, which is the count of its rows.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supp",
+          "@readme"
+        ],
+        "source_locator": "Supplementary Tables 4 and 5; README.md: data table",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+          },
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 5. Cell type level results on Zheng68K datasets."
+          },
+          {
+            "source": "@readme",
+            "text": "| Annotation                  | Cell type annotation task on Pancreatic and PBMC data"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Not reported in the sources read. Neither the supplementary information nor the repository folder states how cells were divided into training and test parts for this task, or whether the split was random, by donor or by batch. The supplementary note for the model-size table says only that the experimental setting is the same as the cell type annotation downstream task. The main text, which may describe it, is behind a paywall and was not read.",
+        "status": "unextracted",
+        "source_ids": [
+          "@supp",
+          "@annotation-readme"
+        ],
+        "source_locator": "Supplementary Table 2 note; annotation/README.md"
+      },
+      {
+        "label": "Metrics",
+        "value": "Macro-averaged F1 score, higher is better: the average of the per-cell-type F1 scores, each computed from that type's true positives, false positives and false negatives. Supplementary Table 5 additionally reports per-cell-type precision and recall for Zheng68K.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary notes, Macro F1 score; Supplementary Tables 4 and 5",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+          },
+          {
+            "source": "@supp",
+            "text": "Macro F1 score             Zheng68K               Segerstolpe"
+          },
+          {
+            "source": "@supp",
+            "text": "where TPi , FPi and FNi represent True Positive (TP), False Positive (FP), and False Negative (FN) values, respectively"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Six methods compared against scFoundation in Supplementary Table 4, with macro F1 on Zheng68K and Segerstolpe: scBERT 0.670 and 0.670, CellTypist 0.725 and 0.812, scANVI 0.395 and 0.521, ACTINN 0.649 and 0.722, Scanpy 0.547 and 0.540, SingleCellNet 0.598 and 0.806. scFoundation reports 0.736 and 0.914.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Table 4",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "scFoundation                 0.736                  0.914"
+          },
+          {
+            "source": "@supp",
+            "text": "scBERT                 0.670                  0.670"
+          },
+          {
+            "source": "@supp",
+            "text": "CellTypist                 0.725                  0.812"
+          },
+          {
+            "source": "@supp",
+            "text": "scANVI                 0.395                  0.521"
+          },
+          {
+            "source": "@supp",
+            "text": "ACTINN                     0.649                  0.722"
+          },
+          {
+            "source": "@supp",
+            "text": "Scanpy                 0.547                  0.540"
+          },
+          {
+            "source": "@supp",
+            "text": "SingleCellNet                 0.598                  0.806"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "None described in the sources read. The saved files do not say whether the two data sets, or cells like them, were part of the model's pretraining corpus, nor what kept test cells out of training for the classifier. The repository ships precomputed embeddings for the task without stating how the split was made.",
+        "status": "unextracted",
+        "source_ids": [
+          "@supp",
+          "@annotation-readme"
+        ],
+        "source_locator": "Supplementary Table 4; annotation/README.md"
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None reported. Supplementary Table 4 prints a single macro F1 per method and data set, with no standard deviation, confidence interval, seed count or significance test, and the per-cell-type table is likewise a single run.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Tables 4 and 5",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Macro F1 score             Zheng68K               Segerstolpe"
+          },
+          {
+            "source": "@supp",
+            "text": "scFoundation                 0.736                  0.914"
+          },
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 5. Cell type level results on Zheng68K datasets."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A single cell. Each cell is assigned one cell type label, and the scores are computed from per-cell-type true positives, false positives and false negatives, then averaged over the types.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supp",
+          "@readme"
+        ],
+        "source_locator": "Supplementary notes, Macro F1 score; README.md: Cell type annotation",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+          },
+          {
+            "source": "@readme",
+            "text": "### Cell type annotation"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Not stated for the two data sets in the sources read. The saved files name the data as pancreatic and blood mononuclear cell data and name Zheng68K and Segerstolpe, but give no species for them; the repository README says human only of the pretraining corpus.",
+        "status": "unreported",
+        "source_ids": [
+          "@readme",
+          "@supp"
+        ],
+        "source_locator": "README.md: data table; Supplementary Table 4",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "trained on over 50 million human single-cell transcriptomics data"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell RNA sequencing. The paper is on single-cell transcriptomics and the task input is gene expression, which the repository folder calls raw gene expression data. The cell type labels come with the two published data sets; the saved files do not say how those labels were originally made.",
+        "status": "source_checked",
+        "source_ids": [
+          "@supp",
+          "@annotation-readme"
+        ],
+        "source_locator": "Supplementary information title page; annotation/README.md",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Large-scale foundation model on single-cell transcriptomics"
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "The raw gene expression data can be downloaded from Figshare: https://doi.org/10.6084/m9.figshare.24049200"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Gene expression per cell, and for the foundation model its own cell embedding derived from that expression. The repository folder ships the embeddings for this task and says they can be regenerated with the model API or the local model code. No other input, such as tissue or donor metadata, is described.",
+        "status": "source_checked",
+        "source_ids": [
+          "@annotation-readme",
+          "@readme"
+        ],
+        "source_locator": "annotation/README.md; README.md: data table",
+        "quotes": [
+          {
+            "source": "@annotation-readme",
+            "text": "The corresponding embeddings can be obtained by using either API or local model code."
+          },
+          {
+            "source": "@readme",
+            "text": "GitHub (embeddings): annotation/annotation_data.zip"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Not described in the sources read. The repository supplies precomputed embeddings and a plotting notebook, and the supplementary information says only that the model-size comparison used the same setting as this task, without stating whether the foundation model was fine-tuned or a classifier was fitted on frozen embeddings. The main text was not read.",
+        "status": "unextracted",
+        "source_ids": [
+          "@supp",
+          "@annotation-readme"
+        ],
+        "source_locator": "Supplementary Table 2 note; annotation/README.md"
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The comparison set is wide for a paper table: six other methods on the same two data sets, including dedicated annotation tools, a transformer model and plain pipelines, with every number printed rather than shown only in a figure.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Table 4",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+          },
+          {
+            "source": "@supp",
+            "text": "SingleCellNet                 0.598                  0.806"
+          }
+        ]
+      },
+      {
+        "text": "The metric is defined in full in the supplementary notes, as the mean of per-cell-type F1 scores, so the aggregation is unambiguous and rare cell types are not drowned out.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary notes, Macro F1 score",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+          }
+        ]
+      },
+      {
+        "text": "Results are also broken out per cell type for Zheng68K, with precision and recall for CellTypist and scFoundation, which shows which classes drive the macro average.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Table 5",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 5. Cell type level results on Zheng68K datasets."
+          },
+          {
+            "source": "@supp",
+            "text": "CD4+ T Helper2                 0            0        0         0.33       0.11       0.17"
+          }
+        ]
+      },
+      {
+        "text": "The task has its own folder in the repository under an Apache-2.0 code licence, with the embeddings used for the figures bundled in and the raw data addressed on Figshare.",
+        "source_ids": [
+          "@readme",
+          "@annotation-readme",
+          "@licence"
+        ],
+        "source_locator": "README.md: Cell type annotation and Code License; annotation/README.md; LICENSE",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "You can find the code to reproduce results for the cell type annotation task in the `annotation` folder."
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "1. Unzip `annotation_data.zip` into `./data/` folder."
+          },
+          {
+            "source": "@licence",
+            "text": "Apache License"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The protocol is not in the open files. No split, no cell counts, no fitting procedure and no leakage control for this task appear in the supplementary information or the repository folder, so a new score cannot be made comparable to these numbers from what is public.",
+        "source_ids": [
+          "@supp",
+          "@annotation-readme"
+        ],
+        "source_locator": "Supplementary Table 2 note; annotation/README.md",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 2. F1 score of 3M,10M, and 100M model on Zheng68K cell type annotation task. The experimental setting is the same as the cell type annotation downstream tasks."
+          },
+          {
+            "source": "@annotation-readme",
+            "text": "The plot results are in the `celltype-plot.ipynb`"
+          }
+        ]
+      },
+      {
+        "text": "Single numbers with no uncertainty. Each method and data set has one macro F1 in Supplementary Table 4, with no repeats or intervals, so small differences, for example 0.736 against 0.725 on Zheng68K, cannot be read as separating two methods.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Table 4",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "scFoundation                 0.736                  0.914"
+          },
+          {
+            "source": "@supp",
+            "text": "CellTypist                 0.725                  0.812"
+          }
+        ]
+      },
+      {
+        "text": "All the numbers were produced by the authors of the model being promoted, on two data sets of their choosing, and the model licence is separate from the code licence: the repository states that any use of the model weights is subject to a Model License rather than Apache-2.0.",
+        "source_ids": [
+          "@supp",
+          "@readme"
+        ],
+        "source_locator": "Supplementary Table 4; README.md: Code License",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+          },
+          {
+            "source": "@readme",
+            "text": "This source code repository is licensed under the Apache-2.0 License; provided, however, that notwithstanding the foregoing, any use or exploitation of any Model Weights is subject to the Model License."
+          }
+        ]
+      },
+      {
+        "text": "Two data sets, one blood and one pancreas, and the macro average is sensitive to a few hard classes: on Zheng68K CellTypist scores an F1 of 0 on CD4-positive T helper 2 cells and scFoundation 0.17, so the headline figure moves with the fate of individual small populations.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Tables 4 and 5",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "CD4+ T Helper2                 0            0        0         0.33       0.11       0.17"
+          },
+          {
+            "source": "@supp",
+            "text": "Macro F1 score             Zheng68K               Segerstolpe"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scFoundation annotation comparison workflow",
+      "steps": [
+        "Zheng68K and Segerstolpe expression data",
+        "cell representation: a model embedding or a method's own features",
+        "predict one cell type label per cell",
+        "per-cell-type precision, recall and F1",
+        "macro average over cell types, one number per method and data set"
+      ],
+      "caption": "The split and the fitting procedure are not stated in the open sources.",
+      "source_ids": [
+        "@supp",
+        "@annotation-readme"
+      ],
+      "source_locator": "Supplementary notes, Macro F1 score; Supplementary Tables 4 and 5; annotation/README.md",
+      "quotes": [
+        {
+          "source": "@supp",
+          "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+        },
+        {
+          "source": "@supp",
+          "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+        },
+        {
+          "source": "@annotation-readme",
+          "text": "The corresponding embeddings can be obtained by using either API or local model code."
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The paper's main text is behind a paywall and was not read, so the description of this task, its splits and its fitting procedure are missing. Only the supplementary information, which is served openly, and the repository were available.",
+      "No cell counts, gene counts or label lists are printed for Zheng68K or Segerstolpe in the saved files, beyond the 11 cell types that appear as rows of Supplementary Table 5.",
+      "The Figshare record for the raw data was not fetched, so its licence and contents are not described here.",
+      "The repository's notebook for this task was not opened, so what it computes is described only as its README describes it."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the text layer of the publisher's supplementary PDF for doi 10.1038/s41592-024-02305-7, and README.md, annotation/README.md and LICENSE of biomap-research/scFoundation at commit 397631c495eddf9ad6644fc00c6ea8139e651245. The main article text was not accessible. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Get the repository's annotation folder, unpack the bundled data and open the notebook that holds the results.",
+    "prerequisites": [
+      "A Python environment with Jupyter. The repository code is Apache-2.0; use of the model weights is subject to a separate Model License.",
+      "The bundled embeddings in annotation/annotation_data.zip, or the raw expression data from the Figshare record the folder README names."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and the task data",
+        "shell": "git clone https://github.com/biomap-research/scFoundation\ncd scFoundation\ngit checkout --detach 397631c495eddf9ad6644fc00c6ea8139e651245\nmkdir -p annotation/data\nunzip annotation/annotation_data.zip -d annotation/data/",
+        "explanation": "The folder README says to unzip annotation_data.zip into a ./data/ folder. The clone, the detach at the commit read for this page and the mkdir and unzip commands were added here; the file name and the destination folder are the README's.",
+        "source_ids": [
+          "@annotation-readme",
+          "@readme"
+        ],
+        "source_locator": "annotation/README.md; README.md: Cell type annotation",
+        "quotes": [
+          {
+            "source": "@annotation-readme",
+            "text": "1. Unzip `annotation_data.zip` into `./data/` folder."
+          },
+          {
+            "source": "@readme",
+            "text": "You can find the code to reproduce results for the cell type annotation task in the `annotation` folder."
+          }
+        ]
+      },
+      {
+        "title": "Open the results notebook",
+        "shell": "jupyter notebook annotation/celltype-plot.ipynb",
+        "explanation": "The folder README says the plot results are in this notebook. The jupyter command was added here; the notebook name is the README's.",
+        "source_ids": [
+          "@annotation-readme"
+        ],
+        "source_locator": "annotation/README.md",
+        "quotes": [
+          {
+            "source": "@annotation-readme",
+            "text": "The plot results are in the `celltype-plot.ipynb`"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "The figures the notebook produces for this task. The saved files do not say that it recomputes the macro F1 values in Supplementary Table 4."
+    ],
+    "limitations": [
+      "These steps were read from the repository's READMEs and have not been executed by Rewire. The notebook itself was not opened.",
+      "No training or scoring command for this task is published in the sources read, so the numbers in Supplementary Table 4 cannot be regenerated from them.",
+      "Regenerating the embeddings needs the model weights, whose licence is separate from the Apache-2.0 code licence."
+    ],
+    "source_ids": [
+      "@annotation-readme",
+      "@readme"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Cell type annotation, Zheng68K",
+      "dataset": "Zheng68K",
+      "size": null,
+      "size_unit": "test cells, not stated in any saved file",
+      "split": null,
+      "primary_metric": "macro F1 score",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41592-024-02305-7",
+      "code_url": "https://github.com/biomap-research/scFoundation",
+      "data_url": "https://doi.org/10.6084/m9.figshare.24049200",
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@supp",
+          "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+        },
+        {
+          "source": "@supp",
+          "text": "Macro F1 score             Zheng68K               Segerstolpe"
+        },
+        {
+          "source": "@supp",
+          "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+        },
+        {
+          "source": "@annotation-readme",
+          "text": "The raw gene expression data can be downloaded from Figshare: https://doi.org/10.6084/m9.figshare.24049200"
+        },
+        {
+          "source": "@readme",
+          "text": "This source code repository is licensed under the Apache-2.0 License; provided, however, that notwithstanding the foregoing, any use or exploitation of any Model Weights is subject to the Model License."
+        }
+      ]
+    },
+    {
+      "task": "Cell type annotation, Segerstolpe",
+      "dataset": "Segerstolpe",
+      "size": null,
+      "size_unit": "test cells, not stated in any saved file",
+      "split": null,
+      "primary_metric": "macro F1 score",
+      "metric_direction": "higher",
+      "results_url": "https://www.nature.com/articles/s41592-024-02305-7",
+      "code_url": "https://github.com/biomap-research/scFoundation",
+      "data_url": "https://doi.org/10.6084/m9.figshare.24049200",
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@supp",
+          "text": "Supplementary Table 4. Cell type annotation results on Zheng68K and Segerstolpe datasets."
+        },
+        {
+          "source": "@supp",
+          "text": "scFoundation                 0.736                  0.914"
+        },
+        {
+          "source": "@supp",
+          "text": "For a dataset with 𝑘𝑘 cell types, the macro F1 score is the average score of each cell type’s F1 score."
+        },
+        {
+          "source": "@annotation-readme",
+          "text": "The raw gene expression data can be downloaded from Figshare: https://doi.org/10.6084/m9.figshare.24049200"
+        }
+      ]
+    }
+  ],
+  "notes": "This record is one paper's reported comparison, not a released suite, and the paper's main text is paywalled, so coverage is limited: everything here comes from the openly served supplementary PDF and the public repository. Splits, cell counts and the fitting procedure are therefore recorded as not extracted rather than guessed. The 11 Zheng68K cell types are a count of the rows of Supplementary Table 5, not a figure printed anywhere. The 0.705, 0.714 and 0.736 figures are the model-size comparison in Supplementary Table 2 for Zheng68K only; 0.736 is the same value that Supplementary Table 4 gives for scFoundation on Zheng68K. The Apache-2.0 licence covers the repository code; the README states that use of the model weights is governed by a separate Model License, which was not fetched."
+}

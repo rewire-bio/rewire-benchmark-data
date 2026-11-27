@@ -1,0 +1,1818 @@
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                   Benchmarking Static Gene Regulatory Network
+                  Reconstruction and Dynamic Transition Probing in
+                           Single-Cell Foundation Models
+
+
+                       Zhongni Ye1*          Ning Yang2*         Xiaojing Yang2,3    Xiaowei Mao1†         Chao Tang2,3†
+                                             1
+                                               Institute of Fundamental and Frontier Sciences,
+                                         University of Electronic Science and Technology of China
+                       2
+                           Peking University Chengdu Academy for Advanced Interdisciplinary Biotechnologies
+                                             3
+                                                 Center for Quantitative Biology, Peking University
+
+
+
+                                                                     Abstract
+
+                            Single-cell foundation models may encode gene regulatory information, but it
+                            remains unclear which model components capture this signal and how it compares
+                            with conventional inference methods. Here, we introduce a unified benchmark
+                            that evaluates gene regulatory network (GRN) reconstruction from six single-
+                            cell foundation models and three classical baselines across six datasets and four
+                            reference network types. We disentangle three sources of regulatory signal within
+                            each model—pretrained token embeddings, final-layer hidden states, and attention-
+                            derived scores. Under a strict zero-shot setting, scGPT token-embedding similarity
+                            outperforms classical baselines on STRING and ChIP-seq references, recovers core
+                            transcription factors, and best preserves reference network topology. Moreover,
+                            static GRNs cannot test whether learned gene–gene relationships are predictive of
+                            expression dynamics, we therefore introduce dynamic transition probing, which
+                            iteratively applies a model’s reconstruction head to drive early-cell profiles toward
+                            late-cell states without temporal supervision. We find pretrained models capture
+                            meaningful developmental transitions, with scFoundation showing the strongest
+                            overall performance. Together, our results show that single-cell foundation models
+                            encode transferable regulatory and dynamical priors, but how well these priors can
+                            be recovered depends on model architecture, pretraining design, and extraction
+                            strategy.
+
+
+               1 Introduction
+               Gene regulatory networks (GRNs) describe how transcription factors regulate target genes and provide
+               a useful framework for studying cell fate, development, and disease [1, 2]. With the rapid growth
+               of bulk and single-cell transcriptomic data, GRNs can now be inferred across diverse cell types,
+               tissues, and biological states [3, 4]. However, GRN reconstruction remains challenging because
+               transcriptomic data are noisy, high-dimensional, sparse, and strongly context dependent, especially at
+               single-cell resolution [5, 6].
+               A wide range of computational methods has been developed for GRN reconstruction. Correlation and
+               co-expression methods are simple and scalable, but they cannot distinguish direct regulation from
+               indirect association and are sensitive to batch effects and sparsity [7]. Information-theoretic methods,
+                   * The first two authors contributed equally
+                   † Corresponding authors
+
+
+
+
+               Preprint.
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               such as ARACNE [8] and CLR [9], can capture nonlinear dependencies, but their performance
+               depends on sample size and density estimation. Regression-based methods, such as Inferelator [5]
+               and TIGRESS [10], infer regulators for each target gene through sparse or ensemble regression, but
+               they can be affected by noise, collinearity, and linear modeling assumptions. Tree-based and neural
+               methods, such as GENIE3 [11], GRNBoost [12], DeepSEM [13], and DeepDRIM [14], improve
+               model flexibility, but their generalization and interpretability remain difficult to assess. Overall,
+               limited ground truth and strong dataset dependence still make fair evaluation difficult.
+               Single-cell foundation models provide a new source of information for GRN reconstruction. Models
+               such as Geneformer [15] and scGPT [16] are pretrained on large-scale single-cell datasets and learn
+               representations of both genes and cells, which contain regulatory information that is not easily
+               recovered from a single expression matrix. Instead of directly inferring edges from expression
+               values, one can extract gene representations from pretrained models and construct networks from
+               representation similarity, or use attention scores as model-internal gene–gene interaction signals.
+               These approaches are promising because pretrained models may encode transferable biological
+               priors, reduce noise, and capture context-dependent relationships. However, it remains unclear which
+               model components contain useful GRN information and when these representations actually improve
+               network reconstruction.
+               A major obstacle is the lack of a unified benchmark for foundation-model-based GRN reconstruction.
+               Standard benchmarks such as DREAM5 [17] and BEELINE [7] have been important for evaluating
+               conventional GRN inference methods, but they were not designed to evaluate the full workflow from
+               foundation-model representations to inferred regulatory networks. Recent zero-shot studies also
+               suggest that pretrained single-cell models do not always transfer reliably across settings [18]. These
+               issues call for a controlled benchmark that compares representation sources, graph-construction
+               strategies, reference networks, and evaluation metrics under the same framework.
+               In this work, we introduce a unified benchmark for static GRN reconstruction and dynamic transition
+               probing in single-cell foundation models. Our main contributions are:
+
+                       • A unified benchmark for foundation-model-based GRN reconstruction. We evaluate
+                         six single-cell foundation models and three classical machine learning baselines across six
+                         datasets and four reference networks, using the same preprocessing, graph-construction, and
+                         evaluation protocols.
+                       • A systematic comparison of three representation sources. We compare three ways of
+                         extracting regulatory signals from foundation models: pretrained gene token embeddings,
+                         final-layer hidden states, and attention-derived scores.
+                       • Dynamic transition probing beyond static GRNs. We introduce a new task that tests
+                         whether pretrained generative priors can drive early-cell expression states toward later ones
+                         without temporal supervision.
+
+
+               2 Benchmark Design and Experimental Setup
+
+               2.1 Unified benchmark workflow
+
+               We build a unified benchmark to test whether representations from single-cell foundation models
+               can support GRN reconstruction. As shown in Figure 1(a), the benchmark follows a fixed pipeline:
+               single-cell expression matrix, representation extraction from pretrained models, GRN construction,
+               and quantitative evaluation. Given the same expression data, all methods are evaluated under the
+               same preprocessing procedure, candidate gene set, graph-construction rules, reference networks, and
+               evaluation metrics.
+               The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:
+               mouse dendritic cells (mDC) [19], three mouse hematopoietic stem-cell lineages [20]: erythroid
+               (mHSC-E), granulocyte–macrophage (mHSC-GM), and lymphoid (mHSC-L), human mature hep-
+               atocytes (hHep) [21], and human embryonic stem cells (hESC) [22]. Raw expression data were
+               preprocessed following the BEELINE protocol. We then constructed two TF-prioritized candidate
+               gene sets: TFs+500 and TFs+1000, which includes all significant TFs plus the top 500/1000 most
+               dynamically variable non-TF genes. Additional dataset details are provided in Appendix A.1.
+
+                                                                        2
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               We evaluate six representative single-cell foundation models, including scGPT [16], scFounda-
+               tion [23], Geneformer [15], LangCell [24], scCello [25], and scPRINT [26]. These models cover
+               diverse transformer-based architectures, vocabulary designs, embedding dimensions, and pretraining
+               scales. To assess whether foundation-model-derived representations provide advantages over conven-
+               tional inference methods, we also include three classical machine learning baselines, GENIE3 [11],
+               DeepSEM [13], and GRNboost [27], which infer regulatory relationships directly from expression
+               matrices without pretrained representations. Model details and baseline implementations are provided
+               in Appendix A.2.
+               The inferred networks are evaluated against four types of reference networks with different ev-
+               idence sources: cell-type-specific ChIP-seq networks [28, 29, 30], non-specific ChIP-seq net-
+               works [31, 32, 33], functional interaction networks from STRING [34], and pathway- or signaling-
+               informed interactions from OmniPath [35]. These references allow us to evaluate whether inferred
+               GRNs recover transcriptional regulation, broader functional association, and signaling-related gene
+               interactions.
+               We evaluate reconstructed GRNs at three levels. At the edge level, we treat GRN inference as a
+               ranked edge-prediction task and compare predicted gene–gene scores with reference edges using early
+               precision and precision–recall curves. At the TF level, we evaluate whether each method correctly
+               recovers the target genes of individual transcription factors. For each TF, we compare its predicted
+               target set with its reference target set and compute recall and F1 score. At the topology level, we
+               assess whether reconstructed networks preserve global network organization using graph metrics such
+               as average shortest path length, clustering coefficient, modularity, average degree, and assortativity.
+
+                  (a)
+                                        Single-cell expression matrix               Single-cell foundation models                                           GRN reconstruction                                                   Evaluations
+                                                                                                                                      scGPT                                                                                         Edge-level
+
+                                                                                                                                                                   TF1                      Gene1                                 Early precision
+                                                                                                                                    scFoundation                                                                               Precision-recall curve
+
+
+
+
+                                                                                               Cell Embedding
+                                                                                                                                    Geneformer
+                                                                        # Cell
+                                                                                                                                                                                                                                     TF-level
+
+                                                                                    Encoder                          Decoder
+                                                                                                                                                                   TF2                      Gene2
+                                                                                                                                                                                                                                      Recall
+                                                                                                                                     LangCell
+                                                                                                                                                                                                                                     F1 score
+
+                                                                                                                                      scCello                      TF3                      Gene3                                Topology-level
+                                                                                                                                                                                                              Avg. path length/Clustering coeff.
+                                                                                                                                      scPrint
+                                                         # Gene                                                                                                                                              Modularity/Avg. degree/Assortativity
+
+
+
+
+                                                                                                                                                    Hidden embedding
+                                                                        Layer 1                                   Layer n
+                  (b) Gene token embedding
+
+
+
+                         # Embedding dim.
+                                                                                                                                                                         # Hidden dim.                         # Hidden dim.
+                                                                       Add & Norm                                 Add & Norm
+                                                                                                                                                                                                                                         Cosine
+                                                                                                                                                                                                                                         Similarity
+                                                                          Feed                                      Feed
+                                                           Inputs        Forward                                   Forward
+                                                                                                                                                #
+                                                                                                                                                  ll
+                                                                                                                                                Ce
+                                             # Gene                                                                                                      # Gene                                     # Gene
+                                                                                         ...
+                                                                      Add & Norm                                  Add & Norm
+                                                                                                                                                    Attention matrix
+                                            Cosine                     Multi-Head                                 Multi-Head
+                                            Similarity                  Attention                                  Attention
+
+                                                                                                                                                                                                               # Gene
+                                                                                                                                                                                # Gene
+                                                                                                                                                #
+                                                                                                                                                  ad
+                                                                                                                                                He
+                                                                                                                                                          # Gene                                    # Gene
+                  (c)
+                                Observed early-stage cells
+                                                                                                                                                                                         Predicted late-stage cells
+
+
+
+
+                                                                                                 Cell Embedding
+                                                                                                                                                                                             xT
+                                                                    Inputs
+                                                                                     Encoder                          Decoder
+                                                                                                                                            Outputs
+                                                                                                                                                                               x2                                                    Gene-wise
+                                                                                                                                                                    x1                                                           Directional Accuracy
+                    x0                                                                                                                                       x0
+
+                                                                                                                                                                                         Observed late-stage cells
+                                                                                    Iterative refinement
+
+
+               Figure 1: Benchmark workflow for GRN reconstruction and dynamic transition probing. (a) Single-
+               cell expression profiles are processed by pretrained foundation models, and model-derived represen-
+               tations are converted into GRNs for edge-level, TF-level and topology-level evaluation. (b) Three
+               static GRN reconstruction strategies: token-embedding cosine similarity (costok ), hidden-state cosine
+               similarity (coshid ), and attention-derived scores (attn). (c) Dynamic transition probing starts from
+               early-stage cell expression profiles and iteratively updates them with a pretrained generative model.
+               The predicted states are compared with observed late-stage cells using gene-wise directional accuracy.
+
+
+
+                                                                                                                                3
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               2.2 Static GRN reconstruction
+
+               We compare three representation-to-network strategies for static GRN reconstruction (Figure 1(b)).
+               These strategies probe three possible sources of GRN information in single-cell foundation models:
+               static gene-level priors in model parameters, input-dependent contextual representations, and gene–
+               gene coupling implied by the Transformer’s attention mechanism.
+
+
+                       • Pretrained token embeddings (costok ). For each model, we extract gene embeddings from
+                         the embedding layer or vocabulary-aligned model parameters. Pairwise gene–gene associa-
+                         tion scores are then computed via cosine similarity between token embeddings, yielding an
+                         undirected GRN. Since these embeddings are independent of any input expression profile,
+                         this strategy primarily probes the static biological priors acquired during pretraining.
+
+                       • Final-layer hidden states (coshid ). We pass each input cell through the model and extract
+                         the last-layer hidden representation of each gene token. These cell-wise hidden states are
+                         aggregated into gene-level representations, and pairwise cosine similarity is used to construct
+                         an undirected GRN. Unlike token embeddings, hidden states are conditioned on the input
+                         expression profile and therefore capture context-dependent gene associations.
+
+                       • Attention-derived scores (attn). For transformer-based models, we extract encoder atten-
+                         tion scores of the last layer and aggregate them across heads and cells to obtain gene–gene
+                         attention scores. Because attention is asymmetric, the score from gene i to gene j need not
+                         equal the score from gene j to gene i, naturally producing a directed GRN.
+
+
+               All three strategies output ranked gene–gene scores. For evaluation, we use a unified TF–target
+               candidate space, where the source gene must be a ground-truth TF and the target gene must belong
+               to the reference gene set. For undirected cosine-based networks, the gene–gene similarity score is
+               assigned to the corresponding TF–target pair; for directed attention-derived networks, the original
+               source–target direction is retained. Edges are ranked by absolute weight, and the top-ranked predic-
+               tions up to the number of ground-truth edges are evaluated using early precision and precision–recall
+               curves. Details are provided in Appendix B.2.
+
+
+               2.3 Dynamic transition probing
+
+               While static GRN reconstruction tests whether a model encodes gene–gene relationships, a GRN is
+               still an abstract summary of regulatory structure and cannot fully describe how cell states change over
+               time [36]. A more demanding question is whether the learned relationships are functional enough
+               to predict expression dynamics [37, 38], therefore, we introduce dynamic transition probing as a
+               complementary task that directly tests this capacity (Figure 1(c)). This probe is not intended as a
+               supervised forecasting task, instead, it asks whether a pretrained model, when given only an early-cell
+               state, can use its internalized gene–gene dependencies to produce changes that are directionally
+               consistent with later cellular states.
+               Starting from an observed early-cell state x(0) , each model is iteratively updated to generate a
+               sequence of predicted states, which we treat as a model-induced transition path x(0) , x(1) , . . . , x(T ) .
+               The update rule depends on the model input format: for continuous-value models, such as scGPT,
+               scFoundation, and scPRINT, the current expression state is passed through the pretrained model
+               to predict a refined expression profile; for rank-driven models, such as Geneformer, LangCell, and
+               scCello, we refine the gene-rank ordering through likelihood-improving token swaps while preserving
+               the same expressed gene set. In both cases, repeated updates produce a terminal predicted state
+               starting from the early-cell state.
+               We evaluate whether the predicted changes follow the observed early-to-late direction. Specifically,
+               we compare the sign of the predicted expression or rank change with the sign of the observed
+               expression change, and report directional accuracy on the top 30% genes with the largest true change
+               magnitude. Full implementation details are provided in Appendix C.
+
+                                                                        4
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               3 Results
+
+               3.1 scGPT token embeddings enable strong zero-shot GRN reconstruction
+
+               We first evaluated static GRN reconstruction on the TFs+500 benchmark. We compared six single-
+               cell foundation models and three classical machine learning baselines across six single-cell datasets.
+               Performance was measured by the early precision ratio (EPR) and the area under the precision–recall
+               curve ratio (AUPRC ratio). For each method, results were averaged across the six datasets and
+               three main reference sources: STRING, non-specific ChIP-seq, and OmniPath. Cell-type-specific
+               ChIP-seq references were not included in the main comparison because all methods showed uniformly
+               near-random performance on this setting. We also repeated the analysis on the larger TFs+1000
+               benchmark and observed similar conclusions; complete results are provided in Appendix E.
+               As shown in Table 1, scGPT with token-embedding cosine similarity (costok ) achieved the strongest
+               overall performance among foundation-model-based methods. It obtained the best EPR and AUPRC
+               ratio on STRING and non-specific ChIP-seq references, and also performed well on OmniPath.
+               Although the standard deviations are sizable because performance varies across datasets, scGPT
+               costok consistently ranked first or near-first on individual datasets, as shown in the per-dataset results
+               in Table 4& 6.
+               Classical machine learning baselines remained competitive, but they fit a dataset-specific model
+               on each test expression matrix, while costok uses only fixed pretrained token embeddings without
+               any dataset-specific updates. Even under this stricter zero-shot setting, scGPT costok outperformed
+               all three classical baselines on STRING and non-specific ChIP-seq, indicating that the pretrained
+               embedding space already encodes a transferable regulatory signal. The exception is OmniPath, where
+               GRNBoost remained the best, suggesting that dataset-specific fitting is still advantageous for some
+               reference networks.
+               The three extraction strategies behaved differently across models. For scGPT, costok clearly out-
+               performed coshid and attn, suggesting that regulatory information is strongly encoded in its token
+               embedding space. Geneformer performed better with attention-based scores, suggesting that self-
+               attention may be a more informative source for GRN reconstruction in this model. In contrast,
+               scCello and LangCell often benefited more from hidden-state representations, suggesting that their
+               additional cell-level or cross-modal training objectives may place more regulatory signal in contextual
+               embeddings. These results suggest that the best extraction strategy depends on the model architecture
+               and pretraining design.
+
+
+               3.2 Topological fidelity of reconstructed GRNs
+
+               We next asked whether reconstructed GRNs preserve the global topology of reference regulatory
+               networks. This analysis goes beyond edge-level accuracy by testing whether a method recovers
+               broader network organization. We compared each reconstructed network with the STRING reference
+               using five classical topological metrics [39]: average shortest path length, clustering coefficient,
+               modularity, average degree, and assortativity. Implementation details are provided in Appendix D.3.
+               Figure 2 shows hESC as a representative dataset, with results on other datasets reported in Table 8. As
+               shown in Figure 2(a)–(c), embedding-based methods generally produced networks whose topology
+               was closer to the STRING reference than attention-based methods. This was observed for both
+               token-embedding similarity (costok ) and hidden-state similarity (coshid ), suggesting that embedding
+               spaces better preserve the global organization of GRNs. In contrast, attention-derived networks
+               showed larger deviations across multiple topological metrics.
+               The difference was especially clear in modularity. Attention-based networks often had lower mod-
+               ularity than embedding-based networks, indicating weaker community structure (Figure 2(d)). In
+               scGPT, this was also visible in the network layouts: the costok network showed clearer and more
+               separated communities, whereas the attention-based network appeared more mixed and less organized
+               (Figure 2(e),(f)). To further examine this limitation, we constructed separate networks from each
+               scGPT attention head and computed their topological metrics (Figure 6). These head-specific net-
+               works varied substantially in modularity, suggesting that only some heads preserve useful community
+               structure. Thus, directly aggregating all attention heads may dilute topological signals relevant to
+               GRN reconstruction.
+
+                                                                        5
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               Table 1: Performance on the TFs+500 benchmark across six single-cell datasets and three reference
+               networks (STRING, Cell-type-specific ChIP-seq, OmniPath). Values are mean ± standard deviation
+               across datasets. Both metrics are reported as ratios over a random predictor; values >1 indicate
+               better-than-random performance. Bold marks the best value in each column.
+                                                        Early precision ratio                             AUPRC ratio
+                 Model          Method
+                                               STRING        ChIP-seq           OmniPath     STRING        ChIP-seq      OmniPath
+                                costok       6.568±1.772    4.211±1.703       2.387±0.603   5.632±2.310   3.002±1.294   1.460±0.242
+                 scGPT          attn         1.255±0.548    1.299±0.290       0.998±0.334   0.941±0.064   0.990±0.076   1.000±0.044
+                                coshid       4.301±0.983    2.266±0.829       1.425±0.667   3.104±1.130   1.563±0.480   1.141±0.158
+                                costok       1.174±0.051    1.223±0.309       1.150±0.106   1.211±0.147   1.144±0.129   1.018±0.030
+                 scFoundation   attn         0.956±0.196    0.997±0.334       1.091±0.245   1.017±0.062   1.016±0.041   1.025±0.042
+                                coshid       1.127±0.392    1.025±0.392       0.997±0.811   1.097±0.247   1.033±0.076   1.010±0.051
+                                costok       1.821±0.546    0.932±0.555       1.009±0.721   1.244±0.157   1.077±0.178   1.015±0.266
+                 Geneformer     attn         3.082±1.157    1.644±0.771       1.203±0.513   1.867±0.635   1.175±0.239   1.083±0.085
+                                coshid       1.523±0.457    0.983±0.381       0.788±0.420   1.304±0.191   1.065±0.127   0.969±0.130
+                                costok       1.837±0.498    0.970±0.570       1.002±0.711   1.251±0.163   1.080±0.182   1.016±0.263
+                 LangCell       attn         2.104±0.910    1.343±0.571       1.547±1.072   1.591±0.330   1.129±0.201   1.176±0.384
+                                coshid       2.133±0.455    1.694±0.389       1.523±0.343   1.584±0.132   1.276±0.166   1.203±0.101
+                                costok       2.194±0.573    1.477±0.498       1.450±0.177   1.502±0.430   1.120±0.100   1.117±0.036
+                 scCello        attn         1.289±0.168    1.307±0.207       2.132±1.124   1.262±0.173   1.092±0.143   1.345±0.300
+                                coshid       2.578±0.638    1.936±0.790       1.896±0.434   1.676±0.265   1.204±0.191   1.226±0.182
+                                costok       0.948±0.228    0.798±0.265       0.662±0.171   0.980±0.042   0.976±0.095   0.887±0.057
+                 scPRINT        attn         0.920±0.472    1.074±0.400       1.071±0.380   1.217±0.173   1.127±0.126   1.085±0.154
+                                coshid       1.381±0.446    1.291±0.441       1.402±0.409   1.281±0.201   1.155±0.071   1.115±0.093
+                                GENIE3       4.656±2.500    3.025±1.670       1.575±0.288   3.301±2.244   1.793±0.848   1.175±0.181
+                 ML Baselines   DeepSEM      5.391±2.635    3.789±1.936       2.167±0.433   4.087±2.622   2.338±1.196   1.305±0.137
+                                GRNBoost     4.121±1.949    2.680±1.445       3.781±1.365   1.257±0.172   1.462±0.259   2.262±0.729
+
+
+
+               Finally, we examined whether reconstructed networks preserve the degree structure of STRING.
+               Many reconstructed networks, especially attention- or hidden-state-based networks, had higher
+               average degree than the STRING reference, suggesting that they tend to produce overly dense
+               graphs (Figure 2(g)). We further compared degree distributions using the complementary cumulative
+               distribution function (CCDF), which captures heavy-tailed structure with many low-degree genes
+               and a few highly connected hubs. As shown in Figure 2(h)–(i), costok networks generally followed
+               the STRING degree-decay pattern more closely, especially scGPT costok , whereas attention-based
+               networks showed larger deviations. These results suggest that token-embedding similarity better
+               preserves the hub-dominated degree structure of reference GRNs.
+
+               3.3 scGPT token embeddings recover high-confidence edges and core TFs
+
+               Since scGPT costok showed the strongest overall performance, we further compared the three scGPT
+               extraction strategies in detail. We first asked whether true regulatory edges are enriched among
+               top-ranked predictions. As shown in Figure 3(a), costok recovered a much higher fraction of true
+               edges than coshid and attn under high-confidence thresholds. This indicates that true regulatory
+               interactions are more concentrated at the top of the costok ranking, which is important in practice
+               because experimental validation usually focuses on a small number of high-confidence candidates.
+               We next evaluated whether each strategy can identify important TFs. This tests GRN quality at
+               the regulator level: beyond recovering correct edges, a useful network should also highlight key
+               regulators. TF-level F1 scores were computed from predicted regulator sets, with details provided in
+               Appendix B.3. As shown in Figure 3(b), costok and coshid identified TFs with substantially higher
+               F1 scores, although their distributions were heterogeneous. In contrast, attn scores were mostly
+               concentrated near zero, suggesting that direct attention scores provide weaker TF-level signal in
+               scGPT.
+               Finally, we compared the regulators selected by different strategies on the hESC dataset. As shown
+               in Figure 3(c), costok and coshid showed the largest pairwise overlap, whereas attn identified many
+               strategy-specific TFs. We then focused on the 11 consensus TFs shared by all three strategies. These
+               TFs formed a connected interaction network and ranked near the top by degree, suggesting that they
+               are consistently recovered core regulators (Figure 3(d),(e)). Functional enrichment analysis showed
+
+                                                                          6
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                  (a)                        costok                             (b)                   attn                             (c)                   coshid
+                                         Avg Path Length                                         Avg Path Length                                         Avg Path Length
+                                                        1.0                                                     1.0                                                     1.0
+                                                            0.8                                                    0.8                                                      0.8
+                                                        0.6                                                     0.6                                                     0.6
+                                                      0.4          Clustering                                0.4          Clustering                                  0.4          Clustering   Geneformer
+                        Assortativity                                           Assortativity                                           Assortativity
+                                                                                                                                                                                                LangCell
+                                                  0.2                                                     0.2                                                     0.2
+                                                                                                                                                                                                scGPT
+                                                                                                                                                                                                scCello
+                                                                                                                                                                                                scFoundation
+                                                                                                                                                                                                scPrint
+                                                                                                                                                                                                STRING
+
+
+
+                                Avg Degree                   Modularity                 Avg Degree                  Modularity                  Avg Degree                   Modularity
+
+
+                  (d)                                                           (e)                                                    (f)
+
+
+
+
+                  (g)                                                           (h)                                                    (i)
+
+
+
+
+               Figure 2: Topological analysis of reconstructed GRNs on the hESC dataset. (a)–(c) Comparison
+               of reconstructed networks across five topological metrics for costok , attn, and coshid . The dashed
+               line represents the STRING reference network, and values closer to the dashed line indicate higher
+               topological fidelity. (d) Modularity comparison of the three extraction strategies across six foundation
+               models. (e)–(f) Network visualization of scGPT GRNs reconstructed using costok and attention scores.
+               (g) Average Degree comparison of the three extraction strategies across six foundation models. (h-i)
+               Degree CCDF curves of networks reconstructed by costok and attn, compared with the STRING
+               reference.
+
+
+               that these consensus TFs were enriched in RNA-related processes, including mRNA processing, RNA
+               splicing, spliceosome-associated pathways, and DNA repair (Figure 3(f)). Together, these results
+               suggest that overlap across extraction strategies highlights a robust core of biologically meaningful
+               regulators, while strategy-specific TFs may reflect representation-dependent signals.
+
+               3.4 Dynamic transition probing reveals directional expression dynamics in pretrained models
+
+               Beyond static GRN reconstruction, we asked whether single-cell foundation models have internalized
+               gene–gene dependencies that can support dynamic expression changes without temporal supervision.
+               Using the iterative refinement framework described in Sec. 2.3, we initialized each model with
+               early-cell states and examined whether the induced updates moved them toward later cell states
+               across six datasets. Performance was measured by directional accuracy on the top 30% genes with
+               the largest observed early-to-late changes, with full details provided in Appendix C.
+               We first used scGPT on the mHSC-L dataset as a representative example. As shown in Figure 4(a),
+               the predicted terminal states shifted from the early-cell population toward the observed late-cell
+               population, suggesting that the model-induced updates capture a meaningful developmental direction
+               rather than random fluctuations. During iterative refinement, directional accuracy increased over
+
+                                                                                                        7
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                  (a)                                 (b)                                    (c)
+
+
+
+
+                  (d)                                 (e)                                    (f)
+
+
+
+
+               Figure 3: Detailed comparison of scGPT extraction strategies. (a) Fraction of true regulatory edges
+               among top-ranked predictions under different prediction thresholds. Horizontal and vertical dashed
+               line marks the random baseline and the threshold used for early precision. (b) Distribution of TF-level
+               F1 scores for core TFs identified by costok , coshid , and attn. (c) Overlap of core TF sets identified
+               by the three extraction strategies on the hESC dataset. (d) Interaction network of consensus TFs
+               shared by all three strategies. Node size is proportional to degree, with degree values shown below
+               nodes. (e) Degree-rank plot of the union of predicted core TFs, with the consensus TFs highlighted.
+               (f) Functional enrichment of consensus TFs. Terms are ranked by enrichment significance, measured
+               as − log10 (P ); larger values indicate stronger enrichment.
+
+
+
+
+               successive steps and then gradually plateaued for most models (Figure 4(b)), indicating that repeated
+               model updates progressively improve the predicted transition states.
+               We then compared dynamic probing performance across models and datasets. We excluded the
+               mDC dataset from the aggregate comparison because its early-to-late expression changes were highly
+               imbalanced, with nearly all evaluated genes being downregulated (Figure 8); this can bias directional
+               accuracy toward trivial downregulation predictions. Across the remaining datasets, most single-cell
+               foundation models achieved high directional accuracy (Figure 4(c)), suggesting that pretrained models
+               contain useful signals for guiding expression changes. Notably, scFoundation showed the strongest
+               overall performance, even though it was less competitive in static GRN reconstruction. This is
+               consistent with a recent benchmark reporting that scFoundation can show relatively strong temporal
+               separation and local velocity coherence in dynamical settings [40]. Together, these results suggest
+               that static GRN recovery and dynamic transition probing capture different aspects of single-cell
+               foundation models.
+               Next, we examined gene-level prediction behavior using scGPT on mHSC-L. Predicted expression
+               changes were positively aligned with observed expression changes, indicating that the model captures
+               the direction of many gene-level transitions rather than only shifting the global cell state (Figure 4(d)).
+               Prediction accuracy was also higher for genes with larger observed changes (Figure 4(e)), suggesting
+               that stronger dynamic signals are easier to recover, likely because they are less affected by noise and
+               more constrained by learned gene-expression dependencies.
+               Finally, we tested whether this behavior depends on pretraining. We repeated the scGPT analysis
+               with randomly initialized weights under the same iterative refinement procedure. Random weights
+               produced much lower accuracy, whereas pretrained weights achieved substantially better performance
+               (Figure 4(f)). This result indicates that the dynamic probing signal does not arise from the iterative
+               procedure alone, but depends on regulatory and dynamical priors learned during pretraining.
+
+                                                                        8
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                  (a)                           (b)                             (c)
+
+
+
+
+                  (d)                           (e)                             (f)
+
+
+
+
+               Figure 4: Dynamic transition probing with single-cell foundation models. (a) Representative scGPT
+               prediction on the mHSC-L dataset, showing observed early cells, observed late cells, and predicted
+               terminal states in gene expression level. (b) Directional prediction accuracy during iterative refinement
+               for different models on mHSC-L. (c) Directional prediction accuracy across five datasets and six
+               models. (d) Relationship between observed expression changes and predicted expression changes
+               for scGPT on mHSC-L. (e) Directional prediction accuracy as a function of gene expression-change
+               magnitude for scGPT on mHSC-L. (f) Comparison between pretrained and randomly initialized
+               scGPT weights under the same iterative refinement procedure.
+
+
+
+               4 Discussion
+
+               We introduced a unified benchmark for evaluating GRN reconstruction from single-cell foundation
+               models, with dynamic transition probing as a complementary functional task. By comparing token
+               embeddings, hidden states, and attention-derived scores under the same preprocessing, candidate
+               gene sets, graph-construction rules, and reference networks, our framework separates representation
+               quality from downstream implementation choices. The results reveal strong model-specific patterns:
+               scGPT token embeddings provide strong zero-shot GRN signals, Geneformer benefits more from
+               attention-derived scores, and scCello/LangCell often rely more on hidden-state representations. Thus,
+               regulatory information is not stored in a universal model component, but depends on architecture and
+               pretraining design.
+               Dynamic transition probing further shows that static GRN recovery and dynamic expression prediction
+               capture different aspects of model knowledge. Several pretrained models can move early-cell states
+               toward later states without temporal supervision, and scFoundation performs strongly in this dynamic
+               setting despite weaker static GRN reconstruction. This divergence suggests that future benchmarks
+               should evaluate both structural recovery and functional predictive capacity, rather than relying on
+               static network reconstruction alone.
+               Our study has several limitations. First, reference GRNs are incomplete and biased toward well-
+               studied genes; cell-type-specific ChIP-seq references yielded near-random performance for all
+               methods, highlighting the limits of current ground truth. Second, we evaluate models in a zero-
+               shot setting without fine-tuning, prompting, or task-specific adaptation, which may further improve
+               regulatory recovery. Third, our extraction strategies are intentionally simple for fair comparison;
+               more advanced approaches, such as head-selective attention aggregation or causal probing, may
+               recover stronger signals. Finally, dynamic transition probing is currently focused on developmental
+               trajectories, and extending it to perturbation response, disease progression, and multi-omic settings
+               remains an important direction. Overall, our benchmark provides a controlled framework for studying
+               how single-cell foundation models encode regulatory structure and expression dynamics, and may
+               help guide the design of models that better connect static GRNs with dynamic cellular behavior.
+
+                                                                        9
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               References
+                 [1] Michael Levine and Eric H Davidson. Gene regulatory networks for development. Proceedings
+                     of the National Academy of Sciences, 102(14):4936–4942, 2005.
+                 [2] Eric H Davidson and Michael S Levine. Properties of developmental gene regulatory networks.
+                     Proceedings of the National Academy of Sciences, 105(51):20063–20066, 2008.
+                 [3] Mark W E J Fiers, Liesbeth Minnoye, Sara Aibar, Carmen Bravo González-Blas, Zeynep
+                     Kalender Atak, and Stein Aerts. Mapping gene regulatory networks from single-cell omics data.
+                     Briefings in Functional Genomics, 17(4):246–254, 2018.
+                 [4] Pau Badia-i Mompel, Lorna Wessels, Sophia Müller-Dott, Rémi Trimbour, Ricardo O
+                     Ramirez Flores, Ricard Argelaguet, and Julio Saez-Rodriguez. Gene regulatory network
+                     inference in the era of single-cell multi-omics. Nature Reviews Genetics, 24(11):739–754, 2023.
+                 [5] Richard Bonneau, David J Reiss, Paul Shannon, Marc T Facciotti, Leroy Hood, Nitin S Baliga,
+                     and Vesteinn Thorsson. The inferelator: an algorithm for learning parsimonious regulatory
+                     networks from systems-biology data sets de novo. Genome Biology, 7(5):R36, 2006.
+                 [6] Hung Nguyen, Duc Tran, Bang Tran, Bahadir Pehlivan, and Tin Nguyen. A comprehensive sur-
+                     vey of regulatory network inference methods using single cell RNA sequencing data. Briefings
+                     in Bioinformatics, 22(3):bbaa190, 2021.
+                 [7] Aditya Pratapa, Ashwin P Jalihal, Jeremiah N Law, Adarsh Bharadwaj, and T M Murali.
+                     Benchmarking algorithms for gene regulatory network inference from single-cell transcriptomic
+                     data. Nature Methods, 17(2):147–154, 2020.
+                 [8] Adam A Margolin, Ilya Nemenman, Katia Basso, Chris Wiggins, Gustavo Stolovitzky, Riccardo
+                     Dalla Favera, and Andrea Califano. Aracne: an algorithm for the reconstruction of gene
+                     regulatory networks in a mammalian cellular context. BMC Bioinformatics, 7(1):S7, 2006.
+                 [9] Jeremiah J Faith, Boris Hayete, Joshua T Thaden, Ilaria Mogno, Jerome Wierzbowski, Guil-
+                     laume Cottarel, Simon Kasif, James J Collins, and Timothy S Gardner. Large-scale mapping
+                     and validation of E. coli transcriptional regulation from a compendium of expression profiles.
+                     PLOS Biology, 5(1):e8, 2007.
+               [10] Anne-Claire Haury, Fabien Mordelet, Paola Vera-Licona, and Jean-Philippe Vert. Tigress:
+                    Trustful inference of gene regulation using stability selection. BMC Systems Biology, 6(1):145,
+                    2012.
+               [11] Vân Anh Huynh-Thu, Alexandre Irrthum, Louis Wehenkel, and Pierre Geurts. Inferring
+                    regulatory networks from expression data using tree-based methods. PLOS ONE, 5(9):e12776,
+                    2010.
+               [12] Thomas Moerman, Sara Aibar Santos, Carmen Bravo González-Blas, Jaak Simm, Yves Moreau,
+                    Stein Aerts, and Sara Aibar. Grnboost2 and arboreto: efficient and scalable inference of gene
+                    regulatory networks. Bioinformatics, 35(12):2159–2161, 2019.
+               [13] Hantao Shu, Jingtian Zhou, Qiuyu Lian, Han Li, Dan Zhao, Jianyang Zeng, and Jianzhu Ma.
+                    Modeling gene regulatory networks using neural network architectures. Nature Computational
+                    Science, 1:491–501, 2021.
+               [14] Jiaxing Chen, Chin Wang Cheong, Liang Lan, Xin Zhou, Jiming Liu, Aiping Lyu, William K
+                    Cheung, and Lu Zhang. Deepdrim: a deep neural network to reconstruct cell-type-specific
+                    gene regulatory network using single-cell rna-seq data. Briefings in Bioinformatics, 22(6):1–14,
+                    2021.
+               [15] Constantine V Theodoris, Long Xiao, Aayush Chopra, Mark Chaffin, Zein Al Sayed, Mark Hill,
+                    Hannah Mantineo, Ethan M Brydon, Zexian Zeng, Wenjie Liu, et al. Transfer learning enables
+                    predictions in network biology. Nature, 618(7965):616–624, 2023.
+               [16] Haotian Cui, Jun Hong, Jiayuan Ding, Wenkai Zhang, Mingze Gao, et al. scgpt: Towards
+                    building a foundation model for single-cell multi-omics using generative ai. Nature Methods,
+                    21:493–504, 2024.
+
+                                                                        10
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               [17] Daniel Marbach, James C Costello, Robert Küffner, Nicole M Vega, Robert J Prill, Diogo M
+                    Camacho, Kimberly R Allison, Manolis Kellis, James J Collins, and Gustavo Stolovitzky.
+                    Wisdom of crowds for robust gene network inference. Nature Methods, 9(8):796–804, 2012.
+               [18] Katarzyna Z K˛edzierska, Lorin Crawford, Ava P Amini, and Alex X Lu. Zero-shot evaluation
+                    reveals limitations of single-cell foundation models. Genome Biology, 26(1):101, 2025.
+               [19] Takayuki Hayashi, Hiroki Ozaki, Yohei Sasagawa, Masahiro Umeda, Hiroki Danno, and Itoshi
+                    Nikaido. Single-cell full-length total rna sequencing uncovers dynamics of recursive splicing
+                    and enhancer rnas. Nature Communications, 9:619, 2018.
+               [20] Sonia Nestorowa, Fiona K Hamey, Blanca Pijuan Sala, Evangelia Diamanti, Mairi Shepherd,
+                    Elisa Laurenti, Nicola K Wilson, David G Kent, and Berthold Göttgens. A single-cell resolution
+                    map of mouse hematopoietic stem and progenitor cell differentiation. Blood, 128:e20–e31,
+                    2016.
+               [21] J. Gray Camp, Keisuke Sekine, Tobias Gerber, Henry Loeffler-Wirth, Hans Binder, Martina Gac,
+                    Sabina Kanton, Joe Kageyama, Georg Damm, Daniel Seehofer, et al. Multilineage communica-
+                    tion regulates human liver bud development from pluripotency. Nature, 546(7659):533–538,
+                    2017.
+               [22] Li-Fang Chu, Ning Leng, Jue Zhang, Zhonggang Hou, Daniel Mamott, Wenjiang Ma, Tao Wang,
+                    Emily Zhong, Hongyu Jiang, Kenneth S Zaret, et al. Single-cell rna-seq reveals novel regulators
+                    of human embryonic stem cell differentiation to definitive endoderm. Genome Biology, 17:173,
+                    2016.
+               [23] Minsheng Hao, Jing Gong, Xin Zeng, Chiming Liu, Yucheng Guo, Xingyi Cheng, Taifeng
+                    Wang, Jianzhu Ma, Xuegong Zhang, and Le Song. Large-scale foundation model on single-cell
+                    transcriptomics. Nature Methods, 21(8):1481–1491, 2024.
+               [24] Suyuan Zhao, Jiahuan Zhang, Yushuai Wu, Yizhen Luo, and Zaiqing Nie. Langcell: Language-
+                    cell pre-training for cell identity understanding. arXiv preprint arXiv:2405.06708, 2024.
+               [25] Xinyu Yuan, Zhihao Zhan, Zuobai Zhang, Manqi Zhou, et al. Cell ontology guided transcriptome
+                    foundation model. In Advances in Neural Information Processing Systems, pages 6323–6366.
+                    NeurIPS, 2024.
+               [26] J. Kalfon, J. Samaran, G. Peyré, et al. scprint: pre-training on 50 million cells allows robust
+                    gene network predictions. Nature Communications, 16:3607, 2025.
+               [27] S. Aibar, C.B. González-Blas, T. Moerman, et al. Scenic: single-cell regulatory network
+                    inference and clustering. Nature Methods, 14:1083–1086, 2017.
+               [28] Carrie A Davis, Benjamin C Hitz, Cricket A Sloan, Esther T Chan, Jean M Davidson, Idan
+                    Gabdank, Jason A Hilton, Kriti Jain, Ulugbek K Baymuradov, Aditi K Narayanan, et al. The
+                    encyclopedia of dna elements (encode): data portal update. Nucleic Acids Research, 46:D794–
+                    D801, 2018.
+               [29] Shinya Oki, Tazro Ohta, Go Shioi, Hisashi Hatanaka, Osamu Ogasawara, Yoshiki Okuda,
+                    Hideya Kawaji, Ryoko Nakaki, Jun Sese, and Chikara Meno. Chip-atlas: a data-mining suite
+                    powered by full integration of public chip-seq data. EMBO Rep., 19:e46255, 2018.
+               [30] Hua Xu, Caroline Baroukh, Ruth Dannenfelser, Emily Y Chen, Christopher M Tan, Yan Kou,
+                    Yong E Kim, Ihor R Lemischka, and Avi Ma’ayan. Escape: database for integrating high-content
+                    published data collected from human and mouse embryonic stem cells. Database, 2013:bat045,
+                    2013.
+               [31] Luz Garcia-Alonso, Christian H Holland, Mahmoud M Ibrahim, Denes Turei, and Julio Saez-
+                    Rodriguez. Benchmark and integration of resources for the estimation of human transcription
+                    factor activities. Genome Research, 29:1363–1375, 2019.
+               [32] Zhi-Ping Liu, Canglin Wu, Hui Miao, and Hulin Wu. Regnetwork: an integrated database of
+                    transcriptional and post-transcriptional regulatory networks in human and mouse. Database,
+                    2015:bav095, 2015.
+
+                                                                        11
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               [33] Heonjong Han, Hongseok Shim, Donghyun Shin, Jung Eun Shim, Yunhee Ko, Junha Shin,
+                    Hanhae Kim, Ara Cho, Eiru Kim, Tak Lee, et al. Trrust: a reference database of human
+                    transcriptional regulatory interactions. Scientific Reports, 5:11432, 2015.
+               [34] Damian Szklarczyk, Annika L Gable, David Lyon, Alexander Junge, Stefan Wyder, Jaime
+                    Huerta-Cepas, Milan Simonovic, Nadezhda T Doncheva, John H Morris, Peer Bork, et al.
+                    String v11: protein–protein association networks with increased coverage, supporting functional
+                    discovery in genome-wide experimental datasets. Nucleic Acids Research, 47:D607–D613,
+                    2019.
+               [35] Dénes Türei, Tamás Korcsmáros, and Julio Saez-Rodriguez. Omnipath: guidelines and gateway
+                    for literature-curated signaling pathway resources. Nature Methods, 13(12):966–967, 2016.
+               [36] Michael P.H. Stumpf. Inferring better gene regulation networks from single-cell data. Current
+                    Opinion in Systems Biology, 27:100342, 2021.
+               [37] Weixu Wang, Zhiyuan Hu, Philipp Weiler, Sarah Mayes, Marius Lange, Jingye Wang,
+                    Zhengyuan Xue, Tatjana Sauka-Spengler, and Fabian J Theis. Regvelo: gene-regulatory-
+                    informed dynamics of single cells. bioRxiv, pages 2024–12, 2024.
+               [38] Jialong Jiang, Sisi Chen, Tiffany Tsou, Christopher S. McGinnis, Tahmineh Khazaei, Qin Zhu,
+                    Jong H. Park, Inna-Marie Strazhnik, Jost Vielmetter, Yingying Gong, John Hanna, Eric D.
+                    Chow, David A. Sivak, Zev J. Gartner, and Matt Thomson. D-spin constructs gene regulatory
+                    network models from multiplexed scrna-seq data revealing organizing principles of cellular
+                    perturbation response. bioRxiv, 2025.
+               [39] Albert-Laszlo Barabasi and Zoltan N Oltvai. Network biology: understanding the cell’s
+                    functional organization. Nature Reviews Genetics, 5(2):101–113, 2004.
+               [40] Xueya Zhou, Zihan Wang, Yue Ling, Qinxue Tian, Zhenyi Zhang, Yongge Li, Luonan Chen,
+                    and Peijie Zhou. Benchmarking zero-shot single-cell foundation model embeddings for cellular
+                    dynamics reconstruction, mar 2026.
+               [41] Qing Han, Shubo Tian, and Jinfeng Zhang. A pubmedbert-based classifier with data augmenta-
+                    tion strategy for detecting medication mentions in tweets. arXiv preprint arXiv:2112.02998,
+                    2021.
+
+
+
+
+                                                                        12
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               A Experimental Details
+               A.1 Dataset processing
+
+               We followed the BEELINE preprocessing protocol for all six single-cell datasets used in the bench-
+               mark [7]. To select candidate genes for GRN inference, we quantified pseudotime-dependent
+               expression variation using a generalized additive model for each gene and applied Bonferroni correc-
+               tion for multiple testing. Genes with corrected P < 0.01 were considered significantly variable. The
+               numbers of selected genes, transcription factors (TFs), and network densities under different settings
+               are summarized in Table 2.
+               We considered two gene-selection strategies. First, we selected the top 500 or top 1000 dynamically
+               variable genes among genes passing the corrected P -value threshold. Second, to avoid excluding TFs
+               with modest expression variation but potential regulatory roles, we constructed two TF-prioritized
+               gene sets. In the TFs+500 setting, all significant TFs were retained first, followed by the top 500
+               most dynamically variable non-TF genes. Similarly, TFs+1000 retained all significant TFs and added
+               the top 1000 most dynamically variable non-TF genes. Unless otherwise stated, the main results are
+               reported on TFs+500, with TFs+1000 results provided for comparison.
+               After applying each GRN inference method, we only evaluated edges whose source gene is a TF.
+               This ensures that all predicted networks are compared under the same TF–target regulatory setting.
+
+                          Table 2: Statistics of regulatory networks under TFs+500 and TFs+1000 settings.
+
+                                                                               TFs+500                      TFs+1000
+                 Network Source                    Cell Type
+                                                                   #TFs        #Genes    Density   #TFs     #Genes      Density
+                                                   mHSC-E           156         300       0.03      161       427         0.03
+                                                   mHSC-L            39          74       0.05       40       86          0.05
+                                                   mHSC-GM           92         206       0.04      100       357         0.04
+                 STRING
+                                                   mDC              264         487       0.04      273       681         0.03
+                                                   hESC             343         517       0.02      351       709         0.02
+                                                   hHep             409         656       0.03      414       889         0.02
+                                                   mHSC-E           144         447       0.02      147       680         0.02
+                                                   mHSC-L            35         168       0.05       37       198         0.04
+                                                   mHSC-GM           82         301       0.03       88       532         0.03
+                 Non-specific ChIP-Seq
+                                                   mDC              250         643       0.02      254       980         0.02
+                                                   hESC             283         760       0.02      292       1149        0.01
+                                                   hHep             322         832       0.02      332       1224        0.01
+                                                   mHSC-E            29         691       0.58       33       1177        0.57
+                                                   mHSC-L            22         618       0.54       23       1089        0.56
+                                                   mHSC-GM           16         525       0.52       16       640         0.51
+                 Cell-type specific ChIP-Seq       mDC               20         448       0.08       21       690         0.08
+                                                   hESC              34         815       0.16       34       1260        0.17
+                                                   hHep              30         874       0.38       31       1331        0.38
+                                                   mHSC-E           163         380      0.0271     233       618       0.0185
+                                                   mHSC-GM          112         320      0.0250     216       575       0.0156
+                                                   mHSC-L           101         260      0.0261     126       316       0.0219
+                 OmniPath
+                                                   mDC              250         468      0.0233     341       682       0.0158
+                                                   hESC             298         625      0.0148     369       883       0.0114
+                                                   hHep             283         624      0.0181     353       868       0.0134
+
+
+               A.2 Evaluated models and baselines
+
+               We evaluated six single-cell foundation models and three classical GRN inference baselines. The
+               main architectural and pretraining characteristics of the foundation models are summarized in Table 3.
+               Below, we briefly describe each model and baseline used in the benchmark.
+               Geneformer. Geneformer [15] is a Transformer-based single-cell foundation model pretrained on the
+               Genecorpus dataset. It represents each cell by ranking genes according to normalized expression and
+
+                                                                          13
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               uses the top-ranked genes as input tokens. Geneformer provides 6-layer and 12-layer checkpoints;
+               we used the larger checkpoint in our benchmark.
+               scGPT. scGPT [16] is a generative single-cell foundation model pretrained on large-scale single-cell
+               omics data. It uses gene tokens together with cell-dependent binned expression values to encode
+               input cells. We used the whole-human scGPT checkpoint pretrained on 33 million normal human
+               cells.
+               scFoundation. scFoundation [23] uses the asymmetric encoder–decoder architecture xTrimoGene
+               to model 19,264 protein-coding genes. Unlike rank- or bin-based models, it projects continuous
+               expression values into learnable value embeddings, preserving quantitative expression information.
+               The model was pretrained on 50 million single cells using a read-depth-aware objective with source
+               and target count tokens.
+               LangCell. LangCell [24] introduces a language–cell pretraining framework with a cell encoder
+               and a text encoder initialized from Geneformer [15] and PubMedBERT [41], respectively. It uses
+               Geneformer-like gene ranking and adds cross-modal cell–text contrastive learning objectives based
+               on the scLibrary dataset.
+               scCello. scCello [25] is a cell-ontology-guided single-cell foundation model pretrained on labeled
+               scRNA-seq data mapped to a cell ontology graph. It uses rank-based gene expression encoding
+               similar to Geneformer, while ontology-guided training encourages the model to capture hierarchical
+               cell-type relationships. We used the default pretrained checkpoint released by the authors.
+               scPRINT. scPRINT [26] is a Transformer-based foundation model for scRNA-seq data. Each gene
+               representation combines gene identity, expression value, and genomic positional encodings. The
+               model is pretrained on large-scale cellxgene data with objectives including denoising reconstruction,
+               bottleneck reconstruction, and multi-label prediction. We used the released pretrained checkpoint for
+               representation extraction and reconstruction-based dynamic probing.
+               GENIE3. GENIE3 [11] formulates GRN inference as a collection of tree-based regression problems,
+               where the expression of each target gene is predicted from candidate regulators. Regulatory weights
+               are computed from feature-importance scores. We used the standard GENIE3 implementation with
+               default hyperparameters.
+               DeepSEM. DeepSEM [13] is a deep generative model for single-cell GRN inference. It combines
+               a structural equation model with a regularized variational autoencoder to infer directed regulatory
+               relationships from scRNA-seq data in an unsupervised manner.
+               GRNBoost. GRNBoost [12] is a scalable tree-based method for GRN inference from single-cell
+               transcriptomic data. It uses gradient-boosted regression to predict target gene expression from
+               candidate regulators and derives regulatory weights from feature importance. We used the default
+               benchmark configuration.
+
+               B Details of Static GRN Reconstruction
+               B.1 Representation extraction strategies
+
+               Pretrained token embeddings. For each model, pretrained token embeddings are obtained from
+               the gene embedding layer or vocabulary-aligned model parameters. Let Wemb ∈ RV ×d denote the
+               embedding matrix, where V is the vocabulary size and d is the embedding dimension. For gene token
+               i with vocabulary index xi , its token embedding is
+                                                               ei = Wemb [xi ].
+               Because token embeddings are fixed for each gene and do not depend on a specific input cell, they
+               represent static gene-level priors learned during pretraining. We compute pairwise cosine similarity
+               between gene embeddings:
+                                                                        e⊤i ej
+                                                      costok (i, j) =            .
+                                                                      ∥ei ∥∥ej ∥
+               The resulting scores define an undirected gene–gene association network.
+               Final-layer hidden states. For hidden-state extraction, each input cell is passed through the model
+               and the final-layer representation of each gene token is collected. Let E ∈ Rn×d be the input
+
+                                                                        14
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                 Table 3: Architectural and pretraining characteristics of evaluated single-cell foundation models.
+                 Model             Attribute                 Value
+                                   Model size                50M
+                                   Pretraining cells         33M
+                                   Gene embedding dim        512
+                                   Output dim                512
+                 scGPT
+                                   Vocabulary size           60,697
+                                   Layers                    12
+                                   Heads                     8
+                                   Architecture              Transformer encoder
+                                   Model size                40M
+                                   Pretraining cells         30M
+                                   Gene embedding dim        512
+                                   Output dim                256 for 6-layer model; 512 for 12-layer model
+                 Geneformer
+                                   Vocabulary size           25,426
+                                   Layers                    6 / 12
+                                   Heads                     8
+                                   Architecture              Transformer encoder with attention mask
+                                   Model size                50M
+                                   Pretraining cells         50M
+                                   Gene embedding dim        768
+                                   Output dim                3072
+                 scFoundation
+                                   Vocabulary size           19,264
+                                   Layers                    40
+                                   Heads                     16
+                                   Architecture              Asymmetric encoder–decoder
+                                   Model size                40M
+                                   Pretraining cells         40M
+                                   Gene embedding dim        512
+                                   Output dim                256
+                 LangCell
+                                   Vocabulary size           25,426
+                                   Layers                    12
+                                   Heads                     8
+                                   Architecture              Cell encoder initialized from Geneformer plus text encoder
+                                   Model size                10M
+                                   Pretraining cells         10M
+                                   Gene embedding dim        256
+                                   Output dim                200
+                 scCello
+                                   Vocabulary size           25,426
+                                   Layers                    6
+                                   Heads                     8
+                                   Architecture              Cell-ontology-guided Transformer encoder
+                                   Model size                50M
+                                   Pretraining cells         45M
+                                   Gene embedding dim        512
+                                   Output dim                512
+                 scPRINT
+                                   Vocabulary size           30,000
+                                   Layers                    12
+                                   Heads                     8
+                                   Architecture              Transformer encoder–decoder
+
+
+
+
+                                                                        15
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               embedding matrix for a cell and let
+                                                            H = fθ (E)
+               denote the final hidden-state matrix after the model forward pass. The hidden representation of
+               gene i is hi = H[i]. Unlike token embeddings, hidden states are input-dependent and encode
+               contextual information from the full cell profile. We aggregate cell-wise hidden states into gene-level
+               representations and compute pairwise cosine similarity:
+                                                                               h⊤i hj
+                                                          coshid (i, j) =               .
+                                                                             ∥hi ∥∥hj ∥
+               This produces an undirected GRN based on contextualized gene representations.
+               Attention-derived scores. For Transformer-based models, we also extract attention matrices as
+               model-internal gene–gene coupling signals. For a given layer and head, the attention weight from
+               gene i to gene j is computed from query and key vectors as
+                                                                   ⊤ 
+                                                                    qi kj
+                                                  Aij = softmaxj     √      .
+                                                                        d
+               We aggregate attention weights of the last layer across heads and cells to obtain a single directed
+               score for each ordered gene pair. Because attention is asymmetric, the score from gene i to gene j
+               need not equal the score from gene j to gene i, yielding a directed GRN.
+
+               B.2 GRN reconstruction
+
+               Each method outputs a ranked set of gene–gene scores in the form (Gene1, Gene2, weight). For fair
+               comparison, all predictions are evaluated in a unified TF–target candidate space. The source gene
+               must be a ground-truth TF, and the target gene must belong to the reference gene set. For undirected
+               embedding-based networks, the gene–gene similarity score is assigned to the corresponding TF–target
+               pair whenever one gene is a TF. For directed attention networks, the original source–target direction
+               is retained.
+               Predicted edges are ranked by the absolute value of their edge weight, with ties assigned the same
+               rank. For early-precision evaluation, we select top-ranked edges until the number of selected edges
+               equals the number of edges in the corresponding ground-truth network. AUPRC and EPR are then
+               computed within the same restricted candidate space.
+
+               B.3 Evaluation methods
+
+               Edge-level evaluation. We evaluate edge recovery using Early Precision Ratio (EPR) and Area
+               Under the Precision–Recall Curve ratio (AUPRC ratio). Candidate edges are restricted to TF–target
+               pairs as described above. AUPRC measures the quality of the full ranked edge list and is computed
+               using average precision. EPR focuses on the top-ranked predictions by comparing the precision
+               among the top-K predicted edges, where K equals the number of ground-truth edges, against a
+               random baseline. Formal definitions are provided in Appendix D.
+               TF-level evaluation. For each TF, we evaluate whether the predicted network recovers its target genes.
+               Let P be the set of genes predicted as targets of a TF, and let G be the corresponding reference target
+               set. Precision, recall, and F1 score are computed for each TF. We then rank TFs by F1 score and use
+               the top 100 TFs as representative high-confidence regulators for overlap analysis and visualization.
+               Consensus TFs are defined as TFs shared across the top-100 lists of all three scGPT extraction
+               strategies, after excluding TFs with fewer than 20 predicted targets.
+               Topology-level evaluation. To evaluate topological fidelity, we compute five graph metrics: average
+               shortest path length, clustering coefficient, modularity, average degree, and assortativity. Directed
+               networks are first converted to undirected simple graphs. Specifically, if at least one directed edge
+               exists between two genes in either direction, a single undirected edge is added; reciprocal edges are
+               deduplicated, and self-loops are removed.
+               For each metric, we compare the predicted network with the STRING reference using a normalized
+               closeness score:
+                                                          |vpred − vSTRING |
+                                               s=1−                          ,
+                                                        maxk |vk − vSTRING |
+
+                                                                        16
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               where vpred is the metric value of a predicted network, vSTRING is the metric value of the STRING
+               reference, and the denominator is the maximum deviation from STRING across all evaluated methods.
+               This score maps the closest network to higher values, with STRING assigned a score of 1.
+
+               C Details of Dynamic Transition Probing
+               C.1 Continuous-value models
+
+               Continuous-value models, including scGPT, scFoundation, and scPRINT, operate directly on expres-
+               sion magnitudes and preserve quantitative differences across cells.
+               Problem setup. Let x(t) ∈ RG denote the expression state at iteration t, where G is the number of
+               genes under evaluation. Early cells are defined by the lowest pseudotime quantile, and late cells by
+               the highest pseudotime quantile. We use q = 20% in all experiments. The initial state x(0) is the
+               mean expression vector of early cells, and the observed early-to-late change is
+                                                            ∆true = xlate − x(0) ,
+               where xlate is the mean expression vector of late cells.
+               Iterative refinement. At each iteration, the current state is passed through a pretrained model to
+               obtain a refined prediction:                                  
+                                               x̂(t) = fθ Preprocess(x(t) ) .
+               To avoid abrupt updates, we apply an exponential moving average:
+                                                       x(t+1) = αx(t) + (1 − α)x̂(t) .
+               We set α = 0.9, corresponding to a 0.1 update rate for the model-predicted profile. Repeated
+               application of this update generates a model-induced transition path
+                                                             x(0) , x(1) , . . . , x(T ) .
+               During inference, the model receives no time labels, pseudotime values, or late-cell profiles. The
+               predicted expression change is
+                                                    ∆pred = x(T ) − x(0) .
+
+               C.2 Rank-driven models
+
+               Rank-driven models, including Geneformer, LangCell, and scCello, represent cells as gene-rank
+               sequences rather than continuous expression vectors. This encoding preserves relative expression
+               order but discards absolute expression magnitudes.
+               Problem setup. Let r(t) ∈ ZG denote the rank-based token state at iteration t. The initial rank state
+               r(0) is obtained by ranking genes in each early cell from high to low expression and mapping the
+               ranked genes to model-specific token IDs. Continuous expression values are used only for evaluation
+               through ∆true .
+               Swap-based refinement. At iteration t, the current token sequence r(t) is passed into the pretrained
+               model to obtain token logits. We refine the sequence by proposing swaps between pairs of token
+                                                                                                                  (t)
+               positions while preserving the same set of expressed genes. For positions i and j with tokens a = ri
+                         (t)
+               and b = rj , both positions are masked and the model compares the log-likelihood of the current
+               assignment,
+                                         Lcur = log P (a | mask i) + log P (b | mask j),
+               with the swapped assignment,
+                                            Lswap = log P (b | mask i) + log P (a | mask j).
+               The swap is accepted if Lswap > Lcur . We repeat this process for Tswap = 8 random swap proposals
+               per iteration.
+               Because a lower rank position corresponds to higher expression, the predicted expression-direction
+               signal from rank changes is                                    
+                                                  ∆rank
+                                                    pred = −    r (T )
+                                                                       − r (0)
+                                                                                 .
+
+
+                                                                         17
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               Directional accuracy. A gene is counted as directionally correct if the sign of the predicted change
+               matches the sign of the observed early-to-late change. We report directional accuracy on the top 30%
+               genes ranked by |∆true |. Algorithm 1 summarizes the overall procedure.
+
+               Algorithm 1: Iterative refinement for dynamic transition probing
+               Input: X: gene expression matrix
+               pt: pseudotime values
+               M : pretrained single-cell foundation model
+               T : number of refinement iterations
+               α: EMA coefficient for continuous-value models
+               q: early/late pseudotime quantile
+               k: percentage of dynamic genes for evaluation
+               Output: Directional accuracy and predicted terminal state
+               1. Define early and late states
+               Iearly ← {i | pti ≤ q-quantile(pt)}
+               Ilate ← {i | pti ≥ (1 − q)-quantile(pt)}
+               ∆true ← mean(Xlate ) − mean(Xearly )
+               Geval ← top-k%(|∆true |)
+               2. Initialize early state
+               Initialize x(0) for continuous-value models or r(0) for rank-driven models from early cells.
+               3. Iterative refinement
+               for t = 0 to T − 1 do
+                   if M is a continuous-value model then
+                       x̂(t) ← M (x(t) )
+                       x(t+1) ← αx(t) + (1 − α)x̂(t)
+                   else
+                       Propose random token swaps in r(t)
+                       Accept swaps that increase masked-token likelihood
+                       Obtain refined rank state r(t+1)
+               4. Evaluate direction consistency
+               Compute ∆pred from the terminal state.
+               acc ← sign-agree(∆pred , ∆true ) on Geval .
+               return acc and terminal predicted state.
+
+
+               D Evaluation Definitions
+               D.1 Edge-level metrics
+
+               Early Precision Ratio (EPR). Early precision measures the fraction of true positive edges among
+               the top-K predicted edges, where K is set to the number of edges in the ground-truth network. Let
+               EP denote this precision. The random baseline is the edge density within the restricted TF–target
+               candidate space:
+                                                                |Egt |
+                                                          ρ=           ,
+                                                                 |C|
+               where Egt is the set of ground-truth edges and C is the set of all candidate TF–target pairs. The Early
+               Precision Ratio is
+                                                                     EP
+                                                           EPR =        .
+                                                                      ρ
+               An EPR greater than 1 indicates enrichment over random ranking.
+               Area Under the Precision–Recall Curve ratio (AUPRC ratio). For each threshold θ, precision and
+               recall are defined as
+                                                      T P (θ)                              T P (θ)
+                                       P (θ) =                     ,         R(θ) =                     .
+                                                 T P (θ) + F P (θ)                    T P (θ) + F N (θ)
+
+                                                                        18
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               The AUPRC is the area under the precision–recall curve:
+                                                             Z 1
+                                                 AUPRC =          P (R) dR.
+                                                                          0
+               In the main results, we report the AUPRC ratio, defined as the observed AUPRC normalized by the
+               random baseline precision ρ.
+
+               D.2 TF-level F1 score
+
+               For each TF, we evaluate how well the predicted network recovers its target genes. Let P be the set
+               of predicted targets for a TF and G be its reference target set. Precision and recall are
+                                                             |P ∩ G|                         |P ∩ G|
+                                              Precision =            ,            Recall =           .
+                                                               |P |                            |G|
+               The F1 score is
+                                                           Precision · Recall
+                                                        F1 = 2 ·                .
+                                                          Precision + Recall
+               We compute F1 scores for all TFs and visualize their distributions using raincloud plots, where each
+               point represents one TF. For each method, the top 100 TFs ranked by F1 score are used for overlap
+               and downstream functional analyses.
+
+               D.3 Topological metrics
+
+               All topology metrics are computed on undirected simple graphs. Directed networks are first projected
+               to undirected graphs by ignoring edge direction, deduplicating reciprocal edges, and removing
+               self-loops.
+               Average shortest path length. For networks with multiple connected components, we compute the
+               average shortest path length on the largest connected component:
+                                                             1    X
+                                                   L=                 d(vi , vj ),
+                                                        n(n − 1)
+                                                                          i̸=j
+
+               where n is the number of nodes in the largest connected component and d(vi , vj ) is the shortest path
+               distance between nodes vi and vj .
+               Modularity. We apply Louvain community detection and compute modularity as
+                                                                    
+                                                1 X            ki kj
+                                          Q=            Aij −          δ(ci , cj ),
+                                               2m i,j          2m
+               where Aij is the adjacency matrix, ki is the degree of node i, m is the number of edges, and
+               δ(ci , cj ) = 1 if nodes i and j belong to the same community.
+               Assortativity. Degree assortativity measures whether nodes preferentially connect to nodes with
+               similar degree. We compute the degree assortativity coefficient using the NetworkX implementation.
+               Positive values indicate assortative mixing, whereas negative values indicate disassortative mixing.
+               Average degree. Average degree measures overall network density:
+                                                                              N
+                                                                       1 X
+                                                               ⟨k⟩ =         ki ,
+                                                                       N i=1
+               where N is the number of nodes and ki is the degree of node i.
+               Clustering coefficient. For an undirected graph, the local clustering coefficient of node i is
+                                                                 2Ei
+                                                       Ci =              ,
+                                                             ki (ki − 1)
+               where Ei is the number of edges among the neighbors of node i. The average clustering coefficient is
+                                                                              N
+                                                                     1 X
+                                                               ⟨C⟩ =       Ci .
+                                                                     N i=1
+
+
+                                                                        19
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+               Degree distribution and CCDF. We characterize degree distributions using the complementary
+               cumulative distribution function (CCDF):
+                                                          CCDF(k) = P (K ≥ k).
+               Empirically,
+                                                                     N
+                                                                  1 X
+                                                      Pb(K ≥ k) =       1(ki ≥ k),
+                                                                  N i=1
+               where ki is the degree of node i and 1(·) is the indicator function.
+
+               E Complete Evaluation Results
+               Tables 4–7 report detailed per-dataset results for all methods across the six single-cell datasets. The
+               aggregated mean ± standard deviation values in the main text are computed from these per-dataset
+               results. Cell-type-specific ChIP-seq references are excluded from the main comparison because all
+               methods showed near-random performance on this setting, but the complete results are still reported
+               below for transparency.
+
+
+
+
+                                                                        20
+                                                                               Table 4: Early precision ratio of different methods (TF+500).
+                                                           costok                                                         attn                                                      coshid                                         ML
+     Ground-truth    Dataset
+                                  scGPT    scFoundation Geneformer Langcell scCello scPRINT    scGPT    scFoundation Geneformer Langcell scCello scPRINT    scGPT    scFoundation Geneformer Langcell scCello scPRINT GENIE3 DeepSEM GRNboost
+                                  6.1138     1.2467      1.3380     1.3771   1.9435   1.2794   1.9631     1.1524      3.2718     3.3011   1.3380   1.5236   4.3656     0.5665     1.2989     2.3928   2.3928   1.5822   2.9104   4.1410   2.8127
+                                                                                                                                                                                                                                                     bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+
+
+
+                     hESC
+                     hHep         5.4341     1.2110      1.2875     1.3254   1.9644   1.1408   1.6804     1.0177      2.0496     2.8022   1.2875   1.3490   3.8010     1.1171     1.2970     2.7360   2.4094   1.0698   2.5750   3.2235   2.7691
+                     mDC          3.8407     1.1100      1.6492     1.6436   1.5440   0.9740   0.8633     0.9353      1.3669     0.6807   1.0625   0.4981   2.8611     1.0958     1.6824     2.1749   1.6381   1.4665   2.0919   2.0808   1.7820
+     STRING          mHSC-E       8.0898     1.1931      1.7619     1.8363   2.6056   0.6948   1.3897     1.1167      3.4245     1.6626   1.4393   0.8685   4.2434     1.4393     1.4393     2.1093   3.3997   1.1663   5.4098   7.0228   5.8316
+                     mHSC-GM      8.4945     1.1392      2.1573     2.2585   3.1349   0.8427   1.1798     0.9101      3.9776     2.0562   1.4832   0.9775   5.8316     0.8764     2.3596     2.0225   3.2023   0.8764   8.1237   8.8990   4.8540
+                     mHSC-L       7.4326     1.1469      2.7304     2.5787   1.9719   0.7584   0.4551     0.6067      4.3989     2.1236   1.1236   0.3034   4.7023     1.6685     1.0618     1.3652   2.4270   2.1236   6.8259   6.9776   6.6743
+                     mean         6.568      1.174       1.821      1.837    2.194    0.948    1.255      0.956       3.082      2.104    1.289    0.920    4.301      1.127      1.523      2.133    2.578    1.381    4.656    5.391    4.121
+                     std          1.772      0.051       0.546      0.498    0.573    0.228    0.548      0.196       1.157      0.910    0.168    0.472    0.983      0.392      0.457      0.455    0.638    0.446    2.500    2.635    1.949
+                        hESC      0.9928     0.9801      0.7918     0.7891   0.9807   0.9727   1.0558     1.0142      1.0718     1.0182   0.9620   1.2018   0.9084     1.0973     0.9888     1.0156   0.8548   0.9285   0.9794   1.1321   0.9620
+                        hHep      0.9990     0.9300      0.9735     0.9722   0.9287   1.1265   0.9454     1.0030      0.9434     1.1143   0.9921   1.0130   1.0178     0.7464     1.0653     1.0963   1.0785   0.9314   1.0788   1.0401   1.0403
+     Cell-type-specific mDC       1.2357     0.9760      0.9072     0.9072   0.9698   1.4234   0.9072     1.0011      1.6737     0.6257   1.1888   0.5475   1.2826     1.2357     1.0949     0.9385   0.9854   1.2983   1.1419   1.0324   0.8603
+                        mHSC-E    0.9997     1.0099      0.9899     0.9899   0.9899   0.9805   1.0196     0.9910      1.0955     1.0072   0.9927   0.9919   1.0623     0.9504     0.9921     1.0234   1.0033   1.0220   1.0261   1.0078   1.0854
+     ChIP–seq
+                        mHSC-GM   0.9747     1.0170      1.0526     1.0526   1.0606   0.9832   1.0143     0.9895      1.0633     1.1054   1.0070   0.9932   1.0778     0.9491     0.8984     1.0073   0.9927   1.0766   1.0315   1.0203   1.0225
+                        mHSC-L    1.0307     0.9885      0.9537     0.9537   0.9537   0.9948   0.9783     0.9904      1.1044     1.0680   1.0021   1.0281   1.0377     1.0004     0.9939     0.9805   1.0026   1.0685   1.0277   1.0572   0.9937
+21                   mean         1.039      0.984       0.945      0.944    0.981    1.080    0.987      0.998       1.159      0.990    1.024    0.963    1.064      0.997      1.006      1.010    0.986    1.054    1.048    1.048    0.994
+                     std          0.098      0.031       0.089      0.090    0.045    0.178    0.054      0.010       0.259      0.184    0.082    0.218    0.122      0.164      0.069      0.052    0.073    0.136    0.056    0.044    0.078
+                     hESC         2.3039     1.5568      0.4535     0.4535   1.1610   0.5442   1.2154     0.6531      1.4150     2.1043   1.2336   1.7052   1.8141     1.1066     0.4898     1.8504   1.2517   1.3787   1.5601   2.1043   1.3243
+                     hHep         2.6525     1.0919      0.6121     0.5964   1.5067   0.5179   1.7265     1.0359      0.8632     0.7220   1.2399   1.1458   1.5538     1.1928     0.7691     1.5224   1.3498   1.8520   1.6794   2.2915   1.6794
+     Nonspecific     mDC          3.8391     1.0853      1.7063     1.7404   1.5868   0.6825   1.1432     1.3309      1.0238     0.7849   1.3480   0.7849   2.4741     0.5631     0.8531     1.8598   1.5015   1.6892   1.9793   2.6959   1.6892
+                     mHSC-E       5.8195     1.2212      0.6642     0.6642   1.9293   0.9488   1.5181     1.4549      2.1191     1.6130   1.6763   1.1702   2.4353     0.6642     0.9488     1.9925   3.0995   1.1702   4.0167   5.0288   3.6056
+     ChIP–seq
+                     mHSC-GM      6.5951     0.7855      0.5793     0.7130   2.0053   0.8912   1.2923     0.7575      2.9410     1.7825   1.2923   1.1140   3.7431     1.6488     1.5596     1.9607   2.7628   0.9803   5.8375   7.0852   2.7032
+                     mHSC-L       4.0548     1.5958      1.5769     1.6520   0.6758   1.2014   0.9011     0.7509      1.5018     1.0512   1.0512   0.5256   1.5769     0.9762     1.2765     0.9762   1.6520   0.6758   3.0786   3.5292   5.0800
+                     mean         4.211      1.223       0.932      0.970    1.477    0.798    1.299      0.997       1.644      1.343    1.307    1.074    2.266      1.025      0.983      1.694    1.936    1.291    3.025    3.789    2.680
+                     std          1.703      0.309       0.555      0.570    0.498    0.265    0.290      0.334       0.771      0.571    0.207    0.400    0.829      0.392      0.381      0.389    0.790    0.441    1.670    1.936    1.445
+                                                                                                                                                                                                                                                   (which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+
+
+
+
+                     hESC         1.7665     1.1777      0.7361     0.7606   1.4721   0.4907   0.6379     0.6624      1.5702     1.0305   1.4476   1.0305   0.7606     1.3249     0.4416     1.5212   1.8892   1.8156   1.4230   2.2572   2.4535
+                     hHep         3.0782     1.1068      0.6226     0.6053   1.5910   0.6053   1.5045     1.1414      1.5737     0.5361   4.2887   0.6744   1.3489     0.9684     0.7090     1.8850   1.5910   1.9023   1.8504   2.6632   3.5624
+                     mDC          1.5611     1.0407      2.3338     2.2707   1.6400   0.7727   1.0092     0.9619      0.7096     0.2523   1.1196   0.6938   0.8200     0.4888     1.4980     1.0407   1.2300   1.4823   1.1984   1.6242   4.5099
+     omnipath        mHSC-E       2.8625     1.0349      0.5725     0.5725   1.1890   0.6165   1.0349     1.2110      0.8587     2.4881   2.1799   1.1009   1.7835     0.3523     0.6165     1.8936   2.1358   1.1670   1.8496   1.6955   2.5322
+                     mHSC-GM      2.5928     1.2517      0.4470     0.4023   1.5199   0.5364   0.6258     1.3411      1.8328     2.2351   1.7434   1.6987   2.5481     2.4586     0.4023     1.5646   2.4586   1.2070   1.7881   2.1904   3.5315
+                     mHSC-L       2.4602     1.2860      1.3419     1.3978   1.2860   0.9505   1.1742     1.2301      0.6710     2.7397   2.0129   1.2301   1.2860     0.3914     1.0623     1.2301   2.0688   0.8387   1.3419   2.5720   6.0945
+                     mean         2.387      1.150       1.009      1.002    1.450    0.662    0.998      1.091       1.203      1.547    2.132    1.071    1.425      0.997      0.788      1.523    1.896    1.402    1.575    2.167    3.781
+                     std          0.603      0.106       0.721      0.711    0.177    0.171    0.334      0.245       0.513      1.072    1.124    0.380    0.667      0.811      0.420      0.343    0.434    0.409    0.288    0.433    1.365
+
+
+
+
+                                                                                                                                                                                                                                                                                                  available under a CC-BY 4.0 International license.
+                                                          Table 5: EPR Performance comparison of different methods across datasets (TF+1000).
+                                                          costok                                                          attn                                                        coshid                                         ML
+     Ground-truth    Dataset
+                                  scGPT scFoundation Geneformer Langcell    scello   scPRINT   scGPT    scFoundation Geneformer Langcell scCello scPRINT    scGPT    scFoundation Geneformer Langcell   scello   scPRINT GENIE3 DeepSEM GRNboost
+                     hESC         7.4143   1.1998      1.4247      1.4154   2.1840   1.2935    2.1652     1.1154      1.0262     3.3369   1.4904   1.4716   4.8460     0.8155      1.2841      2.7370   3.0745   1.4810   3.1963   4.5367   1.7903
+                                                                                                                                                                                                                                                       bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+
+
+
+
+                     hHep         6.0007   1.0749      1.2927      1.3153   2.0002   1.1702    2.2542     0.9888      0.9031     3.2158   1.1430   1.2836   3.8235     0.9389      1.1384      2.6670   2.2451   1.0749   2.4765   3.1931   1.7553
+                     mDC          4.4187   0.9606      1.6330      1.6330   1.5529   1.0513    0.5230     0.9179      1.2606     0.6724   0.9019   0.4856   3.1005     1.2808      1.3288      2.1666   2.1346   1.6116   1.9052   2.2414   1.2594
+     STRING          mHSC-E       8.9274   1.2342      1.4605      1.4810   3.4763   0.7199    1.3165     1.3782      1.0833     2.5095   1.7073   0.6994   4.3608     0.4731      1.0491      2.7152   3.3529   1.2342   5.9653   7.9194   1.8719
+                     mHSC-GM      8.2438   1.2842      1.6985      1.6985   3.3555   0.8699    1.1392     1.4085      1.0622     2.1334   1.1806   0.7664   5.1990     0.6007      2.1749      3.2727   2.4027   1.2221   7.3946   8.4095   1.9470
+                     mHSC-L       7.7416   1.0035      3.4407      3.5841   3.8708   0.7168    0.5735     0.4301      1.1279     2.0071   2.0071   0.5735   4.5876     1.0035      1.1469      2.5805   2.1504   2.2938   6.7381   7.3115   1.7204
+                     mean         7.124    1.126       1.825       1.855    2.740    0.970     1.329      1.040       1.077      2.313    1.405    0.880    4.320      0.852       1.354       2.690    2.560    1.486    4.613    5.602    1.724
+                     std          1.646    0.132       0.805       0.859    0.945    0.240     0.750      0.359       0.118      0.972    0.408    0.402    0.756      0.291       0.415       0.355    0.523    0.441    2.366    2.623    0.242
+                        hESC      0.9690   0.8504      0.7532      0.7549   0.8248   0.9707    1.0296     0.9912      1.1322     0.8428   0.9733   1.1140   0.8999     0.9229      0.7941      1.0517   0.8743   0.9136   0.9664   1.1498   1.1388
+                        hHep      0.9648   1.0283      1.0518      1.0510   1.0149   1.1390    0.9411     0.9885      1.1203     1.0993   0.9900   0.9840   0.9862     0.9048      1.0479      1.0755   1.0372   0.9385   1.0535   1.0188   1.0586
+     Cell-type-specific mDC       1.4741   1.3521      1.3114      1.2911   1.0979   1.2606    0.9251     0.8641      0.8909     0.9048   0.9455   0.5185   1.2708     1.1284      0.9963      1.2504   0.8438   1.2911   0.9251   0.9556   0.7523
+                        mHSC-E    0.9772   1.0378      1.0382      1.0382   1.0382   0.9722    1.0173     1.0011      2.2345     1.0394   0.9931   0.9819   1.0387     0.9440      0.9505      0.9765   0.9806   1.0340   1.0111   0.9972   1.0116
+     ChIP-seq
+                        mHSC-GM   0.9759   0.9604      0.9603      0.9603   0.9603   0.9853    1.0174     1.0012      2.3818     1.0487   1.0070   0.9931   1.0567     0.9088      0.8746      0.9490   1.0045   1.0764   1.0144   1.0191   0.9923
+                        mHSC-L    1.0303   1.1694      1.1687      1.1687   1.1687   0.9922    0.9853     0.9869      1.5958     1.1187   1.0025   1.0337   1.0532     1.0612      0.9701      0.9206   1.0516   1.1069   1.0410   1.0737   0.9956
+22                   mean         1.065    1.066       1.047       1.044    1.017    1.053     0.986      0.972       1.559      1.009    0.985    0.938    1.051      0.978       0.939       1.037    0.965    1.060    1.002    1.036    0.992
+                     std          0.202    0.175       0.189       0.183    0.118    0.120     0.044      0.053       0.625      0.111    0.023    0.211    0.123      0.094       0.091       0.120    0.087    0.136    0.048    0.068    0.129
+                     hESC         2.4060   1.3209      0.6290      0.6762   1.1951   0.5504    1.2738     0.8335      3.8618     1.3996   1.4153   1.6512   1.6669     0.8177      0.3931      2.4532   1.5883   1.2895   1.3524   2.3431   2.3903
+                     hHep         2.6801   0.8792      0.6665      0.6381   1.2763   0.5247    1.7442     1.2904      2.0320     0.6665   1.5031   1.3046   1.4322     2.6092      0.5389      1.3046   1.0068   1.8435   1.6449   2.8787   4.2400
+     Nonspecific     mDC          3.9687   1.1015      1.5551      1.5551   1.2959   0.7128    0.8099     0.9719      1.3555     0.4860   1.2635   0.8099   2.3327     1.8629      0.7452      1.7333   1.7657   1.8791   2.3489   3.4504   2.9320
+                     mHSC-E       6.5215   1.3771      0.5976      0.5976   2.2085   0.9354    1.4030     1.7148      3.5380     1.9487   2.2345   1.0133   2.0006     1.5849      0.7535      2.4163   2.1825   1.3511   3.9753   6.4955   1.6369
+     ChIP-seq
+                     mHSC-GM      6.7400   1.2162      1.2162      1.2669   2.6098   1.0389    1.1149     1.5203      3.8319     2.0017   1.5710   1.0389   3.2433     1.1402      1.2669      2.5085   1.9510   0.9375   5.1183   6.2332   2.7619
+                     mHSC-L       3.6993   1.2331      1.5958      1.5958   1.5958   1.4507    1.1606     1.1606      4.1575     1.6683   0.9430   0.3627   1.2331     0.6528      1.3056      0.6528   1.8134   0.6528   3.2641   3.6993   1.0155
+                     mean         4.336    1.188       1.043       1.055    1.697    0.869     1.251      1.249       3.129      1.362    1.488    1.030    1.985      1.445       0.834       1.845    1.718    1.326    2.951    4.183    2.496
+                     std          1.874    0.178       0.471       0.472    0.582    0.351     0.312      0.332       1.149      0.648    0.428    0.437    0.732      0.730       0.376       0.757    0.401    0.486    1.447    1.755    1.117
+                                                                                                                                                                                                                                                     (which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+
+
+
+
+                     hESC         2.1483   1.1804      0.5194      0.5666   1.2984   0.5194    0.6846     0.5902      1.2040     1.4636   1.2984   1.2512   0.9679     2.1010      0.5430      2.0066   2.0302   1.6525   1.2512   2.4788   2.8801
+                     hHep         3.6889   1.0488      0.5967      0.5967   1.5732   0.6871    1.5551     1.4828      2.0072     0.7233   1.6636   0.7414   1.4105     2.4412      0.5967      1.7179   1.2115   1.8264   1.8987   3.6346   4.4303
+                     mDC          1.6189   1.0506      2.7212      2.5834   1.4639   0.8095    1.0506     1.0161      0.4133     0.4478   1.3606   0.8267   1.2228     1.6189      1.1022      1.1022   0.9989   1.7739   1.4295   2.4800   5.8384
+     OmniPath        mHSC-E       3.2054   0.9941      0.6492      0.6695   1.4810   0.7506    0.9738     1.1564      0.7912     1.9476   2.7591   1.2578   1.7447     0.9332      0.5680      2.4345   1.9273   1.1564   2.1910   3.1242   2.5968
+                     mHSC-GM      4.3423   1.2265      1.0939      1.0607   2.4198   0.7624    0.7292     0.7955      1.6905     1.8563   2.0883   1.4253   2.6187     0.3978      0.6298      2.5524   2.2209   1.1602   2.6187   3.7788   7.4914
+                     mHSC-L       2.4233   1.1063      1.4223      1.3697   1.3170   0.9482    1.0009     1.1063      0.7902     3.1608   1.8965   1.2643   0.8429     0.7375      1.3697      1.3697   2.1072   0.6322   1.4750   2.3706   5.1099
+                     mean         2.905    1.101       1.167       1.141    1.592    0.746     0.999      1.025       1.149      1.600    1.844    1.128    1.468      1.372       0.802       1.864    1.749    1.367    1.811    2.978    4.724
+                     std          1.023    0.088       0.837       0.773    0.419    0.141     0.311      0.308       0.605      0.973    0.541    0.275    0.649      0.810       0.348       0.577    0.513    0.466    0.525    0.626    1.847
+
+
+
+
+                                                                                                                                                                                                                                                                                                    available under a CC-BY 4.0 International license.
+                                                           Table 6: AUPR Performance comparison of different methods across datasets (TF+500).
+                                                            costok                                                          attn                                                        coshid                                         ML
+     Ground-truth    Dataset
+                                  scGPT    scFoundation Geneformer Langcell   scello   scPRINT   scGPT    scFoundation Geneformer Langcell scCello scPRINT    scGPT    scFoundation Geneformer Langcell   scello   scPRINT GENIE3 DeepSEM GRNboost
+                                  4.3914     0.9774      1.1114      1.1149   1.1823   1.0041    0.9191     1.0530      1.7688     1.8648   1.2597   1.3712   2.3999     0.9804      1.1028      1.3992   1.4879   1.2146   1.6241   2.0981   1.1695
+                                                                                                                                                                                                                                                         bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+
+
+
+                     hESC
+                     hHep         3.7786     1.1325      1.0958      1.0984   1.1984   1.0218    0.9796     1.0044      1.4325     1.7470   1.1456   1.3205   2.3030     1.0000      1.0780      1.6448   1.5791   1.2139   1.4802   1.7351   1.1198
+                     mDC          2.6636     1.2764      1.1810      1.1820   1.1376   1.0150    0.8198     0.9764      1.0710     0.9542   1.0572   0.8892   1.8784     1.0000      1.3668      1.4404   1.2862   1.3130   1.3775   1.6293   1.0412
+     STRING          mHSC-E       7.1344     1.1699      1.1981      1.2005   1.5534   0.9355    0.9714     1.0069      1.8546     1.5284   1.3155   1.2060   3.1132     1.0000      1.2548      1.7108   1.9014   1.1239   3.5159   4.8443   1.4435
+                     mHSC-GM      8.2692     1.3372      1.4151      1.4318   2.2482   0.9222    0.9648     0.9416      2.1634     1.7389   1.2319   1.2998   4.6102     1.0000      1.5172      1.6865   1.9256   1.1535   4.9666   6.9571   1.4461
+                     mHSC-L       7.5526     1.3703      1.4621      1.4761   1.6928   0.9835    0.9895     1.1187      2.9141     1.7096   1.5624   1.2149   4.3170     1.6018      1.5030      1.6240   1.8766   1.6695   6.8422   7.2558   1.3234
+                     mean         5.632      1.211       1.244       1.251    1.502    0.980     0.941      1.017       1.867      1.591    1.262    1.217    3.104      1.097       1.304       1.584    1.676    1.281    3.301    4.087    1.257
+                     std          2.310      0.147       0.157       0.163    0.430    0.042     0.064      0.062       0.635      0.330    0.173    0.173    1.130      0.247       0.191       0.132    0.265    0.201    2.244    2.622    0.172
+                        hESC      1.0062     0.9724      0.9341      0.9340   0.9904   1.0207    0.9803     1.0146      1.1140     0.9724   0.9976   1.1107   0.9022     0.9538      0.9852      1.0526   0.9509   0.9871   0.9784   1.0732   0.9975
+                        hHep      0.9872     0.9869      0.9572      0.9571   0.9594   1.1225    0.9644     0.9936      1.0082     1.1231   0.9814   1.0564   1.0395     1.0000      1.0519      1.0848   1.0638   0.9262   1.0606   1.0701   1.0880
+     Cell-type-specific mDC       1.1231     0.9912      0.9886      0.9890   0.9905   1.2802    1.0064     1.0158      1.1888     0.9121   1.0290   1.0068   1.0834     1.0000      1.0183      0.9477   0.9838   1.0367   0.9927   1.0845   1.0076
+                        mHSC-E    1.0049     0.9420      1.0119      1.0116   1.0008   0.9534    0.9754     1.0157      1.0760     1.0564   0.9845   0.9914   1.0777     1.0000      0.9279      0.9755   1.0323   1.0469   0.9881   0.9988   1.0478
+     ChIP–seq
+                        mHSC-GM   0.9527     0.9080      0.9937      0.9923   1.0276   0.9761    0.9818     0.9996      0.9798     1.1234   1.0190   0.9832   1.0375     1.0000      0.8510      1.0460   1.0279   1.0945   0.9859   0.9975   0.9617
+                        mHSC-L    1.0264     0.9936      1.0128      1.0116   0.9750   0.9710    0.9633     1.0034      1.0473     1.0967   0.9837   1.0405   1.0385     0.9536      0.9506      0.9731   1.0232   1.0935   1.0261   1.0490   1.0050
+23                   mean         1.017      0.966       0.983       0.983    0.991    1.054     0.979      1.007       1.069      1.047    0.999    1.031    1.030      0.985       0.964       1.013    1.014    1.031    1.005    1.046    1.018
+                     std          0.058      0.034       0.031       0.031    0.023    0.127     0.016      0.010       0.076      0.087    0.020    0.048    0.066      0.024       0.071       0.055    0.040    0.065    0.032    0.038    0.044
+                     hESC         1.8472     0.9650      1.0084      1.0075   1.0925   0.9348    1.0498     1.0094      1.0192     1.0632   1.1531   1.1725   1.2549     1.0085      0.9601      1.2644   1.0995   1.1200   0.9644   1.2399   1.7075
+                     hHep         1.7634     1.1067      0.9859      0.9855   1.0811   0.9056    1.0474     1.0630      0.9421     0.9421   0.8428   1.0219   1.1277     1.0000      0.9120      1.1383   0.9845   1.1459   0.9775   1.1987   1.7895
+     Nonspecific     mDC          2.2208     1.2284      1.1514      1.1527   1.0717   0.9424    0.8764     1.0223      0.9773     0.8643   1.0741   0.9276   1.2840     1.0000      1.0430      1.2099   1.1036   1.2923   1.2907   1.6300   1.5606
+                     mHSC-E       3.9614     1.2052      0.9704      0.9721   1.2110   0.9699    0.9797     1.0580      1.2003     1.2996   1.2727   1.2561   1.7643     1.0000      1.0425      1.5191   1.4243   1.1523   1.9875   2.6056   1.2858
+     ChIP–seq
+                     mHSC-GM      4.9815     1.3141      0.9384      0.9400   1.2665   0.9402    0.9273     0.9641      1.5275     1.3346   1.1448   1.2177   2.4279     1.0000      1.2057      1.4290   1.4543   1.0869   2.9305   4.1720   1.1618
+                     mHSC-L       3.2363     1.0448      1.4069      1.4197   0.9953   1.1660    1.0620     0.9768      1.3827     1.2722   1.0663   1.1643   1.5203     1.1879      1.2254      1.0975   1.1592   1.1345   2.6047   3.1811   1.2696
+                     mean         3.002      1.144       1.077       1.080    1.120    0.976     0.990      1.016       1.175      1.129    1.092    1.127    1.563      1.033       1.065       1.276    1.204    1.155    1.793    2.338    1.462
+                     std          1.294      0.129       0.178       0.182    0.100    0.095     0.076      0.041       0.239      0.201    0.143    0.126    0.480      0.076       0.127       0.166    0.191    0.071    0.848    1.196    0.259
+                                                                                                                                                                                                                                                       (which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+
+
+
+
+                     hESC         1.1844     0.9725      0.9549      0.9585   1.0650   0.8114    0.9899     0.9757      1.0743     0.8858   1.1277   1.0279   1.0298     0.9899      0.9101      1.0908   1.2054   1.0581   0.9791   1.2293   1.8926
+                     hHep         1.6549     1.0225      0.8814      0.8814   1.1298   0.9167    1.0113     1.0023      1.0102     0.7954   1.8956   0.9550   1.0828     1.0078      0.8989      1.2315   1.0490   1.1818   1.0240   1.2667   1.7860
+                     mDC          1.1484     1.0114      1.5276      1.5214   1.1440   0.9325    0.9298     1.0158      1.0114     0.8374   1.0409   0.9023   0.9654     1.0189      1.1692      1.0761   1.0199   1.2638   1.0397   1.1105   2.1519
+     OmniPath        mHSC-E       1.6781     1.0109      0.8099      0.8101   1.0950   0.8334    1.0048     1.0514      1.0266     1.3250   1.3858   1.1002   1.2023     1.0255      0.9033      1.3323   1.2677   1.0059   1.3007   1.3153   1.8589
+                     mHSC-GM      1.6473     1.0231      0.8566      0.8579   1.1638   0.8749    0.9982     1.0959      1.1951     1.5582   1.3391   1.3011   1.4143     1.0867      0.8394      1.2687   1.5186   1.0738   1.4043   1.4991   2.1702
+                     mHSC-L       1.4494     1.0654      1.0613      1.0653   1.1055   0.9539    1.0667     1.0104      1.1826     1.6516   1.2782   1.2220   1.1541     0.9310      1.0929      1.2181   1.2955   1.1067   1.3023   1.4084   3.7151
+                     mean         1.460      1.018       1.015       1.016    1.117    0.887     1.000      1.025       1.083      1.176    1.345    1.085    1.141      1.010       0.969       1.203    1.226    1.115    1.175    1.305    2.262
+                     std          0.242      0.030       0.266       0.263    0.036    0.057     0.044      0.042       0.085      0.384    0.300    0.154    0.158      0.051       0.130       0.101    0.182    0.093    0.181    0.137    0.729
+
+
+
+
+                                                                                                                                                                                                                                                                                                      available under a CC-BY 4.0 International license.
+                                                       Table 7: AUPRC Performance comparison of different methods across datasets (TF+1000).
+                                                          costok                                                          attn                                                        coshid                                         ML
+     Ground-truth    Dataset
+                                  scGPT scFoundation Geneformer Langcell    scello   scPRINT   scGPT    scFoundation Geneformer Langcell scCello scPRINT    scGPT    scFoundation Geneformer Langcell   scello   scPRINT GENIE3 DeepSEM GRNboost
+                     hESC         5.0515   0.9958      1.1106      1.1154   1.2109   1.0180    1.2671     0.9962      1.8776     1.7984   1.2887   1.4031   2.5694     0.9900      1.0394      1.5290   1.7091   1.2255   1.6241   2.1297   1.1547
+                                                                                                                                                                                                                                                       bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+
+
+
+
+                     hHep         3.9348   1.1047      1.0735      1.0760   1.1704   1.0213    1.2127     1.0126      1.4174     1.6937   1.1129   1.2852   2.2393     1.0247      1.0162      1.4686   1.5469   1.2058   1.4802   1.7387   1.1104
+                     mDC          2.8940   1.3026      1.1345      1.1349   1.0991   1.0173    0.9429     0.9748      1.0725     0.9882   1.0355   0.9462   1.9478     1.3148      1.1325      1.4508   1.4717   1.3108   1.3775   1.7097   1.0564
+     STRING          mHSC-E       7.5144   1.1513      1.1182      1.1246   1.7044   0.9554    1.1595     1.1090      1.8234     1.6038   1.3136   1.2118   2.9064     1.0818      1.1305      1.8435   2.0930   1.1510   3.5159   5.8892   1.7139
+                     mHSC-GM      7.6605   1.1959      1.2990      1.3074   1.9900   0.9597    1.1296     1.1028      1.9751     1.4928   1.2228   1.1589   3.6942     1.1233      1.3817      1.9847   1.6894   1.1479   4.9666   6.5281   1.4744
+                     mHSC-L       7.7406   1.3542      1.7495      1.7712   2.2759   0.9716    0.9212     0.9978      3.0941     1.4938   1.3900   1.4844   4.1392     1.4899      1.5680      1.7573   2.1325   1.5879   6.8422   7.3014   1.5912
+                     mean         5.799    1.184       1.248       1.255    1.575    0.991     1.106      1.032       1.877      1.512    1.227    1.248    2.916      1.171       1.211       1.672    1.774    1.271    3.301    4.216    1.350
+                     std          2.128    0.131       0.258       0.265    0.491    0.031     0.142      0.058       0.686      0.282    0.132    0.191    0.851      0.193       0.218       0.221    0.277    0.166    2.244    2.624    0.278
+                        hESC      0.9953   0.9836      0.8962      0.8960   0.9305   1.0140    1.0254     0.9897      1.1056     0.9209   0.9957   1.0813   0.8894     0.9150      0.9047      1.0406   0.9444   0.9879   0.9784   1.0863   1.0436
+                        hHep      0.9546   0.9635      0.9592      0.9589   0.9915   1.1354    0.9824     0.9846      0.9812     1.0288   0.9682   1.0327   0.9911     0.9156      1.0490      1.0750   1.0693   0.9229   1.0606   1.0352   1.0895
+     Cell-type-specific mDC       1.1770   1.0762      1.1316      1.1305   1.0614   1.2175    0.9627     0.9887      1.1101     0.9855   0.9990   1.0236   1.1003     1.0879      1.1036      1.0889   0.9895   1.0981   0.9927   1.0698   0.9472
+                        mHSC-E    0.9639   0.8997      1.0192      1.0189   1.0215   0.9493    1.0129     1.0072      1.0326     1.0874   0.9891   0.9795   0.9991     0.9144      0.9052      0.9693   1.0038   1.0573   0.9881   1.0062   0.9113
+     ChIP-seq
+                        mHSC-GM   0.9567   0.8832      0.9918      0.9910   0.9910   0.9657    1.0115     1.0112      0.9877     1.0698   1.0058   0.9997   1.0322     0.8596      0.8403      0.9919   1.0600   1.1224   0.9859   0.9937   0.9543
+                        mHSC-L    1.0331   1.0021      1.0632      1.0629   1.0779   0.9696    1.0158     1.0098      1.0585     1.2060   0.9886   1.0452   1.0364     1.0124      0.9440      0.9379   1.0577   1.1198   1.0261   1.0773   1.0255
+24                   mean         1.013    0.968       1.010       1.010    1.012    1.042     1.002      0.999       1.046      1.050    0.991    1.027    1.008      0.951       0.958       1.017    1.021    1.051    1.005    1.045    0.995
+                     std          0.086    0.071       0.082       0.082    0.054    0.110     0.024      0.012       0.056      0.097    0.013    0.036    0.070      0.083       0.099       0.060    0.050    0.081    0.032    0.039    0.068
+                     hESC         1.7457   0.9806      1.0125      1.0127   1.0953   0.9485    1.1822     1.0205      0.9838     0.9641   1.2069   1.1586   1.2233     1.0376      1.0005      1.3396   1.1131   1.1318   0.9644   1.2535   1.7928
+                     hHep         1.6991   1.0824      0.9321      0.9322   0.9785   0.8997    1.2542     1.0406      0.9340     0.8086   1.1424   1.0471   1.1003     1.3824      0.9627      1.0913   0.9690   1.0974   0.9775   1.4588   1.8907
+     Nonspecific     mDC          2.1691   1.2262      1.0928      1.0936   1.0267   0.9388    1.0381     1.0290      0.9452     0.8651   1.0972   1.0109   1.2164     1.2608      0.9794      1.1408   1.1199   1.2632   1.2907   1.8041   1.5344
+                     mHSC-E       4.0396   1.1520      1.0392      1.0414   1.2443   0.9892    1.2624     1.1671      1.2274     1.3731   1.3121   1.2479   1.5072     1.1378      1.0075      1.6160   1.2980   1.1624   1.9875   3.3926   1.3108
+     ChIP-seq
+                     mHSC-GM      4.6761   1.2270      1.1230      1.1307   1.4058   0.9880    1.1381     1.0646      1.4592     1.3880   1.1639   1.1680   1.8732     1.1749      1.1562      1.5628   1.3674   1.0942   2.9305   3.5331   1.4565
+                     mHSC-L       2.9965   1.0212      1.2795      1.2830   1.4440   1.1366    1.1026     1.0411      1.3665     1.4777   1.0785   1.1562   1.3037     1.1170      1.3231      1.0675   1.3493   1.1122   2.6047   3.2760   1.1657
+                     mean         2.888    1.115       1.080       1.082    1.199    0.983     1.163      1.060       1.153      1.146    1.167    1.131    1.371      1.185       1.072       1.303    1.203    1.144    1.793    2.453    1.525
+                     std          1.247    0.104       0.118       0.120    0.197    0.082     0.088      0.054       0.230      0.299    0.085    0.087    0.281      0.121       0.141       0.242    0.160    0.064    0.848    1.056    0.278
+                                                                                                                                                                                                                                                     (which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+
+
+
+
+                     hESC         1.2109   0.9923      0.9527      0.9563   1.0732   0.8085    0.9823     0.9820      1.0848     0.9182   1.1668   1.0558   1.0461     1.0433      0.9699      1.1860   1.2777   1.0394   0.9429   1.2816   1.9469
+                     hHep         1.7575   1.0126      0.8418      0.8418   1.1020   0.9126    1.0565     1.0410      1.0282     0.7705   1.2013   0.9916   1.0744     1.3883      0.8969      1.1520   1.0366   1.1174   0.9997   1.6106   2.0556
+                     mDC          1.1397   1.0059      1.5064      1.5011   1.0891   0.9212    0.9736     1.0300      0.9676     0.8147   1.0730   0.9804   0.9907     1.2299      1.1420      1.0576   0.9860   1.2707   0.9968   1.2403   2.5118
+     OmniPath        mHSC-E       1.7588   1.0264      0.7895      0.7901   1.0557   0.8872    1.0019     1.0296      0.9766     1.3088   1.4859   1.1592   1.0810     0.9180      0.9124      1.4043   1.1840   1.0057   1.3282   1.7218   1.9777
+                     mHSC-GM      2.1498   1.0403      0.8737      0.8767   1.2668   0.9595    0.9932     0.9799      1.1713     1.4770   1.2813   1.2611   1.3933     0.9027      0.9585      1.3671   1.3747   1.1313   1.4223   1.6927   3.0427
+                     mHSC-L       1.4099   1.0162      1.0811      1.0850   1.1078   0.9102    1.0844     1.0401      1.2166     1.7194   1.2316   1.1971   1.1260     0.9410      1.1145      1.0716   1.3668   1.0762   1.2789   1.3339   3.2191
+                     mean         1.571    1.016       1.008       1.009    1.116    0.900     1.015      1.017       1.074      1.168    1.240    1.108    1.119      1.071       0.999       1.206    1.204    1.107    1.161    1.480    2.459
+                     std          0.386    0.017       0.265       0.262    0.076    0.051     0.045      0.028       0.103      0.391    0.139    0.115    0.142      0.198       0.104       0.147    0.166    0.093    0.205    0.219    0.562
+
+
+
+
+                                                                                                                                                                                                                                                                                                    available under a CC-BY 4.0 International license.
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                    F Further Experimental Results
+
+                                                             hESC                                                                 hHep                                                                   mDC
+                                      8      Observed early cells                                                 7                                                           3.0
+                                             Observed late cells
+                                             Predicted late cells
+                                      7                                                                           6                                                           2.5
+
+
+
+
+               Mean Gene Expression                                                        Mean Gene Expression                                        Mean Gene Expression
+                                      6                                                                           5                                                           2.0
+
+                                      5                                                                           4                                                           1.5
+
+                                      4                                                                           3                                                           1.0
+
+                                      3                                                                           2                                                           0.5
+
+                                      2                                                                           1                                                           0.0
+                                      0.00   0.05     0.10          0.15     0.20   0.25                          0.0    0.1    0.2      0.3   0.4                               0          25    50    75   100    125   150
+                                                        Pseudotime                                                              Pseudotime                                                             Pseudotime
+                                                          mHSC-E                                                                 mHSC-GM                                                                 mHSC-L
+                                                                                                                                                                                      8
+                                                                                                                  7
+                                      7
+                                                                                                                                                                                      7
+                                                                                                                  6
+
+
+
+
+               Mean Gene Expression                                                        Mean Gene Expression                                                Mean Gene Expression
+                                      6                                                                                                                                               6
+                                      5                                                                           5                                                                   5
+
+                                      4                                                                                                                                               4
+                                                                                                                  4
+                                                                                                                                                                                      3
+                                      3                                                                           3
+                                                                                                                                                                                      2
+                                      2
+                                                                                                                  2                                                                   1
+                                      1
+                                      0.00     0.05          0.10          0.15     0.20                          0.00 0.02 0.04 0.06 0.08 0.10 0.12                                  0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14
+                                                        Pseudotime                                                              Pseudotime                                                             Pseudotime
+
+                    Figure 5: Dynamic transition probing across six datasets. Observed early cells, observed late cells,
+                    and predicted late states are shown along pseudotime, with the overall expression trend shown in
+                    gray.
+
+                   To further examine the heterogeneity of attention heads, we analyzed topology metrics for networks
+                   reconstructed from individual scGPT attention heads on the hESC dataset. As shown in Figure 6,
+                   head-specific attention networks varied substantially in modularity, assortativity, and other topological
+                   properties. This suggests that different heads preserve different aspects of network structure, and that
+                   directly aggregating all heads may dilute useful topological signals.
+                   We next examined whether the gene-level alignment between observed and predicted expression
+                   changes is consistent across datasets. As shown in Figure 7, predicted changes from scGPT were
+                   positively correlated with observed early-to-late expression changes in multiple datasets, although
+                   the strength of correlation varied by biological context. This supports the main-text conclusion that
+                   pretrained models can capture directional gene-level changes, but also shows that prediction quality
+                   is dataset dependent. The mDC dataset is a special case: because nearly all evaluated genes are
+                   downregulated from early to late states (Figure 8), its directional metrics may be biased and should
+                   be interpreted cautiously.
+                    Finally, we evaluated how directional accuracy changes over iterative refinement steps across all six
+                    datasets. As shown in Figure 9, most models showed stable or improved accuracy as refinement pro-
+                    gressed, indicating that iterative updates generally improve dynamic transition probing. Performance
+                    varied across both models and datasets: scFoundation and Geneformer showed strong performance in
+                    several datasets, whereas scCello was less stable. These results support the main finding that dynamic
+                    transition probing depends on both model architecture and biological context.
+
+
+
+
+                                                                                                                                 25
+     Table 8: Network topology metrics for reconstructed GRNs across all datasets. Metrics are reported for networks reconstructed using costok , attn, and coshid , together
+     with the STRING reference network.
+                                                                                                                                                                                                                                                                          bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+
+
+
+
+                                                                    costok                                                                        attn                                                                         coshid
+     Metric          Dataset
+                               scGPT    scFoundation   Geneformer    LangCell   scCello   scPRINT   STRING   scGPT    scFoundation   Geneformer   LangCell   scCello   scPRINT   STRING   scGPT    scFoundation   Geneformer    LangCell   scCello   scPRINT   STRING
+                     hESC      1.989       2.656         1.625         1.464    3.369      1.945     3.350   4.178       2.854         2.447        2.423    3.525      3.740     3.350   3.452       1.921         2.489         2.568    3.382      4.481     3.350
+                     hHep      1.958       2.449         3.506         1.507    2.011      1.920     3.127   3.668       2.631         2.508        2.487    3.300      3.693     3.127   3.121       1.541         2.101         2.740    3.164      4.392     3.127
+                     mDC       2.011       2.349         1.455         1.791    2.537      2.001     3.112   3.084       2.549         2.362        2.367    2.945      3.434     3.112   2.885       1.690         1.799         3.000    2.816      4.246     3.112
+     AvgPathLength
+                     mHSC-E    1.964       2.980         1.661         1.725    3.398      1.934     3.761   4.580       3.108         2.407        2.388    3.709      3.675     3.761   3.447       1.793         2.083         2.810    3.343      4.421     3.761
+                     mHSC-GM   1.870       2.853         1.593         1.575    3.515      1.888     4.161   4.031       3.144         2.293        2.294    3.509      3.336     4.161   2.982       1.812         2.503         2.709    3.527      4.045     4.161
+                     mHSC-L    1.903       2.968         1.536         1.569    2.339      2.060     4.066   4.122       3.749         2.030        2.027    4.640      3.576     4.066   2.615       2.594         1.908         2.817    2.369      4.911     4.066
+                     hESC      0.215       0.038         0.324         0.845    0.210      0.427     0.371   0.293       0.035         0.450        0.462    0.198      0.396     0.371   0.508       0.677         0.421         0.431    0.307      0.375     0.371
+                     hHep      0.278       0.033         0.390         0.841    0.459      0.478     0.396   0.316       0.037         0.437        0.438    0.231      0.448     0.396   0.465       0.818         0.584         0.459    0.343      0.370     0.396
+                     mDC       0.226       0.030         0.406         0.490    0.186      0.062     0.377   0.376       0.046         0.528        0.528    0.229      0.436     0.377   0.533       0.821         0.637         0.431    0.360      0.387     0.377
+     Clustering
+                     mHSC-E    0.466       0.019         0.401         0.740    0.243      0.362     0.356   0.314       0.041         0.387        0.394    0.242      0.367     0.356   0.440       0.879         0.495         0.380    0.257      0.324     0.356
+                     mHSC-GM   0.479       0.039         0.470         0.707    0.193      0.314     0.375   0.327       0.048         0.381        0.359    0.218      0.381     0.375   0.429       0.891         0.405         0.342    0.281      0.328     0.375
+                     mHSC-L    0.286       0.035         0.662         0.553    0.257      0.198     0.199   0.282       0.046         0.393        0.376    0.153      0.328     0.199   0.493       0.560         0.515         0.285    0.184      0.322     0.199
+26                   hESC      0.167       0.240         0.113         0.042    0.465      0.222     0.570   0.613       0.281         0.145        0.140    0.525      0.505     0.561   0.525       0.173         0.143         0.258    0.536      0.648     0.565
+                     hHep      0.161       0.175         0.344         0.060    0.157      0.136     0.527   0.485       0.228         0.144        0.151    0.491      0.441     0.526   0.492       0.018         0.123         0.424    0.446      0.551     0.530
+                     mDC       0.125       0.189         0.242         0.067    0.457      0.104     0.502   0.448       0.230         0.109        0.113    0.424      0.468     0.497   0.409       0.022         0.079         0.461    0.405      0.439     0.498
+     Modularity
+                     mHSC-E    0.161       0.249         0.226         0.078    0.392      0.175     0.591   0.530       0.368         0.171        0.160    0.528      0.465     0.587   0.477       0.059         0.141         0.357    0.485      0.594     0.597
+                     mHSC-GM   0.133       0.270         0.341         0.049    0.417      0.139     0.576   0.440       0.383         0.180        0.186    0.534      0.466     0.574   0.504       0.081         0.188         0.388    0.556      0.581     0.576
+                     mHSC-L    0.167       0.386         0.467         0.087    0.348      0.237     0.691   0.655       0.534         0.203        0.201    0.609      0.570     0.690   0.508       0.463         0.169         0.378    0.419      0.710     0.687
+                     hESC      23.519     16.826         32.621        89.621   19.133    26.117    16.468   18.878     16.596         33.388      33.520    17.062    22.230    16.468   34.193     73.397         33.000       36.857    19.572    19.394    16.468
+                     hHep      34.991     23.546         40.230       111.452   23.506    39.081    22.936   26.489     23.509         44.647      44.780    24.151    30.959    22.936   37.615     89.030         54.912       33.585    27.456    26.964    22.936
+                     mDC       32.315     21.211         35.535        50.952   21.448    33.789    19.774   22.659     21.165         47.673      47.673    24.135    26.311    19.774   30.571     56.647         64.200       25.749    26.750    27.358    19.774
+     AvgDegree
+                     mHSC-E    16.129     10.347         14.742        35.610   13.779    17.690    9.140    11.012     9.455          19.310      19.586    9.828     13.919    9.140    15.942     24.482         24.482       16.618    10.968    11.378    9.140
+                     mHSC-GM   15.583     8.749          13.357       31.830    9.907     16.261    7.262     9.652      7.792         15.111      15.423     7.874    11.248     7.262   11.333     17.195         14.248       12.571     8.452     9.122    7.262
+                     mHSC-L     6.372      4.281          8.303        11.913    6.683     6.524     3.703    4.215      4.215          8.839       8.839     4.281     4.807     3.703   6.372      9.448          10.538       6.227     5.269     4.724     3.703
+                                                                                                                                                                                                                                                                        (which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+
+
+
+
+                     hESC      -0.331      0.180          0.222        -0.262   0.172      -0.248    0.017   0.299       -0.001        -0.148       -0.152   0.304      0.386    0.017     0.305       0.300        -0.228         0.167    0.272      0.398    0.017
+                     hHep      -0.247      0.158          0.633        -0.356   -0.007     -0.178    0.008   0.243        0.010        -0.058       -0.064   0.337      0.399    0.008     0.220      -0.060        -0.315         0.035    0.239      0.569    0.008
+                     mDC       -0.342      0.077          0.702        -0.335   -0.125     -0.164   -0.009   0.003        0.028        -0.160       -0.168   0.238      0.393    -0.009   -0.019      -0.160        -0.340        -0.019   -0.031     0.249    -0.009
+     Assortativity
+                     mHSC-E    -0.292      0.332          0.689        -0.470   0.253      -0.220    0.155   0.402       -0.014        -0.131       -0.142   0.269      0.392    0.155     0.388      -0.119        -0.253         0.092    0.054     -0.001    0.155
+                     mHSC-GM   -0.297      0.180          0.777        -0.346   0.354      -0.169    0.365   0.462        0.067        -0.149       -0.142   0.404      0.477    0.365     0.086      -0.183        -0.154         0.059    0.104     -0.083    0.365
+                     mHSC-L    -0.365      -0.110        -0.001        -0.482   -0.155     -0.083    0.017   0.378       -0.122        -0.060       -0.066   0.281      0.194    0.017     0.214      -0.042        -0.294         0.217    0.520      0.072    0.017
+
+
+
+
+                                                                                                                                                                                                                                                                                                                       available under a CC-BY 4.0 International license.
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                                                  2.5                                                                                                                                    0.30
+
+                                                                                                                           0.7
+                                                                                                                                                                                         0.25
+                                                  2.0
+                                                                                                                           0.6
+
+
+
+
+                            Avg Path Length
+                                                                                                                           0.5                                                           0.20
+
+
+
+
+                                                                                                              Clustering                                                    Modularity
+                                                  1.5
+
+                                                                                                                           0.4                                                           0.15
+
+                                                  1.0                                                                      0.3
+                                                                                                                                                                                         0.10
+                                                                                                                           0.2
+                                                  0.5
+                                                                                                                                                                                         0.05
+                                                                                                                           0.1
+
+
+                                                  0.0                                                                      0.0                                                           0.00
+                                                           0     1    2   3     4    5    6   7                                    0   1    2    3    4    5    6    7                               0    1   2     3       4   5     6        7
+                                                                      Attention Head                                                        Attention Head                                                    Attention Head
+                                                                                                                      -0.50
+                                                  25
+
+                                                                                                                      -0.55
+
+                                                  20
+                                                                                                                      -0.60
+
+
+
+
+                                Avg Degree                                                            Assortativity
+                                                  15
+                                                                                                                      -0.65
+
+
+                                                  10
+                                                                                                                      -0.70
+
+
+                                                   5                                                                  -0.75
+
+
+
+                                                   0                                                                  -0.80
+                                                           0     1    2   3     4    5    6   7                                    0   1    2    3    4    5    6    7
+                                                                      Attention Head                                                        Attention Head
+
+
+                       Figure 6: Topological metrics of scGPT GRNs reconstructed from individual attention heads on the
+                       hESC dataset. The results show substantial heterogeneity across heads.
+
+
+
+                                                                                                                                 Consistent               Inconsistent
+                                                                              hESC                                                               hHep                                                               mDC
+                                                   40
+
+
+
+
+               Predicted expression change pred
+                                                                                                                           40                                                            20
+                                                   30
+                                                   20                                                                      20                                                            10
+                                                   10                                                                                                                                     0
+                                                    0                                                                       0
+                                                                                                                                                                                         10
+                                                   10                                                                      20
+                                                   20                                                                                                                                    20
+                                                                                          r = 0.599                                                             r = 0.780                                                            r = 0.871
+                                                   30                                                                      40
+                                                                                                                                                                                         30
+                                                                 20       0          20        40                                40        20     0        20       40                        30         20    10       0       10        20
+                                                                          mHSC-E                                                                mHSC-GM                                                           mHSC-L
+                                                   40
+                                                                                                                                                                                         30
+
+
+
+
+               Predicted expression change pred
+                                                   30                                                                      30
+                                                   20                                                                      20                                                            20
+                                                   10                                                                      10                                                            10
+                                                    0                                                                       0                                                             0
+                                                   10                                                                      10
+                                                                                                                                                                                         10
+                                                   20                                                                      20
+                                                                                                                                                                                         20
+                                                   30                                     r = 0.622                        30                                   r = 0.565                                                            r = 0.341
+                                                   40 40                                                                   40 40                                                         30
+                                                                    20       0        20       40                                       20       0         20                                   30     20 10 0 10 20 30
+                                                               Observed expression change true                                     Observed expression change true                                   Observed expression change true
+
+                       Figure 7: Relationship between observed expression changes and predicted expression changes for
+                       scGPT across all datasets. Each point represents one gene, and r denotes the Pearson correlation
+                       coefficient.
+
+
+
+                                                                                                                                                27
+  bioRxiv preprint doi: https://doi.org/10.64898/2026.05.17.725083; this version posted May 20, 2026. The copyright holder for this preprint
+(which was not certified by peer review) is the author/funder, who has granted bioRxiv a license to display the preprint in perpetuity. It is made
+                                               available under a CC-BY 4.0 International license.
+
+
+
+
+                                                                                   100
+
+
+
+
+                                                       Up-regulated fraction (%)
+                                                                                    80
+
+                                                                                    60
+
+                                                                                    40
+
+                                                                                    20   hESC    mHSC-GM
+                                                                                         hHep    mHSC-L
+                                                                                         mHSC-E  mDC
+                                                                                     010% 30% 50% 70% 90%
+                                                                                                Top percentage of genes
+                 Figure 8: Percentage of genes with true up-regulation within progressively larger top-percentile
+                 subsets of genes, ranked by descending absolute observed expression change for six datasets.
+
+
+
+
+                                            hESC                                                              hHep                                          mDC
+                             100                                                       100                                              100
+                              90                                                        90                                               90
+                              80                                                        80                                               80
+                              70                                                        70                                               70
+
+
+               Accuracy(%)
+                              60                                                        60                                               60
+                              50                                                        50                                               50
+                              40                                                        40                                               40
+                              30                                                        30                                               30
+                              20                                                        20                                               20
+                              101   3   5          7     9                          11 101        3       5          7      9        11 101        3    5         7   9   11
+                                        mHSC-E                                                           mHSC-GM                                         mHSC-L
+                             100                                                       100                                              100
+                              90                                                        90                                               90
+                              80                                                        80                                               80
+                              70                                                        70                                               70
+
+
+               Accuracy(%)
+                              60                                                        60                                               60
+                              50                                                        50                                               50
+                              40                                                        40                                               40
+                              30                                                        30                                               30
+                              20                                                        20                                               20
+                              101   3   5          7     9                          11 101        3       5          7      9        11 101        3    5         7   9   11
+                                        Iteration                                                         Iteration                                      Iteration
+                                               Geneformer                            LangCell         scGPT           scFoundation       scPRINT       scCello
+
+                 Figure 9: Directional prediction accuracy over iterative refinement steps across six datasets. Accuracy
+                 is computed on the top 30% genes with the largest observed early-to-late expression changes.
+
+
+
+
+                                                                                                          28
+

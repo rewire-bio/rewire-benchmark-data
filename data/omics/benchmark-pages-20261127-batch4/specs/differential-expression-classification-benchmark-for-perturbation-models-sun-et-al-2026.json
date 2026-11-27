@@ -1,0 +1,1068 @@
+{
+  "record_id": "lit-cells-networks-20261011-sun2026de-benchmark-de-classification",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text layer of Sun et al. 2026, Beyond Expression Prediction: Benchmarking Differential Expression Classification in Single-Cell Perturbation Models, bioRxiv v1",
+      "description": "Text extracted with pdftotext -layout from the bioRxiv v1 PDF. The PDF was not fetched again for this page: it was copied from the Rewire store's archived copy (data/omics/lit-cells-networks-20261011-sun2026de/artifacts in rewire-benchmark-data), whose SHA-256 fa1c6a6345c45e14b9c373dfa8aff12633ae646feece1cfa3899c3ed61f6cfdf matches the hash on that batch's source record. The PDF is kept beside it as artifacts/paper.pdf.",
+      "file": "artifacts/paper.txt",
+      "artifact_url": "https://www.biorxiv.org/content/10.64898/2026.07.20.739620v1.full.pdf",
+      "url": "https://doi.org/10.64898/2026.07.20.739620",
+      "version": "bioRxiv v1, posted 2026-07-24",
+      "media_type": "text/plain",
+      "sha256": "72d92a0980830128a6d3d4438b42ad4e0ff3713fa9b110f85551f4f72bb93d8a",
+      "retrieved_at": "2026-10-11T21:35:10Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "readme",
+      "name": "ivysun14/Project-Perturb README.md at commit f0508283",
+      "description": "Official repository README for the paper's code, pinned to a commit. It gives the environment, the folder layout per method and the data download addresses.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/ivysun14/Project-Perturb/f0508283d6dd338ac683953a40fe6601a98f9ec6/README.md",
+      "url": "https://github.com/ivysun14/Project-Perturb",
+      "version": "git commit f0508283d6dd338ac683953a40fe6601a98f9ec6",
+      "media_type": "text/markdown",
+      "sha256": "8191068ab32ca020a3e81553c417f9824101c8774f9439529b616da0c0588abc",
+      "retrieved_at": "2026-11-27T04:55:30Z",
+      "store_bytes": false
+    },
+    {
+      "key": "readme-preprocessing",
+      "name": "ivysun14/Project-Perturb preprocessing/README.md at commit f0508283",
+      "description": "Official repository file documenting the DE calling and the split construction shared by all models, pinned to a commit.",
+      "file": "artifacts/readme-preprocessing.md",
+      "artifact_url": "https://raw.githubusercontent.com/ivysun14/Project-Perturb/f0508283d6dd338ac683953a40fe6601a98f9ec6/preprocessing/README.md",
+      "url": "https://github.com/ivysun14/Project-Perturb",
+      "version": "git commit f0508283d6dd338ac683953a40fe6601a98f9ec6",
+      "media_type": "text/markdown",
+      "sha256": "c072594cef4c7e9a035fb7b16cef8d5f5d144c0124e16ded8dda37e2f63b1c36",
+      "retrieved_at": "2026-11-27T04:55:38Z",
+      "store_bytes": false
+    },
+    {
+      "key": "split-script",
+      "name": "ivysun14/Project-Perturb preprocessing/train_test_split.py at commit f0508283",
+      "description": "The script that makes the split, pinned to a commit. Read to confirm what it does rather than what the prose says: the test fraction, the random seed and the stratification variable.",
+      "file": "artifacts/preprocessing-train_test_split.py",
+      "artifact_url": "https://raw.githubusercontent.com/ivysun14/Project-Perturb/f0508283d6dd338ac683953a40fe6601a98f9ec6/preprocessing/train_test_split.py",
+      "url": "https://github.com/ivysun14/Project-Perturb",
+      "version": "git commit f0508283d6dd338ac683953a40fe6601a98f9ec6",
+      "media_type": "text/x-python",
+      "sha256": "9e51077c97060a876d625a3580f7efa5d7415dcf9cf96da6d7441b8018625a0d",
+      "retrieved_at": "2026-11-27T04:55:45Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "One paper's benchmark of whether perturbation models get differential expression right, rather than mean expression. Each gene under each held-out perturbation is classified as up-regulated, down-regulated or not differentially expressed, and five deep learning models are compared with three simple classifiers on essential-gene Perturb-seq screens in K562, RPE1, Jurkat and HepG2, under two regimes: unseen perturbations within a cell line, and perturbations seen elsewhere in a held-out cell line. It is for anyone choosing a perturbation model for the downstream task that actually gets used, deciding which genes responded.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Section 1; Section 3.1",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "we systematically evaluate"
+      },
+      {
+        "source": "@paper",
+        "text": "a diverse set of deep learning and non-deep-learning methods for their ability"
+      },
+      {
+        "source": "@paper",
+        "text": "to predict DE outcomes under two generalization regimes: unseen perturbations"
+      },
+      {
+        "source": "@paper",
+        "text": "within the same cell line, and unseen cellular contexts across cell lines"
+      },
+      {
+        "source": "@paper",
+        "text": "We evaluate five deep learning models and three non-deep-learning"
+      },
+      {
+        "source": "@paper",
+        "text": "methods across four cell-line datasets and two generalization regimes"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The task is three-class classification: for a gene and a perturbation, predict non-DE, up-regulated or down-regulated. The authors argue this is the decision that matters downstream, because an effect's significance has to be judged against the variability in the data, and that existing benchmarks measure continuous expression accuracy instead, or at best a top-k DE gene overlap score that ignores class-wise performance. Their headline finding is that simple baselines are competitive with and often beat deep learning models on this task, by being more precise while the deep models favour recall, and that better continuous-expression scores do not imply better DE prediction.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Section 1; Section 3.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we formulate differential expression prediction as a three-"
+          },
+          {
+            "source": "@paper",
+            "text": "class classification problem"
+          },
+          {
+            "source": "@paper",
+            "text": "where a\n                    predicted effect’s significance must be judged against the variability inherent in the"
+          },
+          {
+            "source": "@paper",
+            "text": "This metric, however, overlooks class-wise performance across up-regulated,"
+          },
+          {
+            "source": "@paper",
+            "text": "better performance on"
+          },
+          {
+            "source": "@paper",
+            "text": "continuous expression metrics does not imply better DE prediction per-"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Four essential-gene Perturb-seq screens are used: K562, RPE1, Jurkat and HepG2. Raw UMI counts are normalised by total counts per cell, scaled to 10,000 and log(1+x) transformed. DE labels come from Wilcoxon rank-sum tests with Benjamini-Hochberg correction per perturbation, with a pair counted as DE when the adjusted p-value is below 0.01 and the sign of the log fold change deciding up or down; the same procedure produces the labels from observed expression and the predictions from each deep model's predicted expression. The classes are very unbalanced: per the paper's Table 5, non-DE is 96.61% for K562, 95.96% for RPE1, 97.61% for HepG2 and 98.35% for Jurkat, over 17.61 to 23.03 million pairs per dataset, with 2,057 to 2,393 perturbations and 8,561 to 9,623 genes. Every cell line is scored twice: on the full data, and on the PerturbQA-downsampled subset where non-DE pairs were cut and DE pairs restricted to the most significant, using that paper's own train and test split.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.2 and Table 5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "normalized raw UMI counts by dividing by the total counts per cell, scaling to 10,000,"
+          },
+          {
+            "source": "@paper",
+            "text": "DE statistics are obtained through Wilcoxon rank-sum tests fol-"
+          },
+          {
+            "source": "@paper",
+            "text": "DE if the adjusted p-value is less than 0.01"
+          },
+          {
+            "source": "@paper",
+            "text": "Non-DE (%)           96.61      95.96      97.61       98.35"
+          },
+          {
+            "source": "@paper",
+            "text": "Total pairs (M)      17.61      20.93      23.03       21.25"
+          },
+          {
+            "source": "@paper",
+            "text": "Perturbations        2,057      2,393      2,393       2,393"
+          },
+          {
+            "source": "@paper",
+            "text": "non-DE pairs were downsampled"
+          },
+          {
+            "source": "@paper",
+            "text": "In evaluating the downsampled dataset, we used the train-"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Both tasks score the same held-out 40% of perturbations. For unseen perturbations, a cell line's perturbations are split 60% train and 40% test, and every method trains on that same split and reports on that same test set. For cellular context, a cell line is held out, models train on perturbation and gene pairs from the other cell lines over the 6,641 genes common to all four, and performance is reported on the held-out cell line's 40% test set; STATE is the exception, trained with the held-out line's 60% training set as its official codebase does, which the authors say makes it few-shot rather than zero-shot. The metrics are per-class F1 for up, down and non-DE, macro F1 averaging the three equally, and balanced accuracy averaging per-class recall; alongside these the paper reports continuous metrics (DE overlap at 50, MAE, MSE, global Pearson, Pearson delta, per-gene Pearson) to show that they disagree with the DE metrics. A sparsity calibration step sets predicted expression at or below a gene-specific quantile threshold to zero, with the scaling factor r = 1.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 3.1, 3.4, 3.5.1, 3.5.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the dataset from a cell"
+          },
+          {
+            "source": "@paper",
+            "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+          },
+          {
+            "source": "@paper",
+            "text": "We train on the common gene space across four cell lines (6, 641 genes)"
+          },
+          {
+            "source": "@paper",
+            "text": "performing a “few-shot” prediction rather than a “zero-shot” prediction"
+          },
+          {
+            "source": "@paper",
+            "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+          },
+          {
+            "source": "@paper",
+            "text": "Balanced accuracy averages per-class recall across all classes,"
+          },
+          {
+            "source": "@paper",
+            "text": "Predicted expression values at or below Xg are set to zero;"
+          },
+          {
+            "source": "@paper",
+            "text": "We set the scaling"
+          },
+          {
+            "source": "@paper",
+            "text": "factor to r = 1"
+          }
+        ]
+      },
+      {
+        "title": "How the split is actually made",
+        "body": "The repository's own code differs in wording from the paper, and the difference matters. The split script takes each perturbation's dominant DE class, merges rare strata into the most common one, and makes a stratified 80/20 split of perturbations with test_size 0.20 and random_state 305, writing a split_80 column. A second step turns 25% of the training perturbations into a calibration set. The preprocessing README then states that the calibration perturbations are merged into the test set for final reporting, which gives the 60/40 train and test split the paper describes. A second 60/40 split, in which the original evaluation perturbations all move to training, exists for robustness.",
+        "source_ids": [
+          "@split-script",
+          "@readme-preprocessing"
+        ],
+        "source_locator": "preprocessing/train_test_split.py; preprocessing/README.md steps 2 to 4",
+        "quotes": [
+          {
+            "source": "@split-script",
+            "text": "def split_train_test(df: pd.DataFrame, file_path: str, test_size: float = 0.20, random_state: int = 305) -> pd.DataFrame:"
+          },
+          {
+            "source": "@split-script",
+            "text": "    Uses stratified sampling based on each perturbation's dominant label class"
+          },
+          {
+            "source": "@split-script",
+            "text": "        pert_dominant_label = pert_dominant_label.replace(rare_strata, most_common_stratum)"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "25% of the training perturbations (`split_80 == 'train'`) become a calibration set"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "for final reporting the calibration perturbations are merged into the test set, giving a\n**60/40 train / test split**"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "A second 60/40 split in which the original 40% evaluation perturbations all move to training"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The repository reproduces the analyses. One conda environment is created from the repository root, with VAE and scVI listing extra requirements in their own folders. The raw h5ad files for the four screens, the processed train and test splits with DE labels, the PerturbQA downsampled data and the embeddings used in the study are all downloadable from addresses the README gives. Each method has its own folder with its own README holding the commands, and there are separate folders for the metrics and for the post-prediction calibration. The preprocessing folder holds the DE calling and split scripts that every model shares.",
+        "source_ids": [
+          "@readme",
+          "@readme-preprocessing"
+        ],
+        "source_locator": "README.md: Environment, Repository layout, Data access; preprocessing/README.md",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda env create -f environment.yml"
+          },
+          {
+            "source": "@readme",
+            "text": "VAE and scVI list additional package requirements in their READMEs."
+          },
+          {
+            "source": "@readme",
+            "text": "Method and analysis details and commands are in each folder's README."
+          },
+          {
+            "source": "@readme",
+            "text": "| `preprocessing/` | DE calling and train / calibration / test splits shared by all models |"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "DE labels and train / calibration / test splits shared by all models. Run from the repo root."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Four essential-gene Perturb-seq screens: K562 (17.61M perturbation-gene pairs, 2,057 perturbations, 8,561 genes), RPE1 (20.93M, 2,393, 8,748), HepG2 (23.03M, 2,393, 9,623) and Jurkat (21.25M, 2,393, 8,881). Each is also scored as the PerturbQA-downsampled subset. The cross-cell-line task uses the 6,641 genes common to all four.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 5; Sections 3.1 and 3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Total pairs (M)      17.61      20.93      23.03       21.25"
+          },
+          {
+            "source": "@paper",
+            "text": "Perturbations        2,057      2,393      2,393       2,393"
+          },
+          {
+            "source": "@paper",
+            "text": "Genes                8,561      8,748      9,623       8,881"
+          },
+          {
+            "source": "@paper",
+            "text": "We train on the common gene space across four cell lines (6, 641 genes)"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "By perturbation, 60% train and 40% test, the same split for every method. The code makes it as a stratified 80/20 split on each perturbation's dominant DE class with random_state 305, then turns a quarter of the training perturbations into a calibration set which is merged back into the test set for reporting. Per-dataset train and test pair counts are in Table 5, for example 10.56M train and 7.05M test pairs for K562. For the cross-cell-line task the training data are the other cell lines, with the held-out line's 40% test set scored; STATE additionally trains on the held-out line's 60% training set. The downsampled arm uses PerturbQA's own split.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@split-script",
+          "@readme-preprocessing"
+        ],
+        "source_locator": "Paper: Section 3.1, Table 5; preprocessing/train_test_split.py; preprocessing/README.md",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+          },
+          {
+            "source": "@paper",
+            "text": "Train pairs (M)      10.56      12.55      13.81       12.74"
+          },
+          {
+            "source": "@paper",
+            "text": "Test pairs (M)        7.05       8.38      9.22         8.51"
+          },
+          {
+            "source": "@split-script",
+            "text": "test_size: float = 0.20, random_state: int = 305"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "**60/40 train / test split**"
+          },
+          {
+            "source": "@paper",
+            "text": "we include the 60% training set of the"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Macro F1 (the mean of the up, down and non-DE F1 scores), balanced accuracy (the mean of per-class recall) and per-class F1, all higher is better. Reported alongside them: DE overlap at 50, global and delta and per-gene Pearson correlations (higher is better) and mean absolute error and mean squared error on pseudobulk expression (lower is better).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 3.5.1 and 3.5.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+          },
+          {
+            "source": "@paper",
+            "text": "Balanced accuracy averages per-class recall across all classes,"
+          },
+          {
+            "source": "@paper",
+            "text": "DE overlap at 50, mean absolute"
+          },
+          {
+            "source": "@paper",
+            "text": "error (MAE), mean squared error (MSE), and Pearson delta are all metrics originally"
+          },
+          {
+            "source": "@paper",
+            "text": "MSE penalizes large per-gene prediction errors quadrati-"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Three non-deep-learning methods: a perturbation majority vote that predicts each gene's most common class across training perturbations and ignores perturbation identity, a weighted k-nearest-neighbour classifier on GenePT perturbation embeddings, and a regularised logistic regression on those embeddings. The deep models compared are scVI (sampling and mean), Scouter and a VAE adapted from scGen for the within-cell-line task, with STATE and TranScouter added across cell lines.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 1; Sections 3.3.1 and 3.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Non-deep-learning"
+          },
+          {
+            "source": "@paper",
+            "text": "methods include a perturbation majority vote (i.e., predicts the DE outcome of a"
+          },
+          {
+            "source": "@paper",
+            "text": "Because this baseline ignores perturbation identity entirely,"
+          },
+          {
+            "source": "@paper",
+            "text": "we use a weighted K -nearest neigh-"
+          },
+          {
+            "source": "@paper",
+            "text": "and a variational autoencoder adapted from scGen (referred to as VAE scGen) for the"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "The split is by perturbation, so a test perturbation is unseen in training, and the cross-cell-line task holds out a whole cell line. The authors flag the one breach themselves: STATE is given the held-out cell line's training perturbations, following its official codebase, which makes its cross-cell-line result few-shot rather than zero-shot and not directly comparable with the others. No sequence or gene-level identity control is described.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "so that all"
+          },
+          {
+            "source": "@paper",
+            "text": "perturbations in the test set are unseen during training"
+          },
+          {
+            "source": "@paper",
+            "text": "For STATE [13] specifically, we include the 60% training set of the"
+          },
+          {
+            "source": "@paper",
+            "text": "held-out cell line during model training"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Not reported as intervals in the text read: the code's split uses one fixed seed (random_state 305) and the paper reports single values per model, dataset and metric, with a second 60/40 split available in the repository for robustness rather than as error bars.",
+        "status": "source_checked",
+        "source_ids": [
+          "@split-script",
+          "@readme-preprocessing"
+        ],
+        "source_locator": "preprocessing/train_test_split.py; preprocessing/README.md step 4",
+        "quotes": [
+          {
+            "source": "@split-script",
+            "text": "        random_state: Random seed for reproducibility"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "A second 60/40 split in which the original 40% evaluation perturbations all move to training; DE\nlabels unchanged."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A perturbation and gene pair, labelled non-DE, up or down; the counts run to tens of millions of pairs per cell line.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.1; Table 5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Let g denotes a gene, p a perturbation"
+          },
+          {
+            "source": "@paper",
+            "text": "Total pairs (M)      17.61      20.93      23.03       21.25"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human: the four screens are human cell lines (K562, RPE1, Jurkat, HepG2), which the paper calls four human cell-line datasets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.2; Section 4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "classification across four human cell-line datasets and two generalization regimes"
+          },
+          {
+            "source": "@paper",
+            "text": "RPE1 [32], Jurkat [33], and HepG2 [33] cell lines, chosen for their widespread use"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Perturb-seq: CRISPR-based genetic perturbation paired with single-cell RNA sequencing, here the essential-gene screens. Labels are not measured directly but computed from the counts by Wilcoxon rank-sum tests against non-targeting cells with Benjamini-Hochberg correction and no log2 fold-change cutoff.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme-preprocessing"
+        ],
+        "source_locator": "Paper: Section 1 and Section 3.2; preprocessing/README.md step 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Recent technologies, such as Perturb-seq [1], pair CRISPR-based"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "DE labels are computed per perturbation with a Wilcoxon rank-sum test against non-targeting cells"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "threshold adjusted $p < 0.01$, no log2FC cutoff"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Normalised expression of the training perturbations, plus a representation of the perturbation. The simple baselines use GenePT large-language-model embeddings of the perturbed gene; the majority vote uses no perturbation information at all; the deep models take the expression data in their own formats. For the cross-cell-line task the input gene space is restricted to the 6,641 genes common to the four cell lines.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 1; Sections 3.1 and 3.3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "embedding-based k-"
+          },
+          {
+            "source": "@paper",
+            "text": "we use a weighted K -nearest neigh-"
+          },
+          {
+            "source": "@paper",
+            "text": "bors (KNN) classifier with GenePT embeddings [30] to represent perturbations"
+          },
+          {
+            "source": "@paper",
+            "text": "We train on the common gene space across four cell lines (6, 641 genes)"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Training on the benchmark's own training split: every method, baseline or deep model, is fitted on the same 60% of perturbations and scored on the same 40%. A post-prediction sparsity calibration is evaluated as a separate condition, and STATE's cross-cell-line runs are few-shot because they see the held-out line's training perturbations.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 3.1 and 3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For all benchmarked methods, we train on this same train split and report"
+          },
+          {
+            "source": "@paper",
+            "text": "Predicted expression values at or below Xg are set to zero;"
+          },
+          {
+            "source": "@paper",
+            "text": "performing a “few-shot” prediction rather than a “zero-shot” prediction"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The DE labels and the split are computed once and shared: every method is trained on the same 60% of perturbations and reported on the same 40% test set, with the preprocessing code published.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Section 3.1; README.md: Repository layout",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For all benchmarked methods, we train on this same train split and report"
+          },
+          {
+            "source": "@readme",
+            "text": "| `preprocessing/` | DE calling and train / calibration / test splits shared by all models |"
+          }
+        ]
+      },
+      {
+        "text": "Class-wise results are kept rather than collapsed: per-class F1 for up, down and non-DE alongside macro F1 and balanced accuracy, which matters when non-DE is 96 to 98% of pairs.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.5.1; Table 5",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Per-Class F1. For each DE class j ∈ {Up, Down, Non-DE}, precision and recall are"
+          },
+          {
+            "source": "@paper",
+            "text": "Non-DE (%)           96.61      95.96      97.61       98.35"
+          }
+        ]
+      },
+      {
+        "text": "Both the full data and the downsampled subset are scored, and the authors report that model performance and ranking on the subsampled data can differ drastically from the full dataset, which is the setting a user faces.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 1, finding 4; Section 3.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "model performance and ranking on the subsampled data could differ drastically"
+          },
+          {
+            "source": "@paper",
+            "text": "Second, we evaluate on the full"
+          },
+          {
+            "source": "@paper",
+            "text": "dataset without downsampling, reflecting the more realistic setting where no prior"
+          }
+        ]
+      },
+      {
+        "text": "Continuous expression metrics are reported next to the DE metrics, which is how the authors show that the two disagree and that a model can look better on one and worse on the other.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 1, finding 2; Section 3.5.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Model rankings depend on the choice of evaluation metric, and no single model"
+          },
+          {
+            "source": "@paper",
+            "text": "The following metrics operate on mean gene expression profiles (pseudobulks) com-"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "One model is not on the same footing: STATE is trained with the held-out cell line's training perturbations, so its cross-cell-line numbers are few-shot rather than zero-shot, as the authors state.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For STATE [13] specifically, we include the 60% training set of the"
+          },
+          {
+            "source": "@paper",
+            "text": "that the referred version requires some observations in the new cell line"
+          }
+        ]
+      },
+      {
+        "text": "The labels are themselves a statistical call, not a measurement: DE status comes from Wilcoxon tests with Benjamini-Hochberg correction at adjusted p below 0.01 and no fold-change cutoff, applied to observed and predicted expression alike, so the benchmark inherits whatever that test does on sparse counts.",
+        "source_ids": [
+          "@paper",
+          "@readme-preprocessing"
+        ],
+        "source_locator": "Paper: Section 3.2; preprocessing/README.md step 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We employ this same procedure to obtain ground"
+          },
+          {
+            "source": "@paper",
+            "text": "truth DE labels from observed expressions, and predicted DE labels from expressions"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "threshold adjusted $p < 0.01$, no log2FC cutoff"
+          }
+        ]
+      },
+      {
+        "text": "Scope is narrow and fixed: four human essential-gene screens, single-gene genetic perturbations, no uncertainty intervals, and one split seed in the published code, so small differences between models should not be read as decisive.",
+        "source_ids": [
+          "@paper",
+          "@split-script"
+        ],
+        "source_locator": "Paper: Section 3.2; preprocessing/train_test_split.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We benchmark on essential gene screens from K562 [32]"
+          },
+          {
+            "source": "@split-script",
+            "text": "random_state: int = 305"
+          }
+        ]
+      },
+      {
+        "text": "It is a preprint not certified by peer review, and the data are not redistributed by the benchmark: the h5ad files, the processed splits and the embeddings are served from shared drive links the README gives, and the code repository states no licence.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: page header; README.md: Data access",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "(which was not certified by peer review)"
+          },
+          {
+            "source": "@readme",
+            "text": "Raw K562, RPE1, Jurkat, and HepG2 essential gene screen h5ad files and processed train-test splits with DE labels can be downloaded"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Sun et al. 2026 DE classification benchmark",
+      "steps": [
+        "Perturb-seq counts, normalised and log-transformed",
+        "Wilcoxon plus Benjamini-Hochberg DE labels per perturbation",
+        "60/40 split by perturbation, or a held-out cell line",
+        "Each method predicts the DE class of every pair",
+        "Macro F1, balanced accuracy and per-class F1"
+      ],
+      "caption": "Labels and splits are made once from the counts; every method then predicts the three-class DE outcome for the same held-out pairs.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Sections 3.1 and 3.2",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "DE statistics are obtained through Wilcoxon rank-sum tests fol-"
+        },
+        {
+          "source": "@paper",
+          "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+        },
+        {
+          "source": "@paper",
+          "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The per-method result tables and figures were not transcribed here; this page describes the design, not the scores.",
+      "Only the top-level and preprocessing READMEs and the split script were read from the repository; the per-method folders' commands were not, so the run guide stops at the shared preprocessing.",
+      "The repository states no licence, and the data are served from shared drive links whose terms were not fetched.",
+      "The PDF was copied from the Rewire store's archive rather than fetched again, because bioRxiv was not to be requested in this run; no PMC or arXiv copy was found."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the full text layer of the bioRxiv v1 PDF (posted 2026-07-24), copied from the Rewire store archive with its hash matching the store's source record, and the repository README, preprocessing README and train_test_split.py at commit f0508283d6dd338ac683953a40fe6601a98f9ec6, fetched on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Create the environment, download the screens and the embeddings, compute the DE labels and the shared split, then run a method's own folder commands and the metrics folder.",
+    "prerequisites": [
+      "Conda, with the environment built from the repository's environment.yml; the VAE and scVI folders list extra packages.",
+      "The raw h5ad files for the four screens and the embeddings, from the addresses the README gives; the benchmark does not redistribute them.",
+      "The repository states no licence for its code, and the paper is CC BY 4.0."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and the environment",
+        "shell": "git clone https://github.com/ivysun14/Project-Perturb.git\ncd Project-Perturb\ngit checkout --detach f0508283d6dd338ac683953a40fe6601a98f9ec6\nconda env create -f environment.yml\nconda activate Project-Perturb",
+        "explanation": "The last two lines are the README's. The clone, cd and checkout lines were written here from the address the paper's code availability statement gives, pinned to the commit this page was read at.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md: Environment; Paper: Code and data availability",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda env create -f environment.yml"
+          },
+          {
+            "source": "@readme",
+            "text": "conda activate Project-Perturb"
+          },
+          {
+            "source": "@paper",
+            "text": "be found at https://github.com/ivysun14/Project-Perturb."
+          }
+        ]
+      },
+      {
+        "title": "Compute the DE labels",
+        "shell": "python preprocessing/DE_DOC_stats.py --adata {dataset}_raw.h5ad --output data/DE_DOC_{dataset}.csv",
+        "explanation": "The preprocessing README's command. It normalises the counts inside the script, runs the Wilcoxon test per perturbation against non-targeting cells with Benjamini-Hochberg correction at adjusted p below 0.01, and writes one row per perturbation and gene with the label, the adjusted p-value and the fold changes.",
+        "source_ids": [
+          "@readme-preprocessing"
+        ],
+        "source_locator": "preprocessing/README.md step 1",
+        "quotes": [
+          {
+            "source": "@readme-preprocessing",
+            "text": "python preprocessing/DE_DOC_stats.py --adata {dataset}_raw.h5ad --output data/DE_DOC_{dataset}.csv"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "Output `data/DE_DOC_{dataset}.csv`, one row per (perturbation, gene): `label` (0 non-DE, 1 up,"
+          }
+        ]
+      },
+      {
+        "title": "Make the shared split",
+        "shell": "python preprocessing/train_test_split.py\npython preprocessing/calibration_split.py data/DE_DOC_{dataset}_splitted.csv",
+        "explanation": "Both commands are the preprocessing README's. The first makes the stratified 80/20 split of perturbations (test_size 0.20, random_state 305 in the script) as a split_80 column; the second turns a quarter of the training perturbations into a calibration set, which is merged back into the test set for the reported 60/40 split.",
+        "source_ids": [
+          "@readme-preprocessing",
+          "@split-script"
+        ],
+        "source_locator": "preprocessing/README.md steps 2 and 3; train_test_split.py",
+        "quotes": [
+          {
+            "source": "@readme-preprocessing",
+            "text": "python preprocessing/train_test_split.py   # test_size=0.20, random_state=305"
+          },
+          {
+            "source": "@readme-preprocessing",
+            "text": "python preprocessing/calibration_split.py data/DE_DOC_{dataset}_splitted.csv   # cal_size=0.25"
+          },
+          {
+            "source": "@split-script",
+            "text": "test_size: float = 0.20, random_state: int = 305"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "data/DE_DOC_{dataset}.csv with one row per perturbation and gene, holding the DE label, the adjusted p-value and the fold change, and data/DE_DOC_{dataset}_splitted.csv with the split_80 and split_calib columns added.",
+      "The per-method and metric outputs are documented in the per-folder READMEs, which were not read here."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The clone, cd and detached checkout lines were written here; the README gives no clone command.",
+      "Each method has its own folder README with its own commands, and those were not fetched, so this guide prepares the data without running any model."
+    ],
+    "source_ids": [
+      "@readme",
+      "@readme-preprocessing",
+      "@split-script"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Unseen-perturbation DE classification, K562",
+      "dataset": "K562 essential-gene Perturb-seq screen",
+      "size": 7050000,
+      "size_unit": "test perturbation-gene pairs",
+      "split": "60% train and 40% test by perturbation, stratified on dominant DE class",
+      "primary_metric": "macro F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/ivysun14/Project-Perturb",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-07-24",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Test pairs (M)        7.05       8.38      9.22         8.51"
+        },
+        {
+          "source": "@paper",
+          "text": "“M” indicates"
+        },
+        {
+          "source": "@paper",
+          "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+        },
+        {
+          "source": "@split-script",
+          "text": "    Uses stratified sampling based on each perturbation's dominant label class"
+        },
+        {
+          "source": "@paper",
+          "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+        },
+        {
+          "source": "@paper",
+          "text": "be found at https://github.com/ivysun14/Project-Perturb."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted July 24, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Unseen-perturbation DE classification, RPE1",
+      "dataset": "RPE1 essential-gene Perturb-seq screen",
+      "size": 8380000,
+      "size_unit": "test perturbation-gene pairs",
+      "split": "60% train and 40% test by perturbation, stratified on dominant DE class",
+      "primary_metric": "macro F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/ivysun14/Project-Perturb",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-07-24",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Test pairs (M)        7.05       8.38      9.22         8.51"
+        },
+        {
+          "source": "@paper",
+          "text": "“M” indicates"
+        },
+        {
+          "source": "@paper",
+          "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+        },
+        {
+          "source": "@split-script",
+          "text": "    Uses stratified sampling based on each perturbation's dominant label class"
+        },
+        {
+          "source": "@paper",
+          "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+        },
+        {
+          "source": "@paper",
+          "text": "be found at https://github.com/ivysun14/Project-Perturb."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted July 24, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Unseen-perturbation DE classification, HepG2",
+      "dataset": "HepG2 essential-gene Perturb-seq screen",
+      "size": 9220000,
+      "size_unit": "test perturbation-gene pairs",
+      "split": "60% train and 40% test by perturbation, stratified on dominant DE class",
+      "primary_metric": "macro F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/ivysun14/Project-Perturb",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-07-24",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Test pairs (M)        7.05       8.38      9.22         8.51"
+        },
+        {
+          "source": "@paper",
+          "text": "“M” indicates"
+        },
+        {
+          "source": "@paper",
+          "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+        },
+        {
+          "source": "@paper",
+          "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+        },
+        {
+          "source": "@paper",
+          "text": "be found at https://github.com/ivysun14/Project-Perturb."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted July 24, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Unseen-perturbation DE classification, Jurkat",
+      "dataset": "Jurkat essential-gene Perturb-seq screen",
+      "size": 8510000,
+      "size_unit": "test perturbation-gene pairs",
+      "split": "60% train and 40% test by perturbation, stratified on dominant DE class",
+      "primary_metric": "macro F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/ivysun14/Project-Perturb",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-07-24",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Test pairs (M)        7.05       8.38      9.22         8.51"
+        },
+        {
+          "source": "@paper",
+          "text": "“M” indicates"
+        },
+        {
+          "source": "@paper",
+          "text": "line is split by perturbations into a 60% training and a 40% testing set, so that all"
+        },
+        {
+          "source": "@paper",
+          "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+        },
+        {
+          "source": "@paper",
+          "text": "be found at https://github.com/ivysun14/Project-Perturb."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted July 24, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Cellular-context DE classification (cross cell line)",
+      "dataset": "Held-out cell line from K562, RPE1, HepG2 and Jurkat",
+      "size": 6641,
+      "size_unit": "genes in the common gene space",
+      "split": "train on the other cell lines, report on the held-out line's 40% test set",
+      "primary_metric": "macro F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/ivysun14/Project-Perturb",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-07-24",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Given a held-out cell line, all models"
+        },
+        {
+          "source": "@paper",
+          "text": "are trained using perturbation-gene pairs from the other training cell lines and we"
+        },
+        {
+          "source": "@paper",
+          "text": "We train on the common gene space across four cell lines (6, 641 genes)"
+        },
+        {
+          "source": "@paper",
+          "text": "Macro F1 averages the per-class F1 scores equally across all J = 3"
+        },
+        {
+          "source": "@paper",
+          "text": "be found at https://github.com/ivysun14/Project-Perturb."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted July 24, 2026"
+        }
+      ]
+    }
+  ],
+  "notes": "The only open copy of the paper is the bioRxiv PDF at https://www.biorxiv.org/content/10.64898/2026.07.20.739620v1.full.pdf; bioRxiv was not requested in this run, so the PDF used here was copied read-only from the Rewire store archive (rewire-benchmark-data, data/omics/lit-cells-networks-20261011-sun2026de/artifacts/sun2026-de-classification-v1.pdf.gz), whose gunzipped SHA-256 matches the store's source record, and retrieved_at is the store's recorded retrieval time. A reviewer may prefer to refetch it. The text layer carries only the standard bioRxiv licence banner, no requester address; the paper prints author email addresses, which are not reproduced here. Sizes are the test-split pair counts Table 5 prints in millions, converted to integers (7.05M as 7050000 and so on), not whole-dataset sizes; the cross-cell-line entry's size is the common gene space, because the paper does not print a pair count for that arm. The repository states no licence, so code_licence is null, and the data are on shared drive links rather than a citable repository, so data_url is null. The paper describes a 60/40 split while the code makes an 80/20 split and then merges a calibration set into the test side; both are recorded."
+}
