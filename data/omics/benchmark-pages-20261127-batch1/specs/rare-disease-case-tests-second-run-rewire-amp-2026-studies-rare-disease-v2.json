@@ -1,0 +1,906 @@
+{
+ "record_id": "rewire-local-20261121-rdv2-benchmark",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "rewire-bio/amp-2026-studies rare-disease-v2/README.md at commit 3fbab97b",
+   "description": "The study's README: findings, design, limits and rerun steps. Same commit as the store's existing source rewire-local-20261121-rdv2-source-readme.",
+   "file": "artifacts/README.md",
+   "artifact_url": "https://raw.githubusercontent.com/rewire-bio/amp-2026-studies/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/rare-disease-v2/README.md",
+   "url": "https://github.com/rewire-bio/amp-2026-studies/blob/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/rare-disease-v2/README.md",
+   "version": "git commit 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-27T00:08:03Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "570ab11fba7a829fc8abe355ab5968bda9070ed8a8c909d77da727c7d144798b"
+  },
+  {
+   "key": "protocol",
+   "name": "rewire-bio/amp-2026-studies rare-disease-v2/PROTOCOL.md at commit 3fbab97b",
+   "description": "The study protocol. Same commit as the store's existing source rewire-local-20261121-rdv2-source-protocol.",
+   "file": "artifacts/PROTOCOL.md",
+   "artifact_url": "https://raw.githubusercontent.com/rewire-bio/amp-2026-studies/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/rare-disease-v2/PROTOCOL.md",
+   "url": "https://github.com/rewire-bio/amp-2026-studies/blob/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/rare-disease-v2/PROTOCOL.md",
+   "version": "git commit 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-27T00:07:59Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "1cd87827233991a886601526908cda1c08d8f5c50a2bb6e83367a7e9cf554a47"
+  },
+  {
+   "key": "analysis",
+   "name": "rewire-bio/amp-2026-studies rare-disease-v2/results/analysis_snv_indel.md at commit 3fbab97b",
+   "description": "Analysis notes for the 200 SNV and 120 indel cases. Same commit as the store's existing source rewire-local-20261121-rdv2-source-analysis-snv-indel.",
+   "file": "artifacts/analysis_snv_indel.md",
+   "artifact_url": "https://raw.githubusercontent.com/rewire-bio/amp-2026-studies/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/rare-disease-v2/results/analysis_snv_indel.md",
+   "url": "https://github.com/rewire-bio/amp-2026-studies/blob/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/rare-disease-v2/results/analysis_snv_indel.md",
+   "version": "git commit 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-27T00:08:06Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "f7f2d75e3be1df390c5429e4cc730389cdc42f9fc33e1e4a6d31edc993de189c"
+  },
+  {
+   "key": "licence",
+   "name": "rewire-bio/amp-2026-studies LICENSE at commit 3fbab97b",
+   "description": "Repository licence file at the same commit.",
+   "file": "artifacts/LICENSE",
+   "artifact_url": "https://raw.githubusercontent.com/rewire-bio/amp-2026-studies/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/LICENSE",
+   "url": "https://github.com/rewire-bio/amp-2026-studies/blob/3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19/LICENSE",
+   "version": "git commit 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19",
+   "media_type": "text/plain",
+   "retrieved_at": "2026-11-27T00:08:10Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "4fff574dd02d01f7cba42c9a4472bce39bb96f9b650a65f51958ab79bc829ea4"
+  }
+ ],
+ "profile": {
+  "summary": "A Rewire study that tests variant scores on simulated rare-disease cases. Each case is one 1000 Genomes person's rare variants in the intellectual disability panel genes (PanelApp 285) plus one inserted ClinVar pathogenic or likely pathogenic variant; a score succeeds when it ranks that diagnostic first. It compares established lookups (CADD, SpliceAI, REVEL, AlphaMissense), a ClinGen rule-based ranking, and added scores such as AlphaGenome AVI, GPN-MSA, GPN-Star and Evo 2.",
+  "summary_source_ids": [
+   "@readme",
+   "rewire-local-20261121-rdv2-source-readme"
+  ],
+  "summary_source_locator": "README.md: opening, Design",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "A case is one 1000 Genomes person's rare variants in the panel's genes plus one inserted ClinVar pathogenic or likely pathogenic variant. Each score ranks every variant in the case, and the outcome is where the diagnostic lands."
+   },
+   {
+    "source": "@readme",
+    "text": "on the intellectual disability panel only:"
+   },
+   {
+    "source": "@readme",
+    "text": "(version 11.45, about 1,510 green genes; the diagnostic variants come from 348"
+   },
+   {
+    "source": "@readme",
+    "text": "Two baselines: the lookups combined (logistic regression on CADD, SpliceAI, REVEL and AlphaMissense with consequence class), and a rule-based ranking that gives each variant ACMG points from ClinGen-calibrated thresholds."
+   },
+   {
+    "source": "@readme",
+    "text": "[PanelApp panel 285, Intellectual disability]"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "How often a score, a combined model or a baseline ranks the inserted diagnostic variant first among a case's rare candidate variants (top 1). The primary question is whether adding AlphaGenome AVI to the combined lookups raises top 1 on 500 locked replication cases by at least 5 points.",
+    "source_ids": [
+     "@readme",
+     "@protocol"
+    ],
+    "source_locator": "README.md: Findings, Design; PROTOCOL.md section 8",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A case is one 1000 Genomes person's rare variants in the panel's genes plus one inserted ClinVar pathogenic or likely pathogenic variant. Each score ranks every variant in the case, and the outcome is where the diagnostic lands."
+     },
+     {
+      "source": "@readme",
+      "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+     },
+     {
+      "source": "@protocol",
+      "text": "Top-1 of lookups plus AVI minus top-1 of lookups combined, both locked, on the 500, with the main"
+     },
+     {
+      "source": "@protocol",
+      "text": "filter and the inheritance filter, with a paired 95% interval. The two models differ only by AVI."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Backgrounds are 1000 Genomes people's variants in the panel's MANE Select exons plus 20 bp, kept below 1% frequency, then filtered to grpmax below 0.1% using gnomAD v3.1.2 with the person and their family left out, and by the gene's mode of inheritance. ClinVar P/LP background variants are removed. Diagnostics are ClinVar P/LP variants with 2 or more review stars, drawn by class quotas. Three studies: 200 SNV cases and 120 indel cases on the first run's 50 people, and 500 replication cases on 50 new people with no diagnostic position reused. The median list on the 500 is 19 SNVs.",
+    "source_ids": [
+     "@readme",
+     "@protocol"
+    ],
+    "source_locator": "README.md: Design; PROTOCOL.md sections 1 to 5",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Main filters: background grpmax below 0.1% with the person and their family left out of gnomAD v3.1.2, and an inheritance filter that keeps only genotypes the gene's mode allows."
+     },
+     {
+      "source": "@protocol",
+      "text": "Inputs fixed to the first run's: ClinVar fileDate 2026-10-11, P/LP with 2+ review stars; PanelApp 285 v11.45 green"
+     },
+     {
+      "source": "@protocol",
+      "text": "genes; MANE v1.5 Select exons plus 20 bp; 1000 Genomes high-coverage phased panel (20220422)."
+     },
+     {
+      "source": "@protocol",
+      "text": "Background variants that are ClinVar P/LP with any review status are removed, so each case has one right answer."
+     },
+     {
+      "source": "@protocol",
+      "text": "| Replication | 500, 10 per person | 50 new people (below) | missense 150, canonical splice 100, nonsense 75, non-coding 175 |"
+     },
+     {
+      "source": "@protocol",
+      "text": "| SNV | 200, 4 per person | the first run's 50 (`../rare-disease/data/samples50.txt`) | missense 60, canonical splice 40, nonsense 30, non-coding 70 (synonymous, UTR, intronic, splice region) |"
+     },
+     {
+      "source": "@protocol",
+      "text": "| Indel (up to 50 bp; not REF and ALT both longer than 1 bp) | 120, ranked among the person's background indels | the same 50 | frameshift 40, inframe 30, canonical splice 30, UTR or intronic 20 |"
+     },
+     {
+      "source": "@protocol",
+      "text": "They share no one with the first run, so the 500 test"
+     },
+     {
+      "source": "@protocol",
+      "text": "new people and new diagnostic draws."
+     },
+     {
+      "source": "@protocol",
+      "text": "No position used as a diagnostic in this run's 200 or in the first run's 200 or 500."
+     },
+     {
+      "source": "@readme",
+      "text": "The median list on the 500 is 19 SNVs, diagnostic included."
+     },
+     {
+      "source": "@protocol",
+      "text": "Background: the person's variants with 1000 Genomes AF below 1% in the regions, then grpmax AF below 1%"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Models are cross-validated (5-fold, grouped by person) on the 200 and 120, and fitted once on the 200 and applied unchanged to the 500. The primary contrast has a 95% paired interval from 1,000 bootstrap resamples of people, read by a rule fixed in advance with a smallest gain of interest of 5 points; secondary scores use Bonferroni-adjusted intervals. A missing score ranks last. The README reports the primary gain as +1.8 points (-0.4 to +4.0), inside -5 to +5.",
+    "source_ids": [
+     "@protocol",
+     "@readme"
+    ],
+    "source_locator": "PROTOCOL.md sections 6, 8 and 11; README.md: Findings and Q1",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "Cross-validated: 5-fold, grouped by person, on the 200 SNV cases and on the 120 indel cases."
+     },
+     {
+      "source": "@protocol",
+      "text": "Locked: every model fitted once on all 200 SNV cases (main filter, inheritance filter) and applied unchanged to"
+     },
+     {
+      "source": "@protocol",
+      "text": "the 500."
+     },
+     {
+      "source": "@protocol",
+      "text": "1,000 bootstrap resamples of people (each with all their cases)."
+     },
+     {
+      "source": "@readme",
+      "text": "Primary: 95% paired interval, read by a rule fixed in advance with a smallest gain of interest of 5 points."
+     },
+     {
+      "source": "@protocol",
+      "text": "A missing score ranks last, as a failed lookup would."
+     },
+     {
+      "source": "@readme",
+      "text": "Adding AVI to the lookups combined, both locked, raises top 1 from 90.6% (87.8 to 93.4) to 92.4% (89.8 to 94.8), a gain of +1.8 points (-0.4 to +4.0), p = 0.162. The interval lies inside -5 to +5."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The README lists the scripts in order, run from rare-disease-v2 with uv and Python 3.12. Several inputs come from the first run's data folder and from sibling repositories, and CADD and REVEL scores are refetched because they are not committed.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to rerun",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Run from `rare-disease-v2/`. `RUN` stands for `uv run -q --python 3.12 --with-requirements requirements.txt python`."
+     },
+     {
+      "source": "@readme",
+      "text": "The first run's inputs must be in `../rare-disease/data/` (see its README),"
+     },
+     {
+      "source": "@readme",
+      "text": "REVEL in `../../evo2-cloud-operations/data/raw/current-predictors/`, and hg38 in"
+     },
+     {
+      "source": "@readme",
+      "text": "CADD and REVEL scores are not committed (licence), so"
+     },
+     {
+      "source": "@readme",
+      "text": "`lookup_scores.py` fetches them again; CADD needs no download (remote tabix)."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Three case sets: 500 replication SNV cases (50 new people), 200 SNV cases and 120 indel cases (the first run's 50 people).",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol"
+    ],
+    "source_locator": "PROTOCOL.md section 5",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "| Replication | 500, 10 per person | 50 new people (below) | missense 150, canonical splice 100, nonsense 75, non-coding 175 |"
+     },
+     {
+      "source": "@protocol",
+      "text": "| SNV | 200, 4 per person | the first run's 50 (`../rare-disease/data/samples50.txt`) | missense 60, canonical splice 40, nonsense 30, non-coding 70 (synonymous, UTR, intronic, splice region) |"
+     },
+     {
+      "source": "@protocol",
+      "text": "| Indel (up to 50 bp; not REF and ALT both longer than 1 bp) | 120, ranked among the person's background indels | the same 50 | frameshift 40, inframe 30, canonical splice 30, UTR or intronic 20 |"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Models fitted on the 200 SNV cases and locked for the 500 replication cases (new people, no reused diagnostic positions); 5-fold cross-validation grouped by person on the 200 and 120.",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol"
+    ],
+    "source_locator": "PROTOCOL.md sections 5 and 8",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "Cross-validated: 5-fold, grouped by person, on the 200 SNV cases and on the 120 indel cases."
+     },
+     {
+      "source": "@protocol",
+      "text": "Locked: every model fitted once on all 200 SNV cases (main filter, inheritance filter) and applied unchanged to"
+     },
+     {
+      "source": "@protocol",
+      "text": "the 500."
+     },
+     {
+      "source": "@protocol",
+      "text": "They share no one with the first run, so the 500 test"
+     },
+     {
+      "source": "@protocol",
+      "text": "new people and new diagnostic draws."
+     },
+     {
+      "source": "@protocol",
+      "text": "No position used as a diagnostic in this run's 200 or in the first run's 200 or 500."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Top 1, the share of cases where the diagnostic ranks first; higher is better. Top 5 and top 10 are descriptive.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Findings",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+     },
+     {
+      "source": "@protocol",
+      "text": "**Descriptive** (unadjusted 95% intervals, labelled descriptive): top 5 and top 10;"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Lookups combined (logistic regression on CADD, SpliceAI, REVEL and AlphaMissense with consequence class) and a rule-based ranking from ClinGen-calibrated thresholds.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Design",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Two baselines: the lookups combined (logistic regression on CADD, SpliceAI, REVEL and AlphaMissense with consequence class), and a rule-based ranking that gives each variant ACMG points from ClinGen-calibrated thresholds."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Replication people and diagnostic positions are new; gnomAD frequencies leave out each person's family; ClinVar P/LP background variants are removed; CADD's indel table is not used because it covers only gnomAD-seen indels. gnomAD presence of diagnostics is only partly controlled.",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol",
+     "@readme"
+    ],
+    "source_locator": "PROTOCOL.md sections 1, 5 and 6; README.md: Limits",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "They share no one with the first run, so the 500 test"
+     },
+     {
+      "source": "@protocol",
+      "text": "new people and new diagnostic draws."
+     },
+     {
+      "source": "@protocol",
+      "text": "No position used as a diagnostic in this run's 200 or in the first run's 200 or 500."
+     },
+     {
+      "source": "@readme",
+      "text": "Main filters: background grpmax below 0.1% with the person and their family left out of gnomAD v3.1.2, and an inheritance filter that keeps only genotypes the gene's mode allows."
+     },
+     {
+      "source": "@protocol",
+      "text": "Background variants that are ClinVar P/LP with any review status are removed, so each case has one right answer."
+     },
+     {
+      "source": "@protocol",
+      "text": "CADD's indel table has a row only for indels seen in gnomAD, which would give the answer away."
+     },
+     {
+      "source": "@readme",
+      "text": "Diagnostics keep their full gnomAD frequency by design, and most are absent from gnomAD (AC 0): 148 of the 200 (74.0%) and 386 of the 500 (77.2%)."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Paired bootstrap intervals over people (1,000 resamples) with two-sided bootstrap p-values; Bonferroni-adjusted intervals for GPN (98.33%) and Evo 2 (98.75%).",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol",
+     "@readme"
+    ],
+    "source_locator": "PROTOCOL.md section 11; README.md: Findings",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "1,000 bootstrap resamples of people (each with all their cases)."
+     },
+     {
+      "source": "@readme",
+      "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+     },
+     {
+      "source": "@readme",
+      "text": "GPN-MSA, GPN-Star-V and GPN-Star-M: Bonferroni-adjusted 98.33% interval (a family of three, pre-specified)."
+     },
+     {
+      "source": "@readme",
+      "text": "Evo 2: Bonferroni-adjusted 98.75% interval (over four added scores)."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A simulated case: a list of one person's rare variants with one inserted diagnostic variant.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Design",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A case is one 1000 Genomes person's rare variants in the panel's genes plus one inserted ClinVar pathogenic or likely pathogenic variant. Each score ranks every variant in the case, and the outcome is where the diagnostic lands."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Design",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "A case is one 1000 Genomes person's rare variants in the panel's genes plus one inserted ClinVar pathogenic or likely pathogenic variant. Each score ranks every variant in the case, and the outcome is where the diagnostic lands."
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "No assay: diagnostics are ClinVar P/LP classifications, backgrounds are 1000 Genomes genotypes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol"
+    ],
+    "source_locator": "PROTOCOL.md section 5",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "Inputs fixed to the first run's: ClinVar fileDate 2026-10-11, P/LP with 2+ review stars; PanelApp 285 v11.45 green"
+     },
+     {
+      "source": "@protocol",
+      "text": "genes; MANE v1.5 Select exons plus 20 bp; 1000 Genomes high-coverage phased panel (20220422)."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Precomputed or computed variant scores (CADD v1.7, SpliceAI, REVEL v1.3, AlphaMissense, AVI, GPN-MSA, GPN-Star, Evo 2) and consequence class.",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol",
+     "@readme"
+    ],
+    "source_locator": "PROTOCOL.md section 6; README.md: Design",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "| AlphaGenome AVI | primary added score | SNVs |"
+     },
+     {
+      "source": "@protocol",
+      "text": "| GPN-MSA, GPN-Star V, GPN-Star M | secondary added scores | SNVs |"
+     },
+     {
+      "source": "@readme",
+      "text": "Two baselines: the lookups combined (logistic regression on CADD, SpliceAI, REVEL and AlphaMissense with consequence class), and a rule-based ranking that gives each variant ACMG points from ClinGen-calibrated thresholds."
+     },
+     {
+      "source": "@protocol",
+      "text": "| CADD v1.7 PHRED | lookup |"
+     },
+     {
+      "source": "@protocol",
+      "text": "| REVEL v1.3 | lookup | missense |"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Single scores are used zero-shot; combined models are logistic regressions fitted on the 200 SNV cases.",
+    "status": "source_checked",
+    "source_ids": [
+     "@protocol",
+     "@readme"
+    ],
+    "source_locator": "PROTOCOL.md section 8; README.md: Design",
+    "quotes": [
+     {
+      "source": "@protocol",
+      "text": "Locked: every model fitted once on all 200 SNV cases (main filter, inheritance filter) and applied unchanged to"
+     },
+     {
+      "source": "@protocol",
+      "text": "the 500."
+     },
+     {
+      "source": "@readme",
+      "text": "Two baselines: the lookups combined (logistic regression on CADD, SpliceAI, REVEL and AlphaMissense with consequence class), and a rule-based ranking that gives each variant ACMG points from ClinGen-calibrated thresholds."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The primary contrast, its interval and its reading rule were fixed in advance, and replication uses new people and new diagnostics.",
+    "source_ids": [
+     "@readme",
+     "@protocol"
+    ],
+    "source_locator": "README.md: Findings; PROTOCOL.md sections 5 and 8",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Primary: 95% paired interval, read by a rule fixed in advance with a smallest gain of interest of 5 points."
+     },
+     {
+      "source": "@protocol",
+      "text": "They share no one with the first run, so the 500 test"
+     },
+     {
+      "source": "@protocol",
+      "text": "new people and new diagnostic draws."
+     },
+     {
+      "source": "@protocol",
+      "text": "No position used as a diagnostic in this run's 200 or in the first run's 200 or 500."
+     }
+    ]
+   },
+   {
+    "text": "Realistic filtering: gnomAD frequencies that leave out the person's family, a grpmax filter and an inheritance filter.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Design",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Main filters: background grpmax below 0.1% with the person and their family left out of gnomAD v3.1.2, and an inheritance filter that keeps only genotypes the gene's mode allows."
+     }
+    ]
+   },
+   {
+    "text": "Every gain has a paired bootstrap interval and p-value, with shared draws so adding a score does not move other intervals.",
+    "source_ids": [
+     "@readme",
+     "@protocol"
+    ],
+    "source_locator": "README.md: Findings; PROTOCOL.md section 11",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+     },
+     {
+      "source": "@protocol",
+      "text": "The draws are made before any score is evaluated and reused by every"
+     }
+    ]
+   },
+   {
+    "text": "Code and protocol are public under MIT, with a deviation log.",
+    "source_ids": [
+     "@licence",
+     "@protocol"
+    ],
+    "source_locator": "LICENSE; PROTOCOL.md",
+    "quotes": [
+     {
+      "source": "@licence",
+      "text": "MIT License"
+     },
+     {
+      "source": "@protocol",
+      "text": "Any change to the design goes in the deviation log"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Simulated cases on short lists: 1000 Genomes people with an inserted diagnostic, median 19 SNVs on the 500 and 4 indels on the 120, one panel only.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Limits",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "After the filters the median list is 19 SNVs on the 500 and 4 indels on the 120. A real exome or genome has more candidates; these lists hold only rare variants in the panel's genes."
+     },
+     {
+      "source": "@readme",
+      "text": "Their backgrounds hold no disease variant of their own, and the diagnostic is inserted, not observed."
+     },
+     {
+      "source": "@readme",
+      "text": "on the intellectual disability panel only:"
+     }
+    ]
+   },
+   {
+    "text": "Diagnostics keep their full gnomAD frequency and most are absent from gnomAD, so a score that learned gnomAD presence could pick them for that reason.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Limits",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Diagnostics keep their full gnomAD frequency by design, and most are absent from gnomAD (AC 0): 148 of the 200 (74.0%) and 386 of the 500 (77.2%)."
+     }
+    ]
+   },
+   {
+    "text": "ClinVar diagnostics were partly classified with the same lookup tools, which favours the lookups and both baselines; the lookups are near the ceiling at 90.6% top 1.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Limits",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Many 2-star P/LP variants used PP3 evidence from these tools, and the PP3 thresholds were calibrated on ClinVar. That favours the lookups and both baselines."
+     },
+     {
+      "source": "@readme",
+      "text": "At 90.6% top 1 (87.8 to 93.4) there is little room for any added score to gain."
+     }
+    ]
+   },
+   {
+    "text": "Run by Rewire with its own code; Evo 2 and the frequency sweep were added after other results were seen and are exploratory, and 944 contrasts are reported.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Limits",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "It was added after every other result had been seen. Its 98.75% interval corrects for"
+     },
+     {
+      "source": "@readme",
+      "text": "The result files hold 944 paired top-1 contrasts."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Rare-disease case test workflow",
+   "steps": [
+    "1000 Genomes person, panel gene variants",
+    "gnomAD frequency without family, grpmax and inheritance filters",
+    "Insert one ClinVar P/LP diagnostic",
+    "Rank every variant by each score or model",
+    "Top 1 with paired bootstrap interval"
+   ],
+   "caption": "How one case is built and scored, as the study README describes it.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README.md: Design",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "A case is one 1000 Genomes person's rare variants in the panel's genes plus one inserted ClinVar pathogenic or likely pathogenic variant. Each score ranks every variant in the case, and the outcome is where the diagnostic lands."
+    },
+    {
+     "source": "@readme",
+     "text": "Main filters: background grpmax below 0.1% with the person and their family left out of gnomAD v3.1.2, and an inheritance filter that keeps only genotypes the gene's mode allows."
+    },
+    {
+     "source": "@readme",
+     "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The paper (paper/paper.pdf), results/analysis_replication.md and the result JSON files were not read for this page.",
+   "The record's version attribute is amp-2026-v7 while the store's sources and this page are at commit 3fbab97b; the relation between the tag and the commit was not checked.",
+   "The sibling repositories that hold REVEL and hg38 for the rerun were not checked."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read rare-disease-v2/README.md and PROTOCOL.md and the repository LICENSE from rewire-bio/amp-2026-studies at commit 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19 (the commit the store's sources cite), retrieved 2026-11-27. results/analysis_snv_indel.md was saved but not read in full. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Refetch the lookup scores and recompute the main results for the 500 replication cases with the study's benchmark script.",
+  "prerequisites": [
+   "uv and Python 3.12, as the README's RUN alias states.",
+   "The first run's inputs in ../rare-disease/data/ (same repository), REVEL in ../../evo2-cloud-operations/data/raw/current-predictors/ and hg38 in ../../evo2-size-by-use-case/data/raw/hg38.fa.gz, as the README requires.",
+   "bcftools, tabix, samtools and curl for the shell scripts."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/rewire-bio/amp-2026-studies\ncd amp-2026-studies\ngit checkout --detach 3fbab97b0f437972a1a6e0f2171ebb5d9a3d9f19\ncd rare-disease-v2",
+    "explanation": "The clone line is composed from the repository address; the checkout pins the commit the store cites. The README says to run from rare-disease-v2.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to rerun",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "https://github.com/rewire-bio/amp-2026-studies"
+     },
+     {
+      "source": "@readme",
+      "text": "Run from `rare-disease-v2/`. `RUN` stands for `uv run -q --python 3.12 --with-requirements requirements.txt python`."
+     }
+    ]
+   },
+   {
+    "title": "Refetch lookup scores",
+    "shell": "uv run -q --python 3.12 --with-requirements requirements.txt python lookup_scores.py --study replication",
+    "explanation": "RUN expanded as the README defines it. CADD and REVEL scores are not committed, so lookup_scores.py fetches them again.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to rerun",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Run from `rare-disease-v2/`. `RUN` stands for `uv run -q --python 3.12 --with-requirements requirements.txt python`."
+     },
+     {
+      "source": "@readme",
+      "text": "RUN lookup_scores.py --study snv           # then --study indel and --study replication"
+     },
+     {
+      "source": "@readme",
+      "text": "CADD and REVEL scores are not committed (licence), so"
+     },
+     {
+      "source": "@readme",
+      "text": "`lookup_scores.py` fetches them again; CADD needs no download (remote tabix)."
+     }
+    ]
+   },
+   {
+    "title": "Compute results",
+    "shell": "uv run -q --python 3.12 --with-requirements requirements.txt python case_benchmark.py --study replication --analysis main",
+    "explanation": "The README shows case_benchmark.py with --study snv --analysis main and says every study runs with main; this uses the replication study.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: How to rerun",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "RUN case_benchmark.py --study snv --analysis main"
+     },
+     {
+      "source": "@readme",
+      "text": "# every study with main, bg1pct, nomoi, all1kg;"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Result files for the study and analysis, including the primary verdict that case_benchmark.py writes (primary.verdict), as the README describes."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire for this page.",
+   "The rerun depends on inputs outside rare-disease-v2, including two sibling repositories.",
+   "Rebuilding cases from scratch needs the earlier steps in the README (people, backgrounds, gnomAD frequencies, pools and case builds)."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Diagnostic variant ranking, 500 replication SNV cases, main filters",
+   "dataset": "rare-disease-v2 replication study",
+   "size": 500,
+   "size_unit": "cases",
+   "split": "models fitted on the 200 SNV cases and locked",
+   "primary_metric": "top 1",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/rewire-bio/amp-2026-studies",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@protocol",
+     "text": "| Replication | 500, 10 per person | 50 new people (below) | missense 150, canonical splice 100, nonsense 75, non-coding 175 |"
+    },
+    {
+     "source": "@protocol",
+     "text": "Locked: every model fitted once on all 200 SNV cases (main filter, inheritance filter) and applied unchanged to"
+    },
+    {
+     "source": "@protocol",
+     "text": "the 500."
+    },
+    {
+     "source": "@readme",
+     "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+    },
+    {
+     "source": "@readme",
+     "text": "https://github.com/rewire-bio/amp-2026-studies"
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "task": "Diagnostic variant ranking, 200 SNV cases, main filters",
+   "dataset": "rare-disease-v2 SNV study",
+   "size": 200,
+   "size_unit": "cases",
+   "split": "5-fold, grouped by person",
+   "primary_metric": "top 1",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/rewire-bio/amp-2026-studies",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@protocol",
+     "text": "| SNV | 200, 4 per person | the first run's 50 (`../rare-disease/data/samples50.txt`) | missense 60, canonical splice 40, nonsense 30, non-coding 70 (synonymous, UTR, intronic, splice region) |"
+    },
+    {
+     "source": "@protocol",
+     "text": "Cross-validated: 5-fold, grouped by person, on the 200 SNV cases and on the 120 indel cases."
+    },
+    {
+     "source": "@readme",
+     "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+    },
+    {
+     "source": "@readme",
+     "text": "https://github.com/rewire-bio/amp-2026-studies"
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  },
+  {
+   "task": "Diagnostic variant ranking, 120 indel cases, main filters",
+   "dataset": "rare-disease-v2 indel study",
+   "size": 120,
+   "size_unit": "cases",
+   "split": "5-fold, grouped by person",
+   "primary_metric": "top 1",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/rewire-bio/amp-2026-studies",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@protocol",
+     "text": "| Indel (up to 50 bp; not REF and ALT both longer than 1 bp) | 120, ranked among the person's background indels | the same 50 | frameshift 40, inframe 30, canonical splice 30, UTR or intronic 20 |"
+    },
+    {
+     "source": "@protocol",
+     "text": "Cross-validated: 5-fold, grouped by person, on the 200 SNV cases and on the 120 indel cases."
+    },
+    {
+     "source": "@readme",
+     "text": "All figures are top 1 (the share of cases where the diagnostic variant ranks first), in percent, or gains in percentage points, with bootstrap intervals over people and a two-sided bootstrap p-value for each paired gain."
+    },
+    {
+     "source": "@readme",
+     "text": "https://github.com/rewire-bio/amp-2026-studies"
+    },
+    {
+     "source": "@licence",
+     "text": "MIT License"
+    }
+   ]
+  }
+ ],
+ "notes": "A Rewire study, not an external benchmark; this page is written from the study's own files at commit 3fbab97b, the commit the store's existing sources cite. The README lists release tags amp-2026-v5 to v7 and says to cite amp-2026-v7; whether that tag points at commit 3fbab97b was not checked. Case lists and per-case scores are committed in the repository, but CADD and REVEL scores are not (licence), so data_url and data_licence are null."
+}

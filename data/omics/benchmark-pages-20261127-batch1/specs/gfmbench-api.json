@@ -1,0 +1,1583 @@
+{
+ "record_id": "lit-genomics-20261011-gfmbench-benchmark-gfmbench-api",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "NVIDIA/GFMBench-api README.md at commit 55723dce",
+   "description": "Official repository file, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/NVIDIA/GFMBench-api/55723dcefae91293fe6da01106857ddb1cbf9ab6/README.md",
+   "url": "https://github.com/NVIDIA/GFMBench-api",
+   "version": "git commit 55723dcefae91293fe6da01106857ddb1cbf9ab6",
+   "media_type": "text/markdown",
+   "sha256": "36c782e8a128d02e1d7e812835a5b5654cbb6deb6bea30d1c81b61383092c886",
+   "retrieved_at": "2026-11-27T00:05:22Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "base-cls",
+   "name": "NVIDIA/GFMBench-api gfmbench_api/tasks/base/base_gfm_supervised_classification_task.py at commit 55723dce",
+   "description": "Base class for supervised classification tasks; it lists the metrics computed.",
+   "file": "artifacts/base-classification-task.py",
+   "artifact_url": "https://raw.githubusercontent.com/NVIDIA/GFMBench-api/55723dcefae91293fe6da01106857ddb1cbf9ab6/gfmbench_api/tasks/base/base_gfm_supervised_classification_task.py",
+   "url": "https://github.com/NVIDIA/GFMBench-api",
+   "version": "git commit 55723dcefae91293fe6da01106857ddb1cbf9ab6",
+   "media_type": "text/x-python",
+   "sha256": "616ef555587ef594c4e69905becb8dc716ac469f3e34de9b329bea8b01f98bbd",
+   "retrieved_at": "2026-11-27T00:05:57Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "base-snv",
+   "name": "NVIDIA/GFMBench-api gfmbench_api/tasks/base/base_gfm_zeroshot_snv_task.py at commit 55723dce",
+   "description": "Base class for zero-shot single nucleotide variant tasks; it lists the extra metrics computed.",
+   "file": "artifacts/base-zeroshot-snv-task.py",
+   "artifact_url": "https://raw.githubusercontent.com/NVIDIA/GFMBench-api/55723dcefae91293fe6da01106857ddb1cbf9ab6/gfmbench_api/tasks/base/base_gfm_zeroshot_snv_task.py",
+   "url": "https://github.com/NVIDIA/GFMBench-api",
+   "version": "git commit 55723dcefae91293fe6da01106857ddb1cbf9ab6",
+   "media_type": "text/x-python",
+   "sha256": "cc77a08fe4e87cf48e811b6af2111eaced32b300e055d7fd4d7e2d0c6f8d2991",
+   "retrieved_at": "2026-11-27T00:05:57Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "GFMBench-API is a Python interface that puts many existing genomic benchmarks behind one evaluation API. A model implements a small set of inference methods, and the library then runs it on 22 tasks covering supervised sequence and variant classification and zero-shot variant effect prediction, writing one CSV of task and metric rows. It is for comparing genomic foundation models without rewriting a pipeline per benchmark.",
+  "summary_source_ids": [
+   "@readme"
+  ],
+  "summary_source_locator": "README.md: opening, Supported Benchmarks & Tasks, Benchmark Output",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "GFMBench-API is an extensible benchmarking suite for assessing genomic foundation models (GFMs) across a diverse set of downstream tasks, including classification, variant effect prediction, and zero-shot evaluation."
+   },
+   {
+    "source": "@readme",
+    "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+   },
+   {
+    "source": "@readme",
+    "text": "Simply implement the methods below in your model class; inheritance is **not** required."
+   },
+   {
+    "source": "@readme",
+    "text": "Results are auto-saved in a single CSV with this schema:"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Two families of task. Supervised classification and variant prediction: promoter, splice site and transcription factor binding from GUE; coding, non-coding, expression, common versus rare, methylation QTL and splicing QTL variant classification from VariantBenchmarks; causal eQTL, enhancer and histone mark tasks from the Long Range Benchmark. Zero-shot variant effect prediction: ClinVar SNVs by embedding distance and by likelihood, ClinVar insertions and deletions, BEND expression and disease effects, BRCA1 functional impact, TraitGym complex and Mendelian variants, LRB pathogenic OMIM variants and LOL-EVE causal eQTL indels.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Supported Benchmarks & Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| GuePromoterAllTask                | Binary classification of promoter vs non-promoter DNA sequences. |"
+     },
+     {
+      "source": "@readme",
+      "text": "| VariantBenchmarksMEQTLTask           | Binary classification of variants affecting DNA methylation rates. |"
+     },
+     {
+      "source": "@readme",
+      "text": "| LRBHistoneMarksTask                  | Multi-label classification of genomic bins across 20 histone-mark tracks. |"
+     },
+     {
+      "source": "@readme",
+      "text": "| SonglabClinvarTask                | Zero-shot pathogenicity prediction for ClinVar SNVs using likelihood-based scoring. |"
+     },
+     {
+      "source": "@readme",
+      "text": "| TraitGymMendelianTask             | Zero-shot prediction of Mendelian disease-associated variants. |"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The tasks wrap data from existing benchmarks rather than new data collection. All task data sit under one root directory, one subdirectory per task named after the task class, holding train.csv, dev.csv and test.csv; missing files are downloaded automatically on first use. Classification data carry a sequence and a label; variant effect data carry a reference sequence, an alternative sequence and a label. Sequences use A, T, C, G, N and P for padding at chromosome boundaries, and are upper-cased. The NOTICE states that the downloaded third-party data include datasets with non-commercial terms.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data Preparation; NOTICE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All task data is stored under a single root directory (customize the path!):"
+     },
+     {
+      "source": "@readme",
+      "text": "- If files are missing, they will be automatically downloaded on first use."
+     },
+     {
+      "source": "@readme",
+      "text": "| Variant effect   | `ref_sequence`, `alt_sequence`, label| `A...T...`, 0    |"
+     },
+     {
+      "source": "@readme",
+      "text": "| `P` | Padding character | Used to pad sequences when extracting windows near chromosome boundaries |"
+     },
+     {
+      "source": "@readme",
+      "text": "This project will download and install additional third-party open source software projects, including datasets licensed with non-commercial terms."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "A model supplies inference methods by duck typing: sequence to label probabilities, variant and reference pairs to label probabilities, sequence to regression outputs, sequence to per-nucleotide probabilities and embeddings, a position mapping helper, and masked-position token probabilities. Any method a model does not implement can return None and the metrics that need it are skipped. Supervised classification tasks compute accuracy, MCC, AUROC and AUPRC. Zero-shot SNV tasks add cosine similarity AUROC and AUPRC between variant and reference embeddings at the variant position, and AUROC and AUPRC on the masked-token log-likelihood ratio. Tasks expose eval_test_set, eval_validation_set and eval_cross_validation_fold, and results go to a CSV with one row per task and metric and one column per model name, with NO_RESULTS where a result is missing.",
+    "source_ids": [
+     "@readme",
+     "@base-cls",
+     "@base-snv"
+    ],
+    "source_locator": "README.md: How Model & Task Interfaces Work, Benchmark Output; base task classes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| `infer_masked_sequence_to_token_probs(sequences, variant_pos, variant_letters, reference_letters, ...)` | Takes sequences and masks the variant position, returns probabilities for the variant and reference nucleotides at the masked position. |"
+     },
+     {
+      "source": "@readme",
+      "text": "- Any not-implemented methods can simply return `None` and metrics depending on them will be skipped."
+     },
+     {
+      "source": "@base-cls",
+      "text": "            ClassificationAccuracy(),"
+     },
+     {
+      "source": "@base-cls",
+      "text": "            ClassificationMCC(),"
+     },
+     {
+      "source": "@base-cls",
+      "text": "            ClassificationAUROC(),"
+     },
+     {
+      "source": "@base-cls",
+      "text": "            ClassificationAUPRC(),"
+     },
+     {
+      "source": "@base-snv",
+      "text": "            (SNVVariantEffectPredictionMaskedLLRAUROC(), "
+     },
+     {
+      "source": "@readme",
+      "text": "- If a result is missing, its cell is `NO_RESULTS`."
+     },
+     {
+      "source": "@readme",
+      "text": "- `eval_cross_validation_fold(model, train_indices)`"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "Install your model's own dependencies first, then the library's basic_requirements.txt on top, and run usage_examples/run_benchmark.py with a model key. Flags select linear probing, the number of fine-tuning epochs, the output CSV path and the inference cache size. A sanity check mode runs on 100-sample subsets. If a model's dependencies clash with the benchmark stack, the model can run in a separate Python environment and process behind a thin adapter.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Quick Start, Example: Running Benchmarks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install -r basic_requirements.txt"
+     },
+     {
+      "source": "@readme",
+      "text": "    --model DNABERT2 \\"
+     },
+     {
+      "source": "@readme",
+      "text": "  sanity_check_mode = True  # Set to False for full eval"
+     },
+     {
+      "source": "@readme",
+      "text": "run **model inference in a separate Python environment and process**"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "22 tasks wrapping data from GUE, VariantBenchmarks, the Long Range Benchmark, BEND, TraitGym, the SongLab ClinVar set, BRCA1, VEP-eval, LOL-EVE and a ClinVar indel task. The README gives no example counts per task.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Supported Benchmarks & Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+     },
+     {
+      "source": "@readme",
+      "text": "| IndelClinvarTask                     | Zero-shot pathogenicity prediction for ClinVar insertions and deletions. |"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Fixed files per task: train.csv, dev.csv and test.csv in the task's data directory. Supervised tasks return train, validation and test datasets; zero-shot tasks return a test dataset only. A cross-validation fold method also exists.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Task Data Structure; Adding Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "│   ├── train.csv"
+     },
+     {
+      "source": "@readme",
+      "text": "   - Supervised tasks: Return `Tuple[Optional[Dataset], Optional[Dataset], Dataset]` (train, validation, test)"
+     },
+     {
+      "source": "@readme",
+      "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Supervised classification: accuracy, MCC, AUROC and AUPRC, macro-averaged over labels for multi-label tasks. Zero-shot SNV tasks add embedding cosine similarity AUROC and AUPRC and masked log-likelihood ratio AUROC and AUPRC. The README says regression tasks exist but the files read do not list their metrics. Higher is better for all the metrics listed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@base-cls",
+     "@base-snv",
+     "@readme"
+    ],
+    "source_locator": "base_gfm_supervised_classification_task.py: metrics list; base_gfm_zeroshot_snv_task.py: _get_additional_metrics; README.md",
+    "quotes": [
+     {
+      "source": "@base-cls",
+      "text": "            ClassificationAUPRC(),"
+     },
+     {
+      "source": "@base-cls",
+      "text": "For multi-label tasks, each metric is macro-averaged over labels."
+     },
+     {
+      "source": "@base-snv",
+      "text": "        - SNV position cosine similarity (BEND-style)"
+     },
+     {
+      "source": "@base-snv",
+      "text": "        - Masked token prediction LLR"
+     },
+     {
+      "source": "@readme",
+      "text": "| gue_promoter_all | auroc       | 0.91   | 0.88   | ... |"
+     },
+     {
+      "source": "@readme",
+      "text": "- **Supervised Regression**: Inherit from `BaseGFMSupervisedRegressionTask`"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "No baseline scores are published. The README uses DNABERT2 as the default model key, ships a mock model and an isolated mock model, and has a tutorial for NTv3 8M; other models are added through MODEL_REGISTRY.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Common CLI Arguments; Isolated model environments",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| `--model`            | str     | DNABERT2| Model string key (see `MODEL_REGISTRY`)           |"
+     },
+     {
+      "source": "@readme",
+      "text": "  --model IsolatedMock \\"
+     },
+     {
+      "source": "@readme",
+      "text": "Step-by-step tutorial (mock model → NTv3 8M, BEND + GUE)"
+     },
+     {
+      "source": "@readme",
+      "text": "Add your models to the `MODEL_REGISTRY` dict."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None described: splits are inherited from the wrapped benchmarks and the README does not mention identity cut-offs, time splits or held-out families.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Data Preparation"
+   },
+   {
+    "label": "Uncertainty",
+    "value": "No replicates, seeds or intervals are required. The README notes that num_workers greater than 0 can make results non-deterministic on several tasks and recommends keeping num_workers at 0 for reproducibility.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Key Variables to Adjust",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**Reproducibility:** Using `num_workers > 0` may cause non-deterministic results on several tasks"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A DNA sequence with a label for classification tasks, or a variant and reference sequence pair with a label for variant effect tasks; the LRB enhancer and histone mark tasks score genomic bins.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Dataset Format; Supported Benchmarks & Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| Classification   | `sequence`, `label`                  | `ATCCGA...`, 1   |"
+     },
+     {
+      "source": "@readme",
+      "text": "| LRBEnhancerTask                      | Binary classification of genomic bins overlapping annotated enhancer cis-regulatory elements. |"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Unextracted: the task descriptions in the README name human datasets such as ClinVar, BRCA1 and TraitGym but do not state the species for every task.",
+    "status": "unextracted",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Supported Benchmarks & Tasks"
+   },
+   {
+    "label": "Assays",
+    "value": "Mostly not stated: of the wrapped benchmarks, only the GUE transcription factor task's source is named (ChIP-seq). The other tasks' underlying measurements are not described in the files read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Supported Benchmarks & Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| GueTranscriptionFactorTask        | Binary classification of transcription factor binding sites from ChIP-seq data. |"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "DNA sequence, as A, T, C, G, N and P characters, case-insensitive; variant tasks also pass the reference sequence and the variant position. Some tasks pass conditional input metadata, for example tissue context for the LRB causal eQTL task.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Sequence Symbol Conventions; Adding Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| `A`, `T`, `C`, `G` | Standard DNA nucleotides | Used to represent the four DNA bases (adenine, thymine, cytosine, guanine) |"
+     },
+     {
+      "source": "@readme",
+      "text": "- All sequences are case-insensitive (automatically converted to uppercase)"
+     },
+     {
+      "source": "@readme",
+      "text": "**`get_conditional_input_meta_data_frame() -> Optional[pd.DataFrame]`**: Return metadata DataFrame if task uses conditional inputs"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot, linear probing (backbone frozen, projection layer trained) and full fine-tuning are all supported. Full fine-tuning must run in the same process as the model; linear probing can keep the backbone in a separate environment.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Common CLI Arguments; Isolated model environments",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| `--linear_prob`      | flag    | False   | If set: train only projection layer               |"
+     },
+     {
+      "source": "@readme",
+      "text": "Linear probing can keep the backbone isolated and train only the host-side projection layer."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "One interface covers many existing benchmarks: a model implements a handful of inference methods and can be run on all 22 tasks.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Model Integration",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Simply implement the methods below in your model class; inheritance is **not** required."
+     },
+     {
+      "source": "@readme",
+      "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+     }
+    ]
+   },
+   {
+    "text": "Model dependencies are kept separate from the benchmark stack, and a model whose packages clash can run in its own environment and process behind an adapter.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation; Isolated model environments",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "GFMBench-API separates **package dependencies** from **model dependencies**."
+     },
+     {
+      "source": "@readme",
+      "text": "a thin host adapter implements the `infer_*` methods above and forwards each call to a worker subprocess"
+     }
+    ]
+   },
+   {
+    "text": "NVIDIA-authored code is Apache-2.0, and third-party attributions and data addresses are listed in a notices file.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: License, NOTICE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+     },
+     {
+      "source": "@readme",
+      "text": "**Third-party components and attributions:** see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The tasks wrap data from other benchmarks, such as GUE and BEND; the files read do not say whether scores here match those benchmarks' published protocols.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: opening and Supported Benchmarks & Tasks",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+     },
+     {
+      "source": "@readme",
+      "text": "For a tutorial walkthrough (mock model → NTv3 8M on BEND and GUE)"
+     },
+     {
+      "source": "@readme",
+      "text": "| GuePromoterAllTask                | Binary classification of promoter vs non-promoter DNA sequences. |"
+     }
+    ]
+   },
+   {
+    "text": "Some of the data it downloads carry non-commercial licence terms, which the user must review themselves.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: NOTICE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "including datasets licensed with non-commercial terms. Review the license terms of these open source projects before use."
+     }
+    ]
+   },
+   {
+    "text": "No leakage controls are described, and no uncertainty estimate is required; reproducibility depends on keeping num_workers at 0.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Key Variables to Adjust",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "**Reproducibility:** Using `num_workers > 0` may cause non-deterministic results on several tasks"
+     }
+    ]
+   },
+   {
+    "text": "There is no leaderboard or shared results file: each user writes their own CSV, and the paths and task list in the example script must be edited by hand.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Key Variables to Adjust, Benchmark Output",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "  root_data_dir_path = \"/path/to/your/data/\""
+     },
+     {
+      "source": "@readme",
+      "text": "- Each model name (as passed to `--report_algo_name`) is a column."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "GFMBench-API workflow",
+   "steps": [
+    "Implement the infer methods for your model",
+    "Point the run script at a root data directory",
+    "Task data downloaded on first use",
+    "Zero-shot, linear probe or fine-tune per task",
+    "Metrics computed per task",
+    "One CSV of task and metric rows"
+   ],
+   "caption": "The library calls only the inference methods a task needs.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README.md: Model Integration, Data Preparation, Benchmark Output",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "The API uses duck typing and will only call methods needed by the specific tasks you run."
+    },
+    {
+     "source": "@readme",
+     "text": "- If files are missing, they will be automatically downloaded on first use."
+    },
+    {
+     "source": "@readme",
+     "text": "- Each (task, metric) is a row."
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The paper is only on bioRxiv, which was not requested today, so the paper's own task table, dataset sizes and reported results were not read. The PDF address is in the notes.",
+   "Per-task example counts, splits and primary metrics are not in the files read; they are in the task classes, only two of which were fetched.",
+   "THIRD_PARTY_NOTICES.md, which carries the per-dataset licences, was not fetched."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read README.md, gfmbench_api/tasks/base/base_gfm_supervised_classification_task.py and gfmbench_api/tasks/base/base_gfm_zeroshot_snv_task.py of NVIDIA/GFMBench-api at commit 55723dcefae91293fe6da01106857ddb1cbf9ab6, retrieved on 2026-11-27. The accompanying preprint was not fetched. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the library on top of your model's environment and run the example benchmark script.",
+  "prerequisites": [
+   "Python 3.11 in a fresh environment, as the conda example uses.",
+   "Your model's own dependencies installed first; the README links the dependency files for Evo 2, Nucleotide Transformer and DNABERT2.",
+   "A writable root data directory; task data are downloaded on first use."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/NVIDIA/GFMBench-api\ncd GFMBench-api\ngit checkout --detach 55723dcefae91293fe6da01106857ddb1cbf9ab6",
+    "explanation": "Clone the repository. These lines are added by Rewire; the README gives no clone command and does not print its own address. The address is the repository the saved README was fetched from at the pinned commit.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: opening",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "# GFMBench-API"
+     }
+    ]
+   },
+   {
+    "title": "Create an environment",
+    "shell": "conda create -n gfmbench_env python=3.11\nconda activate gfmbench_env",
+    "explanation": "The README's conda option for the environment.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n gfmbench_env python=3.11"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate gfmbench_env"
+     }
+    ]
+   },
+   {
+    "title": "Install the core dependencies",
+    "shell": "pip install -r basic_requirements.txt",
+    "explanation": "Installs what the gfmbench_api package needs, on top of your model's own environment.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install -r basic_requirements.txt"
+     },
+     {
+      "source": "@readme",
+      "text": "Install GFMBench-API core dependencies on top of your model environment:"
+     }
+    ]
+   },
+   {
+    "title": "Run the benchmark",
+    "shell": "python usage_examples/run_benchmark.py \\\n    --model DNABERT2 \\\n    --report_algo_name dna_bert2_baseline \\\n    --csv_path results/baseline_results.csv",
+    "explanation": "The README's default example. Edit root_data_dir_path and the tasks list in run_benchmark.py first, and set sanity_check_mode to False for a full evaluation. Add --linear_prob to freeze the backbone.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Example usage; Key Variables to Adjust",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python usage_examples/run_benchmark.py \\"
+     },
+     {
+      "source": "@readme",
+      "text": "    --report_algo_name dna_bert2_baseline \\"
+     },
+     {
+      "source": "@readme",
+      "text": "  root_data_dir_path = \"/path/to/your/data/\""
+     },
+     {
+      "source": "@readme",
+      "text": "  sanity_check_mode = True  # Set to False for full eval"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "One CSV at the --csv_path given, with a row per task and metric and a column per model name, NO_RESULTS where a metric could not be computed, and incremental saving so a run can be restarted. Logs are written to logs/."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "Paths and the task list inside run_benchmark.py must be edited before a full run.",
+   "Model runtimes are not installed by this library; each must be set up separately."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "GuePromoterAllTask",
+   "dataset": "GUE promoter",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| GuePromoterAllTask                | Binary classification of promoter vs non-promoter DNA sequences. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "GueSpliceSiteTask",
+   "dataset": "GUE splice site",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| GueSpliceSiteTask                 | Three-class classification of splice sites as donor, acceptor, or non-splice. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "GueTranscriptionFactorTask",
+   "dataset": "GUE transcription factor",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| GueTranscriptionFactorTask        | Binary classification of transcription factor binding sites from ChIP-seq data. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VariantBenchmarksCodingTask",
+   "dataset": "VariantBenchmarks coding",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VariantBenchmarksCodingTask          | Binary classification of coding variants as benign or pathogenic. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VariantBenchmarksNonCodingTask",
+   "dataset": "VariantBenchmarks non-coding",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VariantBenchmarksNonCodingTask       | Binary classification of non-coding variants as benign or pathogenic. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VariantBenchmarksExpressionTask",
+   "dataset": "VariantBenchmarks expression",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VariantBenchmarksExpressionTask      | Binary classification of variants affecting gene expression. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VariantBenchmarksCommonVsRareTask",
+   "dataset": "VariantBenchmarks common versus rare",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VariantBenchmarksCommonVsRareTask    | Binary classification distinguishing common variants from synthetic rare controls. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VariantBenchmarksMEQTLTask",
+   "dataset": "VariantBenchmarks methylation QTL",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VariantBenchmarksMEQTLTask           | Binary classification of variants affecting DNA methylation rates. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VariantBenchmarksSQTLTask",
+   "dataset": "VariantBenchmarks splicing QTL",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VariantBenchmarksSQTLTask            | Binary classification of variants affecting alternative splicing. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "LRBCausalEqtlTask",
+   "dataset": "Long Range Benchmark causal eQTL",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| LRBCausalEqtlTask                    | Binary classification of variants causally influencing gene expression with tissue context. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "LRBEnhancerTask",
+   "dataset": "Long Range Benchmark enhancer",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| LRBEnhancerTask                      | Binary classification of genomic bins overlapping annotated enhancer cis-regulatory elements. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "LRBHistoneMarksTask",
+   "dataset": "Long Range Benchmark histone marks",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "train.csv, dev.csv and test.csv per task",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| LRBHistoneMarksTask                  | Multi-label classification of genomic bins across 20 histone-mark tracks. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-cls",
+     "text": "            ClassificationAUROC(),"
+    },
+    {
+     "source": "@readme",
+     "text": "│   ├── train.csv"
+    }
+   ]
+  },
+  {
+   "task": "VepevalClinvarTask",
+   "dataset": "VEP-eval ClinVar SNVs",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| VepevalClinvarTask                   | Zero-shot pathogenicity prediction for ClinVar SNVs using embedding-distance scoring. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "IndelClinvarTask",
+   "dataset": "ClinVar indels",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": null,
+   "metric_direction": null,
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| IndelClinvarTask                     | Zero-shot pathogenicity prediction for ClinVar insertions and deletions. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "BendVEPExpression",
+   "dataset": "BEND variant effects, expression",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| BendVEPExpression                    | Zero-shot prediction of expression effects for non-coding variants. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "BendVEPDisease",
+   "dataset": "BEND variant effects, disease",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| BendVEPDisease                       | Zero-shot prediction of disease effects for non-coding variants. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "SonglabClinvarTask",
+   "dataset": "SongLab ClinVar SNVs",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| SonglabClinvarTask                | Zero-shot pathogenicity prediction for ClinVar SNVs using likelihood-based scoring. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "BRCA1Task",
+   "dataset": "BRCA1 variants",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| BRCA1Task                         | Zero-shot prediction of functional impact for BRCA1 variants (LOF, intermediate, functional). |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "TraitGymComplexTask",
+   "dataset": "TraitGym complex traits",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| TraitGymComplexTask               | Zero-shot prediction of complex trait-associated variants. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "TraitGymMendelianTask",
+   "dataset": "TraitGym Mendelian",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| TraitGymMendelianTask             | Zero-shot prediction of Mendelian disease-associated variants. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "LrbVariantEffectPathogenicOmimTask",
+   "dataset": "Long Range Benchmark pathogenic OMIM",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": "AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| LrbVariantEffectPathogenicOmimTask   | Zero-shot prediction of pathogenic variants associated with Mendelian diseases. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@base-snv",
+     "text": "        - Masked token prediction LLR"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  },
+  {
+   "task": "LoleveCausalEqtlTask",
+   "dataset": "LOL-EVE causal eQTL indels",
+   "size": null,
+   "size_unit": "examples, count not stated in the files read",
+   "split": "test set only",
+   "primary_metric": null,
+   "metric_direction": null,
+   "results_url": null,
+   "code_url": "https://github.com/NVIDIA/GFMBench-api",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "| LoleveCausalEqtlTask                 | Zero-shot prediction of causal expression-modulating variants (indels) in promoters. |"
+    },
+    {
+     "source": "@readme",
+     "text": "GFMBench-API supports evaluation on **22 unique tasks**, grouped as:"
+    },
+    {
+     "source": "@readme",
+     "text": "NVIDIA-authored code in this repository is licensed under the **Apache License, Version 2.0**."
+    },
+    {
+     "source": "@readme",
+     "text": "# GFMBench-API"
+    },
+    {
+     "source": "@readme",
+     "text": "   - Zero-shot tasks: Return `Dataset` (test only)"
+    }
+   ]
+  }
+ ],
+ "notes": "The accompanying preprint was not fetched today: the only open copy is the bioRxiv PDF at https://www.biorxiv.org/content/10.64898/2026.02.19.706811v2.full.pdf, and bioRxiv was rate-limiting this address, so this page is written from the official repository (NVIDIA/GFMBench-api) alone and coverage is limited. The repository lists 22 tasks; the store holds 37 protocols and 20 datasets for this record, so some store protocols (the zs-ar-llr, zs-mlm-llr and zs-embedding variants of the same task) are scoring modes rather than separate tasks. AUROC is given as the primary metric for every entry except IndelClinvarTask and LoleveCausalEqtlTask, because it is the one metric computed for both the supervised and the zero-shot SNV families in the base classes read; those two indel tasks are not SNV tasks and their base class was not read, so their metric is null; the library also computes accuracy, MCC and AUPRC. size is null throughout: the files read give no example counts. data_url is null because each task downloads its data from the original benchmark's own address, listed in THIRD_PARTY_NOTICES.md, which was not fetched. The repository README cites the paper's own description of the tasks; task names here are the repository's class names, which differ from the store's protocol names. The repository address https://github.com/NVIDIA/GFMBench-api, used as code_url and in the clone step, is the address the three saved files were fetched from (raw.githubusercontent.com/NVIDIA/GFMBench-api at commit 55723dcefae91293fe6da01106857ddb1cbf9ab6); no saved file prints it."
+}

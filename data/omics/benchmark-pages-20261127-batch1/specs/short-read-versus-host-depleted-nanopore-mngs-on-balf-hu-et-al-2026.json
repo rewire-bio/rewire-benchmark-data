@@ -1,0 +1,687 @@
+{
+ "record_id": "dna-pathogen-20261011-hu2026-benchmark-ngs-tgs-balf",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Hu et al. 2026, Benchmarking next- versus third-generation sequencing in metagenomics (Microbiology Spectrum, spectrum.03993-25), NCBI PMC full-text XML PMC13339908",
+   "description": "Full text of the published article fetched through NCBI E-utilities efetch (the store's existing source used the Europe PMC copy). The XML is quoted as it is.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13339908&rettype=xml",
+   "url": "https://doi.org/10.1128/spectrum.03993-25",
+   "version": "PMC version 1",
+   "media_type": "application/xml",
+   "retrieved_at": "2026-11-26T23:43:29Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true,
+   "sha256": "703c16cf94ab3b02592e9ebf5991e075a361049af6a9c6b2494836911c508da6"
+  },
+  {
+   "key": "ngdc",
+   "name": "CNCB-NGDC BioProject page PRJCA059899",
+   "description": "Project page for one of the two GSA projects named in the paper's data availability statement; it lists the BioSamples and the GSA accession. No licence is stated.",
+   "file": "artifacts/ngdc-PRJCA059899.html",
+   "artifact_url": "https://ngdc.cncb.ac.cn/bioproject/browse/PRJCA059899",
+   "url": "https://ngdc.cncb.ac.cn/bioproject/browse/PRJCA059899",
+   "version": "page retrieved 2026-11-27",
+   "media_type": "text/html",
+   "retrieved_at": "2026-11-27T00:14:03Z",
+   "store_bytes": false,
+   "sha256": "de5889216e04c5b6354e3e597acdf105bdff500ec0d3baad3e0f5adbedd827e8"
+  }
+ ],
+ "profile": {
+  "summary": "A clinical comparison of two metagenomic workflows for detecting microbes in bronchoalveolar lavage fluid: short-read sequencing on MGI and host-depleted nanopore sequencing (HD-ONT). On 62 BALF specimens, each workflow's organism calls are scored against culture, clinical microbiological tests and a composite reference standard by positive and negative percent agreement. It is for clinical microbiology labs weighing short-read against rapid nanopore metagenomics for pneumonia diagnostics.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Methods, Clinical performance evaluation",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "This study aimed to compare the analytical characteristics and diagnostic performance of short-read next-generation sequencing (NGS) and long-read third-generation sequencing (TGS) for metagenomic pathogen detection, using defined mock communities and clinical bronchoalveolar lavage fluid (BALF) samples."
+   },
+   {
+    "source": "@paper",
+    "text": "Clinical validation was conducted on 62 BALF samples. Diagnostic performance was assessed against culture, clinical microbiological tests (CMT), and a composite reference standard (CRS)."
+   },
+   {
+    "source": "@paper",
+    "text": "For clinical specimens, results obtained from the MGI and HD-ONT workflows were evaluated against three comparators:"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether each sequencing workflow finds the organisms that reference methods find in a patient's BALF, and how many extra organisms it reports. The paper also studies mock communities, but the store's protocols cover only the 62 clinical specimens.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Study design",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This study aimed to compare the analytical characteristics and diagnostic performance of short-read next-generation sequencing (NGS) and long-read third-generation sequencing (TGS) for metagenomic pathogen detection, using defined mock communities and clinical bronchoalveolar lavage fluid (BALF) samples."
+     },
+     {
+      "source": "@paper",
+      "text": "Mock evaluations included microbe-host gradient mixtures (D1/D2) and six complex microbial panels (M1–M6)."
+     },
+     {
+      "source": "@paper",
+      "text": "Clinical validation was conducted on 62 BALF samples. Diagnostic performance was assessed against culture, clinical microbiological tests (CMT), and a composite reference standard (CRS)."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Residual BALF specimens with traceable culture results were sequenced with the MGI short-read workflow (MGISEQ-200, single-end 50 bp) and the HD-ONT workflow (nuclease and saponin host depletion, GridION R9.4.1). Reads were host-filtered against GRCh38 and classified against a curated database of 20,484 genomes or sequences. A species was called when normalised reads passed RP20M of at least 3 (short read) or RP10K of at least 1 (HD-ONT).",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, NGS and TGS workflows; Bioinformatic processing; Reference database; Read normalization",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Residual BALF specimens with traceable culture results were selected and stored at"
+     },
+     {
+      "source": "@paper",
+      "text": "sequenced on the MGISEQ-200 platform (single-end 50 bp)."
+     },
+     {
+      "source": "@paper",
+      "text": "Libraries were constructed with the Rapid PCR Barcoding Kit (SQK-RPB004, Oxford Nanopore Technologies) and sequenced on GridION X5 instruments using R9.4.1 flow cells."
+     },
+     {
+      "source": "@paper",
+      "text": "Host reads were removed by aligning cleaned reads to the human reference genome (GRCh38) together with a plasmid sequence collection."
+     },
+     {
+      "source": "@paper",
+      "text": "The final database comprised 20,484 reference genomes/sequences in total, including 5,742 bacteria, 600 fungi, 13,786 viruses, 170 archaea, and 186 parasites/protozoa."
+     },
+     {
+      "source": "@paper",
+      "text": "A species was considered positive when the normalized read count exceeded the predefined platform-specific threshold, namely RP20M ≥ 3 for short-read workflows and RP10K ≥ 1 for HD-ONT."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Each workflow's organism calls are compared with three references: routine culture; clinical microbiological tests (culture plus qPCR or GeneXpert verification where residual volume allowed); and a composite reference standard that adds organisms detected by both sequencing workflows. Agreement is assessed per organism and summarised as PPA and NPA, restricted to bacteria and fungi. Against the composite standard, the paper reports PPA of 93.3% (NGS) and 90.7% (TGS), and NPA of 77.6% and 83.3%.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Clinical performance evaluation; Results, Diagnostic performance; Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For clinical specimens, results obtained from the MGI and HD-ONT workflows were evaluated against three comparators:"
+     },
+     {
+      "source": "@paper",
+      "text": "Routine culture, which included only microorganisms that can be cultured."
+     },
+     {
+      "source": "@paper",
+      "text": "Clinical microbiological tests (CMT), integrating results from culture and additional verification."
+     },
+     {
+      "source": "@paper",
+      "text": "Composite reference standard (CRS), which incorporated organisms that lacked targeted testing results but were consistently detected by both sequencing workflows (MGI and HD-ONT) under the predefined reporting criteria."
+     },
+     {
+      "source": "@paper",
+      "text": "These targeted assays were used as part of the CMT comparator framework for confirmatory evaluation rather than to serve as an error-free gold standard."
+     },
+     {
+      "source": "@paper",
+      "text": "were verified by quantitative polymerase chain reaction (qPCR) using published primer sets specific to the target organisms."
+     },
+     {
+      "source": "@paper",
+      "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+     },
+     {
+      "source": "@paper",
+      "text": "positive percent agreement (PPA) and negative percent agreement (NPA) were calculated accordingly."
+     },
+     {
+      "source": "@paper",
+      "text": "Therefore, we restricted the formal performance analyses (PPA/NPA) to bacterial and fungal pathogens."
+     },
+     {
+      "source": "@paper",
+      "text": "In clinical specimens, when evaluated against the composite reference standard, the positive percent agreement (PPA) values of NGS and TGS were 93.3% and 90.7%, respectively, with corresponding negative percent agreements (NPAs) of 77.6% and 83.3%."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "62 BALF specimens with culture results; mock communities (D1/D2 gradients and M1 to M6 panels) are also in the paper but outside this record.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Clinical validation was conducted on 62 BALF samples. Diagnostic performance was assessed against culture, clinical microbiological tests (CMT), and a composite reference standard (CRS)."
+     },
+     {
+      "source": "@paper",
+      "text": "Mock evaluations included microbe-host gradient mixtures (D1/D2) and six complex microbial panels (M1–M6)."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Test only: all 62 specimens are evaluated; no training split.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Diagnostic performance",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "was evaluated using 62 BALF samples, with results compared against culture, CMT, and CRS"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Positive percent agreement (PPA) and negative percent agreement (NPA) at the organism level; higher is better.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Clinical performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+     },
+     {
+      "source": "@paper",
+      "text": "positive percent agreement (PPA) and negative percent agreement (NPA) were calculated accordingly."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Routine culture serves as the conventional comparator; the two workflows are compared with each other.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Routine culture, which included only microorganisms that can be cultured."
+     },
+     {
+      "source": "@paper",
+      "text": "Among 22 CRS-defined polymicrobial samples, culture identified all pathogens in only 2 cases, whereas NGS and TGS achieved full pathogen recovery in 18 and 17 cases, respectively."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Not applicable as no model is trained. The composite reference standard includes organisms called by both sequencing workflows, so it is not independent of the workflows being scored.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Clinical performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Composite reference standard (CRS), which incorporated organisms that lacked targeted testing results but were consistently detected by both sequencing workflows"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "No confidence intervals for PPA or NPA are given in the text read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Table 2"
+   },
+   {
+    "label": "Entity type",
+    "value": "An organism in a BALF specimen (organism-level agreement).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Bacteria and fungi in human BALF for the formal agreement analyses; viruses were excluded from PPA and NPA.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion, limitations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Therefore, we restricted the formal performance analyses (PPA/NPA) to bacterial and fungal pathogens."
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Short-read metagenomic sequencing (MGI), host-depleted nanopore sequencing, routine culture, qPCR and Xpert MTB/RIF.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "sequenced on the MGISEQ-200 platform (single-end 50 bp)."
+     },
+     {
+      "source": "@paper",
+      "text": "Libraries were constructed with the Rapid PCR Barcoding Kit (SQK-RPB004, Oxford Nanopore Technologies) and sequenced on GridION X5 instruments using R9.4.1 flow cells."
+     },
+     {
+      "source": "@paper",
+      "text": "were verified by quantitative polymerase chain reaction (qPCR) using published primer sets specific to the target organisms."
+     },
+     {
+      "source": "@paper",
+      "text": "confirmation was conducted using the Xpert MTB/RIF assay performed on the GeneXpert system"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Sequencing reads from each specimen, processed by the authors' fixed pipelines and thresholds.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Host reads were removed by aligning cleaned reads to the human reference genome (GRCh38) together with a plasmid sequence collection."
+     },
+     {
+      "source": "@paper",
+      "text": "A species was considered positive when the normalized read count exceeded the predefined platform-specific threshold, namely RP20M ≥ 3 for short-read workflows and RP10K ≥ 1 for HD-ONT."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Not applicable: laboratory workflows with fixed thresholds, no model training.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods"
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Three reference standards of increasing breadth show how much the choice of comparator changes agreement.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Routine culture, which included only microorganisms that can be cultured."
+     },
+     {
+      "source": "@paper",
+      "text": "Clinical microbiological tests (CMT), integrating results from culture and additional verification."
+     },
+     {
+      "source": "@paper",
+      "text": "Composite reference standard (CRS), which incorporated organisms that lacked targeted testing results but were consistently detected by both sequencing workflows (MGI and HD-ONT) under the predefined reporting criteria."
+     },
+     {
+      "source": "@paper",
+      "text": "yielding a PPA of 95.2%. However, the NPA was relatively low (44.6% for NGS, 46.4% for TGS), primarily due to the identification of additional microorganisms not recovered by culture."
+     },
+     {
+      "source": "@paper",
+      "text": "Consequently, when assessed against CMT, the NPA increased to 75.0% for NGS and 79.2% for TGS."
+     }
+    ]
+   },
+   {
+    "text": "Discordant results were checked by qPCR or GeneXpert where residual volume allowed.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "These targeted assays were used as part of the CMT comparator framework for confirmatory evaluation rather than to serve as an error-free gold standard."
+     },
+     {
+      "source": "@paper",
+      "text": "were verified by quantitative polymerase chain reaction (qPCR) using published primer sets specific to the target organisms."
+     }
+    ]
+   },
+   {
+    "text": "Reports turnaround time alongside agreement.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Turnaround times for Illumina and MGI were approximately 18–20 h and 14–19 h, respectively, whereas the ONT workflow was completed within 4–6 h."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Small clinical set (62 specimens) mostly from lower respiratory tract infections; results are specific to these workflows and instruments.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion, limitations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "First, the clinical sample size was relatively small and primarily derived from lower respiratory tract infections, which may limit the generalizability of our findings to other infection types or sample matrices."
+     },
+     {
+      "source": "@paper",
+      "text": "the findings should be interpreted as workflow-specific rather than universally generalizable to all NGS or TGS instruments, chemistries, or bioinformatic implementations."
+     },
+     {
+      "source": "@paper",
+      "text": "Clinical validation was conducted on 62 BALF samples."
+     }
+    ]
+   },
+   {
+    "text": "The composite reference standard adds organisms found by both sequencing workflows, so it is not independent of the workflows being scored.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Composite reference standard (CRS), which incorporated organisms that lacked targeted testing results but were consistently detected by both sequencing workflows"
+     }
+    ]
+   },
+   {
+    "text": "Viruses are excluded from the agreement analyses, and organism-level agreement is not patient-level diagnosis.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Discussion; Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Therefore, we restricted the formal performance analyses (PPA/NPA) to bacterial and fungal pathogens."
+     },
+     {
+      "source": "@paper",
+      "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+     }
+    ]
+   },
+   {
+    "text": "Raw data are in the GSA with no licence stated on the project page read, and there is no code repository or leaderboard.",
+    "source_ids": [
+     "@paper",
+     "@ngdc"
+    ],
+    "source_locator": "Paper: Data availability; NGDC page",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "PRJCA011513"
+     },
+     {
+      "source": "@paper",
+      "text": "PRJCA059899"
+     },
+     {
+      "source": "@paper",
+      "text": "https://ngdc.cncb.ac.cn/"
+     },
+     {
+      "source": "@ngdc",
+      "text": "PRJCA059899"
+     },
+     {
+      "source": "@ngdc",
+      "text": "CRA039911"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Hu et al. 2026 BALF comparison workflow",
+   "steps": [
+    "62 residual BALF specimens",
+    "MGI short-read and HD-ONT sequencing",
+    "Host removal and taxonomic calls with read thresholds",
+    "Compare with culture, CMT and CRS",
+    "Organism-level PPA and NPA"
+   ],
+   "caption": "How the clinical comparison was scored, as the paper describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Residual BALF specimens with traceable culture results were selected and stored at"
+    },
+    {
+     "source": "@paper",
+     "text": "sequenced on the MGISEQ-200 platform (single-end 50 bp)."
+    },
+    {
+     "source": "@paper",
+     "text": "Libraries were constructed with the Rapid PCR Barcoding Kit (SQK-RPB004, Oxford Nanopore Technologies) and sequenced on GridION X5 instruments using R9.4.1 flow cells."
+    },
+    {
+     "source": "@paper",
+     "text": "A species was considered positive when the normalized read count exceeded the predefined platform-specific threshold, namely RP20M ≥ 3 for short-read workflows and RP10K ≥ 1 for HD-ONT."
+    },
+    {
+     "source": "@paper",
+     "text": "For clinical specimens, results obtained from the MGI and HD-ONT workflows were evaluated against three comparators:"
+    },
+    {
+     "source": "@paper",
+     "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+    },
+    {
+     "source": "@paper",
+     "text": "positive percent agreement (PPA) and negative percent agreement (NPA) were calculated accordingly."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Supplemental Tables S6 and S7 (per-organism and by-kingdom results) were not read.",
+   "The second GSA project (PRJCA011513) and the sequence files were not fetched."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the PMC XML of the article (PMC13339908) and the CNCB-NGDC BioProject page PRJCA059899, retrieved 2026-11-26 and 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "This is a clinical laboratory study. The paper releases raw reads but no code, and the reference standards come from the hospital's own testing, so there is nothing a reader can run to reproduce the scoring.",
+ "structured": [
+  {
+   "task": "Organism-level agreement with routine culture",
+   "dataset": "62 BALF specimens",
+   "size": 62,
+   "size_unit": "specimens",
+   "split": null,
+   "primary_metric": "PPA",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://ngdc.cncb.ac.cn/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Clinical validation was conducted on 62 BALF samples. Diagnostic performance was assessed against culture, clinical microbiological tests (CMT), and a composite reference standard (CRS)."
+    },
+    {
+     "source": "@paper",
+     "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+    },
+    {
+     "source": "@paper",
+     "text": "positive percent agreement (PPA) and negative percent agreement (NPA) were calculated accordingly."
+    },
+    {
+     "source": "@paper",
+     "text": "yielding a PPA of 95.2%. However, the NPA was relatively low (44.6% for NGS, 46.4% for TGS), primarily due to the identification of additional microorganisms not recovered by culture."
+    },
+    {
+     "source": "@paper",
+     "text": "PRJCA011513"
+    },
+    {
+     "source": "@paper",
+     "text": "PRJCA059899"
+    },
+    {
+     "source": "@paper",
+     "text": "https://ngdc.cncb.ac.cn/"
+    }
+   ]
+  },
+  {
+   "task": "Organism-level agreement with clinical microbiological tests (CMT)",
+   "dataset": "62 BALF specimens",
+   "size": 62,
+   "size_unit": "specimens",
+   "split": null,
+   "primary_metric": "PPA",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://ngdc.cncb.ac.cn/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Clinical validation was conducted on 62 BALF samples. Diagnostic performance was assessed against culture, clinical microbiological tests (CMT), and a composite reference standard (CRS)."
+    },
+    {
+     "source": "@paper",
+     "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+    },
+    {
+     "source": "@paper",
+     "text": "positive percent agreement (PPA) and negative percent agreement (NPA) were calculated accordingly."
+    },
+    {
+     "source": "@paper",
+     "text": "Consequently, when assessed against CMT, the NPA increased to 75.0% for NGS and 79.2% for TGS."
+    },
+    {
+     "source": "@paper",
+     "text": "remained slightly higher than that of TGS (84.1%)."
+    },
+    {
+     "source": "@paper",
+     "text": "PRJCA011513"
+    },
+    {
+     "source": "@paper",
+     "text": "PRJCA059899"
+    },
+    {
+     "source": "@paper",
+     "text": "https://ngdc.cncb.ac.cn/"
+    }
+   ]
+  },
+  {
+   "task": "Organism-level agreement with composite reference standard (CRS)",
+   "dataset": "62 BALF specimens",
+   "size": 62,
+   "size_unit": "specimens",
+   "split": null,
+   "primary_metric": "PPA",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": null,
+   "data_url": "https://ngdc.cncb.ac.cn/",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Clinical validation was conducted on 62 BALF samples. Diagnostic performance was assessed against culture, clinical microbiological tests (CMT), and a composite reference standard (CRS)."
+    },
+    {
+     "source": "@paper",
+     "text": "Agreement between each sequencing workflow and each comparator was assessed at the organism level."
+    },
+    {
+     "source": "@paper",
+     "text": "positive percent agreement (PPA) and negative percent agreement (NPA) were calculated accordingly."
+    },
+    {
+     "source": "@paper",
+     "text": "In clinical specimens, when evaluated against the composite reference standard, the positive percent agreement (PPA) values of NGS and TGS were 93.3% and 90.7%, respectively, with corresponding negative percent agreements (NPAs) of 77.6% and 83.3%."
+    },
+    {
+     "source": "@paper",
+     "text": "PRJCA011513"
+    },
+    {
+     "source": "@paper",
+     "text": "PRJCA059899"
+    },
+    {
+     "source": "@paper",
+     "text": "https://ngdc.cncb.ac.cn/"
+    }
+   ]
+  }
+ ],
+ "notes": "One paper's clinical evaluation; no code, no leaderboard. The NGS arm in the clinical comparison is the MGI workflow, not Illumina. The NGDC project page lists the submitter's contact details; they are not used here. Mock-community results are outside this record's scope."
+}

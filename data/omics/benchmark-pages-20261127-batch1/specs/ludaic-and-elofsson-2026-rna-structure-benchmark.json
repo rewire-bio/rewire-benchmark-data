@@ -1,0 +1,733 @@
+{
+ "record_id": "lit-rna-20261011-rna3d-benchmark-ludaic2026",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Ludaic and Elofsson 2026, Limits of deep-learning-based RNA prediction methods (Nucleic Acids Research, gkag813), NCBI PMC full-text XML PMC13501138",
+   "description": "Full text of the published article fetched through NCBI E-utilities efetch. The XML is quoted as it is.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13501138&rettype=xml",
+   "url": "https://doi.org/10.1093/nar/gkag813",
+   "version": "PMC version 1",
+   "media_type": "application/xml",
+   "retrieved_at": "2026-11-26T23:43:05Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true,
+   "sha256": "3584de4408380c566c336a224c1e5e5acbd4ee875fbee7111e6a3171fd1f12da"
+  },
+  {
+   "key": "readme",
+   "name": "iammarcol/RNA-Benchmark README.md at commit 12caa32f",
+   "description": "Repository file named in the paper's data availability statement, pinned to a commit. The repository states no licence.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/iammarcol/RNA-Benchmark/12caa32f7d5df6e80db0abbb75d237cf9967745c/README.md",
+   "url": "https://github.com/iammarcol/RNA-Benchmark",
+   "version": "git commit 12caa32f7d5df6e80db0abbb75d237cf9967745c",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-26T23:46:05Z",
+   "store_bytes": false,
+   "sha256": "da62fa42360b957fd091358c19490a27d6abe63d2ddbfd5a2aa146b1d20abdf4"
+  },
+  {
+   "key": "zenodo",
+   "name": "Zenodo record 21241326 (API JSON)",
+   "description": "Data deposit named in the paper: predicted models, MSAs, sequences and reference structures.",
+   "file": "artifacts/zenodo.json",
+   "artifact_url": "https://zenodo.org/api/records/21241326",
+   "url": "https://zenodo.org/records/21241326",
+   "version": "Zenodo record 21241326, published 2026-07-07",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-26T23:55:40Z",
+   "store_bytes": true,
+   "sha256": "5d8263d96aec3755bd91730d7acdde02989b99aef7e80c5c0fac895099b3bde7"
+  },
+  {
+   "key": "gh-repo",
+   "name": "GitHub API repository record for iammarcol/RNA-Benchmark",
+   "description": "Repository metadata from the GitHub API, saved to show the licence field.",
+   "file": "artifacts/github-repo.json",
+   "artifact_url": "https://api.github.com/repos/iammarcol/RNA-Benchmark",
+   "url": "https://github.com/iammarcol/RNA-Benchmark",
+   "version": "retrieved 2026-11-27",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-27T00:19:35Z",
+   "store_bytes": true,
+   "sha256": "dae2697e1f95fd6dbb86a1ae982f462fb8bb4d17024c10694d71ad30077b41c4"
+  },
+  {
+   "key": "gh-tree",
+   "name": "GitHub API recursive tree of iammarcol/RNA-Benchmark at commit 12caa32f",
+   "description": "File list of the repository at the pinned commit, from the GitHub API.",
+   "file": "artifacts/github-tree.json",
+   "artifact_url": "https://api.github.com/repos/iammarcol/RNA-Benchmark/git/trees/12caa32f7d5df6e80db0abbb75d237cf9967745c?recursive=1",
+   "url": "https://github.com/iammarcol/RNA-Benchmark",
+   "version": "git commit 12caa32f7d5df6e80db0abbb75d237cf9967745c",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-27T00:19:38Z",
+   "store_bytes": true,
+   "sha256": "4d9c0a8bc3d3d7c3ab32119f79ec0bdb7f85b19c63eaab65a8faa142a24f794c"
+  }
+ ],
+ "profile": {
+  "summary": "An independent test of 10 deep learning RNA 3D structure predictors on RNA structures released after the methods' training cut-offs. It covers 79 monomeric RNAs and 158 RNA-RNA and RNA-protein complexes, split into easy and hard sets by structural similarity to the training data. It is for structural biologists choosing an RNA structure predictor and wanting to know how far accuracy holds on new folds.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Materials and methods, Benchmark dataset",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Here, we benchmark 10 deep learning methods on an independent, non-redundant dataset of monomeric RNAs and RNA complexes."
+   },
+   {
+    "source": "@paper",
+    "text": "It remains unclear whether reported gains in accuracy generalize to novel RNA structures."
+   },
+   {
+    "source": "@paper",
+    "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+   },
+   {
+    "source": "@paper",
+    "text": "We divided the test set into easy and hard sets based on the maximum similarity to any entry in the PDB training data, using a TM-score cut-off of 0.5."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether gains reported by RNA structure predictors carry over to RNA structures they could not have seen in training. Ten methods are tested on monomeric RNA; four of them (AF3, Boltz-1, HF3 and RF2NA) are also tested on RNA-RNA and RNA-protein complexes.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It remains unclear whether reported gains in accuracy generalize to novel RNA structures."
+     },
+     {
+      "source": "@paper",
+      "text": "The benchmark evaluates the performance of 10 prediction methods, AF3"
+     },
+     {
+      "source": "@paper",
+      "text": "also predicted RNA–RNA and RNA–protein complexes."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "PDB entries released after 30 September 2021 (complexes) and 13 April 2022 (monomers) were downloaded in January 2026, plus RNA-containing CASP16 targets. Sequences were clustered with CD-HIT-EST at 80% identity, both within the set and against PDB RNA deposited before the cut-off. Structures with pairwise TM-score above 0.7 within the set were removed. Complexes with more than four subunits, on which Boltz-1 ran out of memory, were dropped, leaving 158 complexes; the monomer set has 79 structures. Three long monomers (8BU8, 8TVZ, R1248) that DRfold and DeepFoldRNA did not produce were also left out of the main comparison; the text read does not say whether the 79 counts them. Monomers are easy or hard by a 0.5 TM-score cut-off to the PDB training data; a complex is easy if any protein or RNA chain has TM-score of at least 0.7 to a pre-cut-off complex.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Materials and methods, Benchmark dataset and Model generation; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RNA-containing entries released after 30 September 2021 (for RNA complexes) and 13 April 2022 (for monomeric RNAs), which correspond to the latest training set date cut-off of the benchmarked methods, were downloaded from the Protein Data Bank (PDB) along with their corresponding sequences in January 2026."
+     },
+     {
+      "source": "@paper",
+      "text": "In addition, we used RNA-containing CASP16 targets to supplement the benchmark dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "All sequences were filtered using CD-HIT-EST"
+     },
+     {
+      "source": "@paper",
+      "text": "at 80% sequence identity to ensure diversity in the datasets. The clustering was performed both within the benchmark dataset and against the remaining RNA sequences in the PDB deposited before the training date cut-off."
+     },
+     {
+      "source": "@paper",
+      "text": "the pairwise TM-score was calculated between all structures within the initial benchmark dataset, and those with a TM-score"
+     },
+     {
+      "source": "@paper",
+      "text": "were considered structurally too similar and excluded from the benchmark dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+     },
+     {
+      "source": "@paper",
+      "text": "To maintain a consistent set of targets across all methods for the main comparative analysis, three targets were excluded: 8BU8 (354 nt), 8TVZ (363 nt), and the CASP16 R1248 target (407 nt)."
+     },
+     {
+      "source": "@paper",
+      "text": "We divided the test set into easy and hard sets based on the maximum similarity to any entry in the PDB training data, using a TM-score cut-off of 0.5."
+     },
+     {
+      "source": "@paper",
+      "text": "if the protein or RNA chain had a similarity of ≥0.7 TM-score to any complex in the PDB before the cut-off date. Otherwise, complexes were part of a hard dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "Modelling complexes with more than four protein and/or RNA subunits with Boltz-1 version 0.4.1 failed due to out-of-memory errors."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Every method was run with default settings and the same MSAs, generating five models per target; the top-ranked model is scored. Monomers are scored by TM-score (RNA-align), INF, lDDT and GDT-TS; complexes by US-align TM-score, DockQ, F1, fnat, iRMSD and LRMSD. Predictions are trimmed to the residues resolved in the reference. Success rates use CASP16 thresholds, and differences between methods are tested with a Wilcoxon signed-rank test.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model generation; Model evaluation; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each method, five models with the same seed were generated for each target."
+     },
+     {
+      "source": "@paper",
+      "text": "The top-ranked model was used to analyse each method."
+     },
+     {
+      "source": "@paper",
+      "text": "For all methods, the same set of MSAs was used."
+     },
+     {
+      "source": "@paper",
+      "text": "for monomeric RNAs, we calculated the TM-score using RNA-align, Interaction Network Fidelity (INF), Local Distance Difference Test (lDDT), and a Global Distance Test (GDT-TS)."
+     },
+     {
+      "source": "@paper",
+      "text": "To assess RNA complexes, in addition to the US-align TM-score, we also used the DockQ score"
+     },
+     {
+      "source": "@paper",
+      "text": "To ensure a consistent and fair comparison, predicted structures were trimmed to match the resolved residues present in the reference structure prior to evaluation."
+     },
+     {
+      "source": "@paper",
+      "text": "for each metric in the same way as it was done in the CASP16 evaluation of nucleic acids"
+     },
+     {
+      "source": "@paper",
+      "text": "assessed whether the observed differences between methods were statistically significant using a Wilcoxon signed-rank test"
+     },
+     {
+      "source": "@paper",
+      "text": "RNAalign {model.pdb} {reference.pdb}"
+     },
+     {
+      "source": "@paper",
+      "text": "USalign {model.pdb} {reference.pdb} -mm 1 -ter 0"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "79 monomeric RNA structures and 158 RNA complex structures, from the PDB and CASP16.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+     },
+     {
+      "source": "@paper",
+      "text": "In addition, we used RNA-containing CASP16 targets to supplement the benchmark dataset."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Test only, divided into easy and hard sets: monomers by maximum TM-score 0.5 to the PDB training data; complexes easy if a chain has TM-score of at least 0.7 to a pre-cut-off complex.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We divided the test set into easy and hard sets based on the maximum similarity to any entry in the PDB training data, using a TM-score cut-off of 0.5."
+     },
+     {
+      "source": "@paper",
+      "text": "if the protein or RNA chain had a similarity of ≥0.7 TM-score to any complex in the PDB before the cut-off date. Otherwise, complexes were part of a hard dataset."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Monomers: TM-score, INF, lDDT, GDT-TS and success rates at CASP16 thresholds. Complexes: TM-score, DockQ, F1, fnat, iRMSD, LRMSD. Higher is better except iRMSD and LRMSD.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "for monomeric RNAs, we calculated the TM-score using RNA-align, Interaction Network Fidelity (INF), Local Distance Difference Test (lDDT), and a Global Distance Test (GDT-TS)."
+     },
+     {
+      "source": "@paper",
+      "text": "To assess RNA complexes, in addition to the US-align TM-score, we also used the DockQ score"
+     },
+     {
+      "source": "@paper",
+      "text": "for each metric in the same way as it was done in the CASP16 evaluation of nucleic acids"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "No separate baseline; the 10 methods compared are AF3, Boltz-1, Chai-1, HF3, NuFold, RhoFold+, RF2NA, trRosettaRNA, DRfold and DeepFoldRNA.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The benchmark evaluates the performance of 10 prediction methods, AF3"
+     },
+     {
+      "source": "@paper",
+      "text": "also predicted RNA–RNA and RNA–protein complexes."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Release-date cut-offs after the methods' training dates, 80% sequence identity clustering against pre-cut-off PDB RNA, and easy and hard sets by structural similarity to training data. Protein similarity was not filtered for RNA-protein complexes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RNA-containing entries released after 30 September 2021 (for RNA complexes) and 13 April 2022 (for monomeric RNAs), which correspond to the latest training set date cut-off of the benchmarked methods, were downloaded from the Protein Data Bank (PDB) along with their corresponding sequences in January 2026."
+     },
+     {
+      "source": "@paper",
+      "text": "at 80% sequence identity to ensure diversity in the datasets. The clustering was performed both within the benchmark dataset and against the remaining RNA sequences in the PDB deposited before the training date cut-off."
+     },
+     {
+      "source": "@paper",
+      "text": "We divided the test set into easy and hard sets based on the maximum similarity to any entry in the PDB training data, using a TM-score cut-off of 0.5."
+     },
+     {
+      "source": "@paper",
+      "text": "protein structural similarity was not used as a filtering criterion, as it would reduce the dataset size."
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Wilcoxon signed-rank tests between methods; five models per target with the same seed, top-ranked model scored. Per-target scores are in supplementary tables.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model generation; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "assessed whether the observed differences between methods were statistically significant using a Wilcoxon signed-rank test"
+     },
+     {
+      "source": "@paper",
+      "text": "For each method, five models with the same seed were generated for each target."
+     },
+     {
+      "source": "@paper",
+      "text": "The top-ranked model was used to analyse each method."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "An RNA 3D structure (monomer) or an RNA-RNA or RNA-protein complex structure.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Here, we benchmark 10 deep learning methods on an independent, non-redundant dataset of monomeric RNAs and RNA complexes."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Not reported as a criterion; targets are PDB entries and CASP16 targets, and synthetic RNA structures were kept.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Both experimentally determined and synthetic RNA structures from the PDB were preserved"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Experimentally determined structures deposited in the PDB and CASP16 targets serve as references.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RNA-containing entries released after 30 September 2021 (for RNA complexes) and 13 April 2022 (for monomeric RNAs), which correspond to the latest training set date cut-off of the benchmarked methods, were downloaded from the Protein Data Bank (PDB) along with their corresponding sequences in January 2026."
+     },
+     {
+      "source": "@paper",
+      "text": "In addition, we used RNA-containing CASP16 targets to supplement the benchmark dataset."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Sequence plus externally supplied MSAs (rMSA for RNA, MMseqs2 for proteins), shared across methods where the method accepts custom MSAs.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For all methods, the same set of MSAs was used."
+     },
+     {
+      "source": "@paper",
+      "text": "Multiple sequence alignments (MSAs) were provided externally, as explained below, in case the method allowed for custom MSAs."
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Pretrained methods run as released with default settings; no training or fine-tuning.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "All methods were run using default settings."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Targets postdate the methods' training cut-offs and are filtered for sequence and structural redundancy, including against pre-cut-off PDB RNA.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RNA-containing entries released after 30 September 2021 (for RNA complexes) and 13 April 2022 (for monomeric RNAs), which correspond to the latest training set date cut-off of the benchmarked methods, were downloaded from the Protein Data Bank (PDB) along with their corresponding sequences in January 2026."
+     },
+     {
+      "source": "@paper",
+      "text": "at 80% sequence identity to ensure diversity in the datasets. The clustering was performed both within the benchmark dataset and against the remaining RNA sequences in the PDB deposited before the training date cut-off."
+     },
+     {
+      "source": "@paper",
+      "text": "the pairwise TM-score was calculated between all structures within the initial benchmark dataset, and those with a TM-score"
+     },
+     {
+      "source": "@paper",
+      "text": "were considered structurally too similar and excluded from the benchmark dataset."
+     }
+    ]
+   },
+   {
+    "text": "All methods were run with the same MSAs and default settings on the same hardware.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For all methods, the same set of MSAs was used."
+     },
+     {
+      "source": "@paper",
+      "text": "All methods were run using default settings."
+     },
+     {
+      "source": "@paper",
+      "text": "For each method, the structures were generated on a single NVIDIA DGX-A100 Core GPU"
+     }
+    ]
+   },
+   {
+    "text": "Uses several CASP16 metrics and reports success across all four together, since single metrics may overestimate accuracy.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Defining a successfully predicted RNA model",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "suggesting that individual metrics alone may overestimate accuracy"
+     }
+    ]
+   },
+   {
+    "text": "Predicted models, MSAs and sequences are deposited on Zenodo under CC BY 4.0.",
+    "source_ids": [
+     "@zenodo"
+    ],
+    "source_locator": "Zenodo record 21241326",
+    "quotes": [
+     {
+      "source": "@zenodo",
+      "text": "Dataset of predicted models, MSAs and original sequences for the paper Limits of deep-learning-based RNA prediction methods."
+     },
+     {
+      "source": "@zenodo",
+      "text": "\"id\": \"cc-by-4.0\""
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Small sets: 79 monomers and 158 complexes, further divided into easy and hard.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+     }
+    ]
+   },
+   {
+    "text": "Large complexes and three long monomers were excluded because some methods failed on them, which shapes the target set around method limits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Benchmark dataset; Model generation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+     },
+     {
+      "source": "@paper",
+      "text": "To maintain a consistent set of targets across all methods for the main comparative analysis, three targets were excluded: 8BU8 (354 nt), 8TVZ (363 nt), and the CASP16 R1248 target (407 nt)."
+     }
+    ]
+   },
+   {
+    "text": "CASP16 reference structures cannot be redistributed by the authors, and the repository states no licence.",
+    "source_ids": [
+     "@readme",
+     "@gh-repo"
+    ],
+    "source_locator": "README.md",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note that we cannot distribute ground turth structures from CASP16 targets used in the analysis."
+     },
+     {
+      "source": "@gh-repo",
+      "text": "\"license\":null"
+     },
+     {
+      "source": "@gh-tree",
+      "text": "\"path\":\"scr/__pycache__/benchmark_analysis.cpython-39.pyc\""
+     }
+    ]
+   },
+   {
+    "text": "The authors note TM-score underestimates accuracy for shorter RNAs.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Model evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We have noticed that TM-score underestimates the accuracy of shorter RNAs in our benchmark dataset"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Ludaic and Elofsson RNA benchmark workflow",
+   "steps": [
+    "PDB entries after training cut-offs plus CASP16",
+    "Sequence and structure redundancy filters",
+    "Easy and hard sets by TM-score to training data",
+    "Five models per method, top-ranked kept",
+    "TM-score, INF, lDDT, GDT-TS, DockQ",
+    "Wilcoxon tests between methods"
+   ],
+   "caption": "How the benchmark set was assembled and scored, as the paper describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Materials and methods; Results",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "RNA-containing entries released after 30 September 2021 (for RNA complexes) and 13 April 2022 (for monomeric RNAs), which correspond to the latest training set date cut-off of the benchmarked methods, were downloaded from the Protein Data Bank (PDB) along with their corresponding sequences in January 2026."
+    },
+    {
+     "source": "@paper",
+     "text": "at 80% sequence identity to ensure diversity in the datasets. The clustering was performed both within the benchmark dataset and against the remaining RNA sequences in the PDB deposited before the training date cut-off."
+    },
+    {
+     "source": "@paper",
+     "text": "We divided the test set into easy and hard sets based on the maximum similarity to any entry in the PDB training data, using a TM-score cut-off of 0.5."
+    },
+    {
+     "source": "@paper",
+     "text": "For each method, five models with the same seed were generated for each target."
+    },
+    {
+     "source": "@paper",
+     "text": "The top-ranked model was used to analyse each method."
+    },
+    {
+     "source": "@paper",
+     "text": "for monomeric RNAs, we calculated the TM-score using RNA-align, Interaction Network Fidelity (INF), Local Distance Difference Test (lDDT), and a Global Distance Test (GDT-TS)."
+    },
+    {
+     "source": "@paper",
+     "text": "To assess RNA complexes, in addition to the US-align TM-score, we also used the DockQ score"
+    },
+    {
+     "source": "@paper",
+     "text": "assessed whether the observed differences between methods were statistically significant using a Wilcoxon signed-rank test"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Supplementary tables (per-target scores, software versions, success rates S6 and S7) were not read.",
+   "The number of targets in each easy and hard set was not found in the text read.",
+   "The repository README dates the monomer cut-off as February 28, 2022, while the paper says 13 April 2022; the paper is followed here.",
+   "The no-licence and missing-script statements rest on the saved GitHub API repository record and tree."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the PMC XML of the article (PMC13501138), iammarcol/RNA-Benchmark README.md at commit 12caa32f7d5df6e80db0abbb75d237cf9967745c, and the Zenodo API record 21241326, all retrieved 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The README's only run instruction calls scr/benchmark_analysis_run.py; the repository tree at commit 12caa32f lists only compiled benchmark_analysis .pyc files under scr/__pycache__, and the script regenerates figures rather than scoring new predictions. The paper gives the RNAalign and USalign commands but not how to install them or obtain the reference set, and CASP16 references cannot be redistributed.",
+ "structured": [
+  {
+   "task": "Monomeric RNA structure prediction",
+   "dataset": "Monomeric RNAs (PDB and CASP16)",
+   "size": 79,
+   "size_unit": "structures",
+   "split": "easy and hard sets by TM-score cut-off of 0.5",
+   "primary_metric": "TM-score",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/iammarcol/RNA-Benchmark",
+   "data_url": "https://doi.org/10.5281/zenodo.21241326",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+    },
+    {
+     "source": "@paper",
+     "text": "We divided the test set into easy and hard sets based on the maximum similarity to any entry in the PDB training data, using a TM-score cut-off of 0.5."
+    },
+    {
+     "source": "@paper",
+     "text": "for monomeric RNAs, we calculated the TM-score using RNA-align, Interaction Network Fidelity (INF), Local Distance Difference Test (lDDT), and a Global Distance Test (GDT-TS)."
+    },
+    {
+     "source": "@paper",
+     "text": "https://doi.org/10.5281/zenodo.21241326"
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/iammarcol/RNA-Benchmark"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    }
+   ]
+  },
+  {
+   "task": "RNA-RNA and RNA-protein complex structure prediction",
+   "dataset": "RNA complexes (PDB and CASP16)",
+   "size": 158,
+   "size_unit": "structures",
+   "split": "easy if a chain has ≥0.7 TM-score to a pre-cut-off complex",
+   "primary_metric": "DockQ",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/iammarcol/RNA-Benchmark",
+   "data_url": "https://doi.org/10.5281/zenodo.21241326",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Consequently, such complexes were excluded from the analysis, reducing the benchmark dataset for complexes to 158 structures. After filtering, our benchmark dataset for monomeric RNA structures comprised 79 models."
+    },
+    {
+     "source": "@paper",
+     "text": "if the protein or RNA chain had a similarity of ≥0.7 TM-score to any complex in the PDB before the cut-off date. Otherwise, complexes were part of a hard dataset."
+    },
+    {
+     "source": "@paper",
+     "text": "To assess RNA complexes, in addition to the US-align TM-score, we also used the DockQ score"
+    },
+    {
+     "source": "@paper",
+     "text": "https://doi.org/10.5281/zenodo.21241326"
+    },
+    {
+     "source": "@paper",
+     "text": "https://github.com/iammarcol/RNA-Benchmark"
+    },
+    {
+     "source": "@zenodo",
+     "text": "\"id\": \"cc-by-4.0\""
+    }
+   ]
+  }
+ ],
+ "notes": "One paper's evaluation, not a maintained suite; there is no leaderboard. The repository has no licence file at the pinned commit. The predicted models, MSAs and sequences are on Zenodo record 21241326 (published 2026-07-07, CC BY 4.0). The README says eight models then lists ten. DockQ is given as the primary complex metric in structured because it is the interface score, but the paper reports TM-score and DockQ side by side for complexes."
+}

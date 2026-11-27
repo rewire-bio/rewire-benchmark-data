@@ -1,0 +1,1476 @@
+{
+ "record_id": "lit-genomics-20261011-genbench-benchmark-genbench",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Text layer of the GenBench paper, arXiv 2406.01627v2",
+   "description": "Text extracted with pdftotext -layout from the arXiv PDF. The PDF is kept beside it as artifacts/paper.pdf.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2406.01627v2",
+   "url": "https://arxiv.org/abs/2406.01627v2",
+   "version": "arXiv v2",
+   "media_type": "text/plain",
+   "sha256": "67e59810b73b5c51dd91b44169f6f9407dd8931f4bcdd9e7e5da8dfb81908c41",
+   "retrieved_at": "2026-11-27T00:15:51Z",
+   "store_bytes": false
+  },
+  {
+   "key": "readme",
+   "name": "jimmylihui/OpenGenome README.md at commit 3a1f870b",
+   "description": "Official GenBench codebase README, pinned to a commit. The repository address is the hyperlink in the paper's abstract.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/jimmylihui/OpenGenome/3a1f870b346c5b9b464b664f562d2b4d03618c7c/README.md",
+   "url": "https://github.com/jimmylihui/OpenGenome",
+   "version": "git commit 3a1f870b346c5b9b464b664f562d2b4d03618c7c",
+   "media_type": "text/markdown",
+   "sha256": "599356aa3231245baa7da4889df80dc1735ac44b7b5adf72b55c9e77bbfb5ead",
+   "retrieved_at": "2026-11-27T00:16:46Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "GenBench is a benchmark suite and codebase for genomic foundation models. It gathers forty-three datasets covering coding regions, non-coding regions and genome architecture, split into short-range tasks (inputs under 1,000 bases) and long-range tasks, and runs ten models through the same fine-tuning framework. Tasks include sequence classification, token classification and regression, scored by accuracy, AUC-ROC, Pearson or Spearman correlation and mean squared error depending on the task.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract, Sections 3.1 to 3.4; README.md: Introduction",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "introduce GenBench, a comprehensive benchmarking suite specifically tailored"
+   },
+   {
+    "source": "@paper",
+    "text": "GenBench encompasses ten popular GFMs and performs extensive"
+   },
+   {
+    "source": "@paper",
+    "text": "experiments across forty-three realistic datasets."
+   },
+   {
+    "source": "@paper",
+    "text": "we have segmented"
+   },
+   {
+    "source": "@readme",
+    "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "The suite is organised around three parts of the genome: the coding region, the non-coding region and genome architecture. Short-range tasks, with inputs under one thousand bases, cover enhancers, promoters, transcription factor binding, splice sites, epigenetic marks, open chromatin, species discrimination and SARS-CoV-2 variant classification. Long-range tasks cover splice site annotation, species classification, promoter prediction, bulk RNA expression across 218 tissue types and genomic structure prediction. The paper's stated aim is to see whether attention-based and convolution-based models differ in where they do well.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 1, 3.2 and 3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we propose GenBench, a comprehensive benchmarking suite covering the"
+     },
+     {
+      "source": "@paper",
+      "text": "three main genomic directions from local to global, as shown in Figure 1: the coding regions, the"
+     },
+     {
+      "source": "@paper",
+      "text": "Short-range tasks are characterized by input lengths of less than one thousand."
+     },
+     {
+      "source": "@paper",
+      "text": "Long-range tasks are defined as tasks with input lengths longer than 1000."
+     },
+     {
+      "source": "@paper",
+      "text": "bulk RNA levels of a gene across 218 distinct tissue types."
+     },
+     {
+      "source": "@paper",
+      "text": "in preference between the attention-based and convolution-based models on short-"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The datasets are taken from earlier published collections rather than created: the Genomic Benchmarks tasks (mouse enhancers, coding versus intergenomic, human versus worm, enhancers, regulatory regions, non-TATA promoters, open chromatin), the GUE tasks (promoters, transcription factor binding, splice sites, yeast epigenetic marks, SARS-CoV-2 variants), the GENA-LM long-range tasks (splice sites, promoters, Drosophila enhancer activity), genomic structure prediction from Orca and species classification from HyenaDNA. Table 2 lists each task's type, training and test size and input length, from 30 bases for transcription factor prediction up to 256 Mb for genomic structure. For practicality the authors limited genomic structure prediction to 6,000 bases and capped long sequence tasks at 30 kb in their own experiments.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Sections 3.3 and 4, Table 2; README.md: supported datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "were referenced from [17]"
+     },
+     {
+      "source": "@paper",
+      "text": "Factor Prediction, Human Splice Site Detection, Mouse Transcription Factor Prediction, Yeast"
+     },
+     {
+      "source": "@paper",
+      "text": "Epigenetic Marks Prediction, and Virus Covid Variant Classification adopted from [12] encompass"
+     },
+     {
+      "source": "@paper",
+      "text": "We include Splice Site Prediction, Promoter Prediction, and Drosophila Enhancer Detection in our"
+     },
+     {
+      "source": "@paper",
+      "text": "we have limited the length to 6000-bp"
+     },
+     {
+      "source": "@paper",
+      "text": "we set the maximum length to 30k in the long sequence task"
+     },
+     {
+      "source": "@readme",
+      "text": "- [x] [Genomic benchmark](https://www.biorxiv.org/content/10.1101/2022.06.08.495248v1.full) (BMC Genomic Data'2023)"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Models are fine-tuned within the suite's own framework, which loads pretrained weights from Hugging Face, so every model goes through the same pipeline. Metrics are chosen per task: cross-entropy as the error for classification and mean squared error for regression; top-1 accuracy and AUC-ROC for classification; Spearman and Pearson correlation for regression. Parameter count and floating point operations are also reported as computational measures. The published tables report top-1 accuracy for the short-range tasks, AUC-ROC for long-range splice site prediction, Pearson for Drosophila enhancer activity and genomic structure, and Spearman with MSE for bulk RNA expression.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.4, 3.5 and 4, Tables 3 to 8",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use cross-entropy to assess the variance between the anticipated outcomes and"
+     },
+     {
+      "source": "@paper",
+      "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+     },
+     {
+      "source": "@paper",
+      "text": "Correlation metrics: Spearman correlation coefficient (Spearman) [27] and the Pearson correlation"
+     },
+     {
+      "source": "@paper",
+      "text": "We utilize the number of parameters and the number of floating-point"
+     },
+     {
+      "source": "@paper",
+      "text": "Table 4: Short-Range Tasks Top-1 accuracy (%) for pre-trained HyenaDNA, DNABERT, DNABERT2,"
+     },
+     {
+      "source": "@paper",
+      "text": "Table 5: Top-1 AUC-ROC Score for pre-trained HyenaDNA, DNABERT2, GENA-LM, Nucleotide"
+     },
+     {
+      "source": "@paper",
+      "text": "Table 8: Top-1 Spearman and MSE for pre-trained HyenaDNA, DNABERT2, and Caduceus in"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The codebase is organised into a core layer, an algorithm layer and a user interface layer, with configuration files per experiment. Create the conda environment from the shipped file, install the package, then run train.py with an experiment configuration, a dataset name and the path to a pretrained model. Each supported dataset has its own download link and configuration directory in the README.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Installation, Getting Started; Paper: Section 3.5",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml"
+     },
+     {
+      "source": "@readme",
+      "text": "python train.py -m train experiment=hg38/genomic_benchmark_mamba \\"
+     },
+     {
+      "source": "@readme",
+      "text": "- `GenBench/configs` contains configuration for benchmark evaluation."
+     },
+     {
+      "source": "@paper",
+      "text": "GenBench offers a"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Forty-three datasets, grouped in Table 2 into twenty-one benchmark tasks: eight Genomic Benchmarks tasks at 500 bases, eight GUE and DeepSTARR short-range tasks from 30 to 256 bases, and five long-range tasks (splice site prediction at 15 kb, species classification at 80 Mb, promoters prediction at 8 kb, genomic structure at 256 Mb and bulk RNA expression at 196 kb). Test sizes run from 3 examples for genomic structure to 57K for human Ensembl regulatory regions.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract and Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "experiments across forty-three realistic datasets."
+     },
+     {
+      "source": "@paper",
+      "text": "Human Ensembl Regulatory              Multi-class classification     231K         57K        500"
+     },
+     {
+      "source": "@paper",
+      "text": "Genomic Structure Prediction          Regression                       21           3       256M"
+     },
+     {
+      "source": "@paper",
+      "text": "Species Classification                Multi-class classification      1K           500       80M"
+     },
+     {
+      "source": "@paper",
+      "text": "Drosophila Enhancers Prediction       Regression                     402K         41K        128"
+     },
+     {
+      "source": "@paper",
+      "text": "Virus Covid Variant Classification    Multi-class classification      73K          9K        256"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Fixed training and test sizes per task, inherited from the source benchmarks and printed in Table 2; the paper does not describe how those splits were drawn.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Training size Testing size Length"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Per task: top-1 accuracy and AUC-ROC for classification (higher is better), Pearson and Spearman correlation for regression (higher is better), and cross-entropy or mean squared error as the error metric (lower is better). Parameter count and FLOPs are reported alongside.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Squared Error (MSE) is applied in regression tasks."
+     },
+     {
+      "source": "@paper",
+      "text": "Squared Error (MSE) is applied in regression tasks."
+     },
+     {
+      "source": "@paper",
+      "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+     },
+     {
+      "source": "@paper",
+      "text": "coefficient (Pearson) [28] for regression tasks to assess the model’s accuracy."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Ten models: four attention-based (DNABERT, Nucleotide Transformer, DNABERT-2, GENA-LM) and six convolution-based or task-specific (HyenaDNA, Caduceus, a CNN, SpliceAI, DeepSTARR, Orca). The last four are trained from scratch with one-hot encoding as expert comparisons.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1 and Section 3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "prising four attention-based models and six convolution-based models."
+     },
+     {
+      "source": "@paper",
+      "text": "have included expert models for particular downstream tasks for comparison, named SpliceAI [15],"
+     },
+     {
+      "source": "@paper",
+      "text": "DeepSTARR [16], CNN [17], and Orca [18]."
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "None described. The paper does not state any identity cut-off, time split or held-out family, and does not check overlap between task data and model pretraining data.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.2 and 3.3"
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Unextracted: the checklist states error bars were reported with respect to the random seed, but the result tables read print single values without intervals.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Checklist; Tables 3 to 8",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Did you report error bars (e.g., with respect to the random seed after running experi-"
+     },
+     {
+      "source": "@paper",
+      "text": " dev          0.470         0.617           0.624                   0.612                0.443          0.424"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A DNA sequence, with a class label for classification tasks or a continuous target for regression; splice site prediction and genomic structure prediction are scored per token or per position.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.1 and Table 2 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Multi-class Classification\" signifies a classification that operates at the token level"
+     },
+     {
+      "source": "@paper",
+      "text": "Multi-class Classification\" signifies a classification that operates at the token level"
+     },
+     {
+      "source": "@paper",
+      "text": "Lastly, \"Regression\" denotes predicting a continuous range of values, as opposed to classes."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human, mouse, Drosophila, yeast, worm and SARS-CoV-2, as the task names indicate.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Human vs Worm                         Binary classification           75K         25K        500"
+     },
+     {
+      "source": "@paper",
+      "text": "Yeast Epigenetic Marks Prediction     Binary classification          230K         29K        128"
+     },
+     {
+      "source": "@paper",
+      "text": "Virus Covid Variant Classification    Multi-class classification      73K          9K        256"
+     },
+     {
+      "source": "@paper",
+      "text": "Drosophila Enhancers Prediction       Regression                     402K         41K        128"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Varies by source dataset and is not described per task. The paper states that bulk RNA sequencing measures average gene expression across a group of cells in a tissue, and that Drosophila enhancer activity is two measured scores, housekeeping and developmental.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Bulk RNA-sequencing is a biological assay that gauges"
+     },
+     {
+      "source": "@paper",
+      "text": "the average gene expression from a group of cells within a specific tissue."
+     },
+     {
+      "source": "@paper",
+      "text": "one for housekeeping and one for developmental enhancer scores."
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "DNA sequence only, as A, G, C, T or N, tokenised by each model's own tokeniser (k-mer, byte pair encoding, character or one-hot).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.1 and Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "{A, G, C, T, N }"
+     },
+     {
+      "source": "@paper",
+      "text": "Tokenizer"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Fine-tuning: pretrained weights are loaded and the model is trained on each downstream task within the suite's framework. The expert baselines are trained from scratch.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 2.1 and Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we directly incorporate the pretrained model from Huggingface."
+     },
+     {
+      "source": "@paper",
+      "text": "CNN             BMC Genomic Data 2023    One-hot         Scratch"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Covers both short and long inputs, with tasks up to the hundreds of kilobases, which the authors say earlier benchmarks either avoided or reduced to classification.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 1 and Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The current"
+     },
+     {
+      "source": "@paper",
+      "text": "benchmark either restricts its scope to short distances or oversimplifies the challenge by focusing"
+     },
+     {
+      "source": "@paper",
+      "text": "Bulk RNA Prediction                   Regression                      23K          990      196K"
+     }
+    ]
+   },
+   {
+    "text": "All ten models run through one modular codebase with per-experiment configuration files, released under Apache 2.0.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Introduction, License; Paper: Section 3.5",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "GenBench offers a modular and extensible framework, excelling in user-friendliness, organization, and comprehensiveness."
+     },
+     {
+      "source": "@readme",
+      "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+     },
+     {
+      "source": "@paper",
+      "text": "GenBench offers a"
+     }
+    ]
+   },
+   {
+    "text": "Task types go beyond classification to token-level classification and regression, including two-value regression for Drosophila enhancer activity and 218-dimensional bulk RNA output.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.2 and 3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The tasks involve binary sequence classification, multi-class sequence classification, multi-"
+     },
+     {
+      "source": "@paper",
+      "text": "bulk RNA levels of a gene across 218 distinct tissue types."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The authors state GenBench covers only downstream task prediction, with no comparison of pretraining choices, and that they did not test whole-chromosome performance because of compute limits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 5 Limitations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Limitations. Despite the multifaceted comparisons of GFMs, GenBench is basically stuck on"
+     },
+     {
+      "source": "@paper",
+      "text": "performance of GFM on whole chromosome due to the limitation of computational resources."
+     }
+    ]
+   },
+   {
+    "text": "Sequence lengths were cut for practicality: genomic structure prediction was limited to 6,000 bases and long sequence tasks were capped at 30 kb, so the stated input lengths in Table 2 are not what was run.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 3.3 and 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we have limited the length to 6000-bp"
+     },
+     {
+      "source": "@paper",
+      "text": "we set the maximum length to 30k in the long sequence task"
+     }
+    ]
+   },
+   {
+    "text": "No leakage control is described, so a model pretrained on the human genome may have seen the test sequences as unlabelled data.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.3",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "were referenced from [17]"
+     }
+    ]
+   },
+   {
+    "text": "Some test sets are very small: three examples for genomic structure prediction, 242 for mouse enhancers and 500 for species classification.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Genomic Structure Prediction          Regression                       21           3       256M"
+     },
+     {
+      "source": "@paper",
+      "text": "Mouse Enhancers                       Binary classification           968          242       500"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "GenBench workflow",
+   "steps": [
+    "Datasets from earlier benchmarks",
+    "Short-range and long-range grouping at 1 kb",
+    "Load pretrained model from Hugging Face",
+    "Fine-tune through the shared framework",
+    "Accuracy, AUC-ROC, Pearson, Spearman or MSE per task",
+    "Compare attention and convolution models"
+   ],
+   "caption": "One codebase and one fine-tuning pipeline for every model.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Sections 3.2 to 3.5; README.md: Getting Started",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we have segmented"
+    },
+    {
+     "source": "@paper",
+     "text": "we directly incorporate the pretrained model from Huggingface."
+    },
+    {
+     "source": "@readme",
+     "text": "python train.py -m train experiment=hg38/genomic_benchmark_mamba \\"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Per-model result values in Tables 3 to 10 were read but not transcribed here.",
+   "The paper lists 43 datasets but Table 2 groups them into 21 named tasks; the mapping from 21 rows to 43 datasets is not spelled out in the parts read.",
+   "How each source benchmark drew its train and test split is not described.",
+   "The repository's per-dataset configuration files were not fetched."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the arXiv v2 PDF text layer (Abstract, Sections 1 to 5, Tables 1 to 8 and the checklist) and README.md of jimmylihui/OpenGenome at commit 3a1f870b346c5b9b464b664f562d2b4d03618c7c, both retrieved on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Create the suite's conda environment, install it and fine-tune one model on one dataset.",
+  "prerequisites": [
+   "conda, with the environment.yml shipped in the repository.",
+   "A GPU; the README's example uses one device.",
+   "Pretrained weights for the model being evaluated, and the dataset downloaded from the link in the README's dataset list."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/jimmylihui/OpenGenome\ncd OpenGenome\ngit checkout --detach 3a1f870b346c5b9b464b664f562d2b4d03618c7c",
+    "explanation": "Clone the GenBench codebase and pin the commit read for this page. These lines are added by Rewire; the README starts from inside the directory.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd GenBench"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment",
+    "shell": "conda env create -f environment.yml\nconda activate OpenGenome\npython setup.py develop",
+    "explanation": "The README's installation commands.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f environment.yml"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate OpenGenome"
+     },
+     {
+      "source": "@readme",
+      "text": "python setup.py develop"
+     }
+    ]
+   },
+   {
+    "title": "Fine-tune one model on one dataset",
+    "shell": "python train.py -m train experiment=hg38/genomic_benchmark_mamba \\\n        dataset.dataset_name=demo_human_or_worm \\\n        wandb.id=demo_human_or_worm_hyenadna \\\n        train.pretrained_model_path=path/to/pretrained_model \\\n        trainer.devices=1",
+    "explanation": "The README's example: single GPU, non-distributed training of HyenaDNA on the demo_human_or_worm dataset. Replace the pretrained model path with your own checkpoint.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Getting Started",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python train.py -m train experiment=hg38/genomic_benchmark_mamba \\"
+     },
+     {
+      "source": "@readme",
+      "text": "        dataset.dataset_name=demo_human_or_worm \\"
+     },
+     {
+      "source": "@readme",
+      "text": "        train.pretrained_model_path=path/to/pretrained_model \\"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Unreported in the README beyond the Weights and Biases run id; notebooks under notebook/ plot the results for several tasks after an experiment has run."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README's data preparation line in the example refers to a download script named for a different dataset.",
+   "Each dataset must be downloaded separately from the link in the README's dataset list."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "GenBench Mouse Enhancers",
+   "dataset": "GenBench Mouse Enhancers",
+   "size": 242,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Mouse Enhancers                       Binary classification           968          242       500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Coding vs Intergenomic",
+   "dataset": "GenBench Coding vs Intergenomic",
+   "size": 25000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Coding vs Intergenomic                Binary classification           75K         25K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human vs Worm",
+   "dataset": "GenBench Human vs Worm",
+   "size": 25000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human vs Worm                         Binary classification           75K         25K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Enhancers Cohn",
+   "dataset": "GenBench Human Enhancers Cohn",
+   "size": 7000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Enhancers Cohn                  Binary classification           20K          7K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Enhancers Ensembl",
+   "dataset": "GenBench Human Enhancers Ensembl",
+   "size": 3000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Enhancers Ensembl               Binary classification          123K          3K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Ensembl Regulatory",
+   "dataset": "GenBench Human Ensembl Regulatory",
+   "size": 57000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Ensembl Regulatory              Multi-class classification     231K         57K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Nontata promoters",
+   "dataset": "GenBench Human Nontata promoters",
+   "size": 9000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Nontata promoters               Binary classification           27K          9K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human OCR Ensembl",
+   "dataset": "GenBench Human OCR Ensembl",
+   "size": 35000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human OCR Ensembl                     Binary classification           14K         35K        500"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Drosophila Enhancers Prediction",
+   "dataset": "GenBench Drosophila Enhancers Prediction",
+   "size": 41000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "Pearson",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Drosophila Enhancers Prediction       Regression                     402K         41K        128"
+    },
+    {
+     "source": "@paper",
+     "text": "Correlation metrics: Spearman correlation coefficient (Spearman) [27] and the Pearson correlation"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Core Promoter Detection",
+   "dataset": "GenBench Human Core Promoter Detection",
+   "size": 12000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Core Promoter Detection         Binary classification           95K         12K         70"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Transcription Factor Prediction",
+   "dataset": "GenBench Human Transcription Factor Prediction",
+   "size": 5000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Transcription Factor Prediction Binary classification          128K          5K         30"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Promoter Detection",
+   "dataset": "GenBench Human Promoter Detection",
+   "size": 12000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Promoter Detection              Binary classification           95K         12K         70"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Human Splice Site Detection",
+   "dataset": "GenBench Human Splice Site Detection",
+   "size": 5000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Human Splice Site Detection           Multi-class classification      36K          5K         80"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Mouse Transcription Factor Prediction",
+   "dataset": "GenBench Mouse Transcription Factor Prediction",
+   "size": 10000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Mouse Transcription Factor Prediction Binary classification           80K         10K         30"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Yeast Epigenetic Marks Prediction",
+   "dataset": "GenBench Yeast Epigenetic Marks Prediction",
+   "size": 29000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Yeast Epigenetic Marks Prediction     Binary classification          230K         29K        128"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Virus Covid Variant Classification",
+   "dataset": "GenBench Virus Covid Variant Classification",
+   "size": 9000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Virus Covid Variant Classification    Multi-class classification      73K          9K        256"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Splice Site Prediction",
+   "dataset": "GenBench Splice Site Prediction",
+   "size": 16000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "AUC-ROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Splice Site Prediction                Multi-class classification     146K         16K        15K"
+    },
+    {
+     "source": "@paper",
+     "text": "Table 5: Top-1 AUC-ROC Score for pre-trained HyenaDNA, DNABERT2, GENA-LM, Nucleotide"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Species Classification",
+   "dataset": "GenBench Species Classification",
+   "size": 500,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Species Classification                Multi-class classification      1K           500       80M"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Promoters Prediction",
+   "dataset": "GenBench Promoters Prediction",
+   "size": 12000,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "accuracy",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Long Range Promoters Prediction                   Binary classification           41K         12K         8K"
+    },
+    {
+     "source": "@paper",
+     "text": "• Accuracy metrics: We use top-1 accuracy for classification tasks and combine the evaluation met-"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Genomic Structure Prediction",
+   "dataset": "GenBench Genomic Structure Prediction",
+   "size": 3,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "Pearson",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Genomic Structure Prediction          Regression                       21           3       256M"
+    },
+    {
+     "source": "@paper",
+     "text": "Correlation metrics: Spearman correlation coefficient (Spearman) [27] and the Pearson correlation"
+    }
+   ]
+  },
+  {
+   "task": "GenBench Bulk RNA Prediction",
+   "dataset": "GenBench Bulk RNA Prediction",
+   "size": 990,
+   "size_unit": "test examples as Table 2 prints them",
+   "split": "fixed train and test sizes from the source benchmark",
+   "primary_metric": "Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://github.com/jimmylihui/OpenGenome",
+   "data_url": null,
+   "data_licence": null,
+   "code_licence": "Apache-2.0",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "experiments across forty-three realistic datasets."
+    },
+    {
+     "source": "@readme",
+     "text": "This project is released under the [Apache 2.0 license](LICENSE)."
+    },
+    {
+     "source": "@readme",
+     "text": "GenBench is a comprehensive benchmark for evaluating genomic foundation model, encompassing a broad spectrum of methods and diverse tasks, ranging from predicting gene location and function, identifying regulatory elements, and studying species evolution."
+    },
+    {
+     "source": "@paper",
+     "text": "Bulk RNA Prediction                   Regression                      23K          990      196K"
+    },
+    {
+     "source": "@paper",
+     "text": "Table 8: Top-1 Spearman and MSE for pre-trained HyenaDNA, DNABERT2, and Caduceus in"
+    }
+   ]
+  }
+ ],
+ "notes": "The codebase address (https://github.com/jimmylihui/OpenGenome) is the hyperlink behind the word 'here' in the paper's abstract, extracted from the PDF's link annotations; the paper's text does not print it. The repository README calls the work NIPS 2024 while the arXiv version is a preprint under review. size is the test size Table 2 prints, with K read as thousands; the table gives rounded figures, so 25K is recorded as 25000. There is no leaderboard, so results_url is null, and each dataset is downloaded from its original source, so data_url is null. The store holds 52 protocols and 52 datasets for this record, more than the 21 rows of Table 2, because several rows are reported per subset or per target (for example the three Human Core Promoter Detection datasets and the dev, hk and mean columns for Drosophila enhancer activity); this page lists one entry per Table 2 row. Per-model values in Tables 3 to 10 were not transcribed."
+}

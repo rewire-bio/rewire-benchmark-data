@@ -1,0 +1,765 @@
+{
+ "record_id": "vep-lit-20261014-benchmark-livesey-marsh-vep",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Livesey and Marsh 2025, Genome Biology 26:104 (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published article from NCBI E-utilities efetch (db=pmc, id=12016141).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12016141&rettype=xml",
+   "url": "https://doi.org/10.1186/s13059-025-03575-w",
+   "version": "PMC12016141 as retrieved",
+   "media_type": "application/xml",
+   "sha256": "c39ca2bb9a8cf5168a017d4f6486548e4c26b46d9234b40354bcb5bd19f0a4fc",
+   "retrieved_at": "2026-11-26T23:56:20Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "figshare-dms",
+   "name": "figshare API record 28295198, VEP predictions for DMS in 36 proteins",
+   "description": "figshare API JSON for the DMS and VEP prediction files cited in the data availability statement.",
+   "file": "artifacts/figshare-28295198.json",
+   "artifact_url": "https://api.figshare.com/v2/articles/28295198",
+   "url": "https://doi.org/10.6084/m9.figshare.28295198",
+   "version": "figshare article 28295198",
+   "media_type": "application/json",
+   "sha256": "29c1a963670d93b157934929525a3d784d13e71cdd4f9d952dc6dccc9f54e20d",
+   "retrieved_at": "2026-11-26T23:57:02Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "figshare-clinical",
+   "name": "figshare API record 28295249, VEP predictions and clinical labels for variants",
+   "description": "figshare API JSON for the clinical and population variant predictions cited in the data availability statement.",
+   "file": "artifacts/figshare-28295249.json",
+   "artifact_url": "https://api.figshare.com/v2/articles/28295249",
+   "url": "https://doi.org/10.6084/m9.figshare.28295249",
+   "version": "figshare article 28295249",
+   "media_type": "application/json",
+   "sha256": "fc932ff6cf9ac1d70353b818fc8e56f8d4d9ac8829f78c09cf45ba27f78e53b7",
+   "retrieved_at": "2026-11-26T23:57:02Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "figshare-scripts",
+   "name": "figshare API record 28295408, scripts and supporting files",
+   "description": "figshare API JSON for the analysis scripts cited in the data availability statement, released under MIT.",
+   "file": "artifacts/figshare-28295408.json",
+   "artifact_url": "https://api.figshare.com/v2/articles/28295408",
+   "url": "https://doi.org/10.6084/m9.figshare.28295408",
+   "version": "figshare article 28295408",
+   "media_type": "application/json",
+   "sha256": "a9af3373d55eea1adc17c73f24b89765209b9898ebc1bb105fc39858d01eff21",
+   "retrieved_at": "2026-11-26T23:57:02Z",
+   "store_bytes": true,
+   "licence": "MIT"
+  },
+  {
+   "key": "script",
+   "name": "Figures_1_and_2.py from the figshare scripts archive",
+   "description": "The DMS benchmark analysis script, extracted from 'Scripts and supporting files.zip' of figshare article 28295408. The archive is kept as artifacts/scripts.zip.",
+   "file": "artifacts/figures-1-2.py",
+   "artifact_url": "https://ndownloader.figshare.com/files/51978527",
+   "url": "https://doi.org/10.6084/m9.figshare.28295408",
+   "version": "figshare article 28295408, file 51978527",
+   "media_type": "text/x-python",
+   "sha256": "a9d55dbb65b74da731c3acb380095ec1b8725c08433d2c59d6ece58844a3c98d",
+   "retrieved_at": "2026-11-26T23:57:10Z",
+   "store_bytes": true,
+   "licence": "MIT"
+  }
+ ],
+ "profile": {
+  "summary": "This is the third edition of the Livesey and Marsh benchmark of missense variant effect predictors. It ranks 97 predictors by how well their scores correlate with deep mutational scanning measurements in 36 human proteins, and separately ranks 83 predictors by how well they separate ClinVar pathogenic from gnomAD population missense variants in 819 proteins. Rankings are pairwise: each predictor's score is its average win rate against every other predictor on the variants both of them score.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract; Results, Fig. 2 and Fig. 3 legends",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "assessing the performance of 97 VEPs using missense DMS measurements from 36 different human proteins"
+   },
+   {
+    "source": "@paper",
+    "text": "In addition, a new pairwise, VEP-centric approach mitigates the impact of missing predictions on overall performance comparison."
+   },
+   {
+    "source": "@paper",
+    "text": "The top 30 out of 83 tested VEPs in terms of clinical variant classification performance."
+   },
+   {
+    "source": "@paper",
+    "text": "The final rank score was calculated by averaging the win rate of each VEP against all other VEPs."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Two things. First, agreement between a predictor's scores and experimental fitness measurements from deep mutational scanning, using absolute Spearman correlation, because only a monotonic relationship is needed. Second, discrimination between pathogenic and population missense variants in clinical data, using AUROC per protein. The authors' premise is that a predictor consistent across many functional assays is the most useful one, and they report that relative performance on the assay benchmark predicts relative performance on the clinical one for predictors not trained on human clinical variants.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Comparison of VEP performance using DMS data; Abstract",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use absolute Spearman’s rank correlation to assess the correspondence between VEPs and DMS, as only a monotonic relationship between the two variables is required."
+     },
+     {
+      "source": "@paper",
+      "text": "the premise of our analysis is that VEPs that show the most consistency across a large set of DMS experiments are likely to be the most useful for predicting variant effects"
+     },
+     {
+      "source": "@paper",
+      "text": "We observe a strong correspondence between VEP performance in DMS-based benchmarks and clinical variant classification, especially for predictors that have not been directly trained on human clinical variants."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The assay set starts from the 26 datasets of the previous edition, removes every variant also present in the authors' ClinVar and gnomAD sets, then keeps only datasets with at least 1000 scored amino acid variants. Datasets measuring antibody binding or unrelated binding affinity, and those without methodological details, were excluded; 13 new datasets, mostly from MaveDB, were added, giving 36 proteins and 207,460 single amino acid variants. One score set per protein is used, chosen as the one with the highest median Spearman correlation across all predictors. The clinical set takes ClinVar missense variants (downloaded 06/08/2024) labelled pathogenic, likely pathogenic or pathogenic/likely pathogenic, drops 0-star entries and entries with conflicting interpretations, and uses gnomAD v4.1 missense variants that pass the genomes or exomes filters as a putatively benign class. Proteins with at least 10 of each class qualify, giving 819 proteins.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods; Results, New DMS datasets and VEPs; Performance of VEPs on clinical variant classification",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Starting with the 26 DMS datasets from our previous benchmark, we excluded all variants present within our ClinVar and gnomAD datasets, then retained only datasets that scored at least 1000 amino acid variants."
+     },
+     {
+      "source": "@paper",
+      "text": "across 36 proteins and covering 207,460 different single amino acid variants"
+     },
+     {
+      "source": "@paper",
+      "text": "We selected the dataset that had the highest median Spearman’s correlation with all VEPs in order to prevent outliers from unduly influencing the selection process."
+     },
+     {
+      "source": "@paper",
+      "text": "We obtained ClinVar data on 06/08/2024."
+     },
+     {
+      "source": "@paper",
+      "text": "We then removed all entries with a 0* review status (no assertion criteria) and all entries with conflicting interpretations of pathogenicity."
+     },
+     {
+      "source": "@paper",
+      "text": "Our gnomAD dataset was obtained from gnomAD version 4.1."
+     },
+     {
+      "source": "@paper",
+      "text": "We generated predictions for 819 proteins that had at least 10 (likely) pathogenic and 10 putatively benign missense variants using 46 clinical-trained, 31 population-free, and 6 population-tuned VEPs."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "For each protein, the absolute Spearman correlation with the assay is computed for every pair of predictors using only variants all three (assay and both predictors) score. The predictor with the higher correlation wins the comparison. Win rates are pooled over proteins and the rank score is the average win rate against all other predictors. The clinical ranking uses the same pairwise procedure with AUROC in place of Spearman, and a parallel version uses AUPRC. Predictors that score low for pathogenic are inverted by subtracting from 1. Error bars on the assay ranking are the standard deviation of the rank score over 1000 bootstraps resampling 36 protein datasets with replacement; error bars on the clinical ranking are the standard error across comparisons.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Spearman's correlation and rank score; AUROC and AUPRC; Fig. 2 and Fig. 3 legends",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "for each protein the absolute Spearman’s correlations between the selected DMS dataset and every pair of VEPs was calculated using only variants where the DMS and two VEPs all have available scores"
+     },
+     {
+      "source": "@paper",
+      "text": "The VEP that obtained the highest correlation in each pairwise comparison earned one point, while the VEP with the lower correlation earned none."
+     },
+     {
+      "source": "@paper",
+      "text": "The final rank score was calculated by averaging the win rate of each VEP against all other VEPs."
+     },
+     {
+      "source": "@paper",
+      "text": "we applied the same pairwise ranking strategy as above, using AUROC as our comparison metric instead of Spearman’s correlation"
+     },
+     {
+      "source": "@paper",
+      "text": "This was done by deducting the scores from 1."
+     },
+     {
+      "source": "@paper",
+      "text": "represent the standard deviation in the rank score over 1000 bootstraps of the analysis with 36 randomly selected protein datasets (with replacement)."
+     },
+     {
+      "source": "@paper",
+      "text": "Error bars represent the standard error across all comparisons with other VEPs."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "Download the prediction files and the scripts from the three figshare records and run the two Python scripts. Figures_1_and_2.py rebuilds the assay benchmark from the per-protein prediction CSVs, the DMS summary, the ClinVar and gnomAD variant files and the renaming and inversion rules; Figure 3.py rebuilds the clinical ranking from the variant score file. Paths at the top of each script must be set first.",
+    "source_ids": [
+     "@script",
+     "@figshare-scripts"
+    ],
+    "source_locator": "Figures_1_and_2.py: header and paths; figshare record 28295408",
+    "quotes": [
+     {
+      "source": "@script",
+      "text": "# Script to reproduce the data structures needed to plot Figures 1 and 2."
+     },
+     {
+      "source": "@script",
+      "text": "# Folder where the DMS and VEP prediction files are stored"
+     },
+     {
+      "source": "@script",
+      "text": "DMS_dir = '/path/to/prediction/files/'"
+     },
+     {
+      "source": "@figshare-scripts",
+      "text": "Scripts and supporting files.zip"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "36 human deep mutational scanning datasets covering 207,460 single amino acid variants (one score set per protein), and a clinical set of ClinVar pathogenic or likely pathogenic versus gnomAD v4.1 putatively benign missense variants across 819 proteins.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "across 36 proteins and covering 207,460 different single amino acid variants"
+     },
+     {
+      "source": "@paper",
+      "text": "We generated predictions for 819 proteins that had at least 10 (likely) pathogenic and 10 putatively benign missense variants"
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "No train, validation or test split: all data are evaluation data, and the predictors are external tools. Variants present in ClinVar or gnomAD are removed from the assay benchmark, and datasets were excluded for predictors trained on that assay data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Comparison of VEP performance using DMS data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "allowed us to exclude all variants present in ClinVar and gnomAD from calculations of Spearman’s correlation"
+     },
+     {
+      "source": "@paper",
+      "text": "we have excluded specific proteins from the assessment of predictors that were trained using DMS data, to avoid potential data circularity"
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Assay benchmark: pairwise win rate on absolute Spearman correlation (higher is better). Clinical benchmark: pairwise win rate on AUROC, with an AUPRC version in the supplement (higher is better).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use absolute Spearman’s rank correlation to assess the correspondence between VEPs and DMS"
+     },
+     {
+      "source": "@paper",
+      "text": "using AUROC as our comparison metric instead of Spearman’s correlation"
+     },
+     {
+      "source": "@paper",
+      "text": "The same procedure was used to generate the AUPRC-based ranking in Additional file 1: Fig. S4, but with precision-recall instead of ROC."
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "The predictors are the comparison set: 97 in the assay benchmark and 83 in the clinical one, grouped as clinical-trained (46), population-free (31) and population-tuned (6). 27 came from dbNSFP 4.2; the rest were run locally, downloaded, taken from web interfaces or from ProteinGym.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, VEPs; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "served as a source for 27 VEPs."
+     },
+     {
+      "source": "@paper",
+      "text": "The remaining 70 VEPs were either run locally on the University of Edinburgh high performance computing cluster (EDDIE)"
+     },
+     {
+      "source": "@paper",
+      "text": "using 46 clinical-trained, 31 population-free, and 6 population-tuned VEPs"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "For the assay benchmark: all ClinVar and gnomAD variants are removed, and proteins are excluded for predictors trained on that assay. For the clinical benchmark: none. The authors state they made no effort to exclude training variants there and that clinical-trained predictors are likely inflated by circularity.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "allowed us to exclude all variants present in ClinVar and gnomAD from calculations of Spearman’s correlation"
+     },
+     {
+      "source": "@paper",
+      "text": "is highly inflated by circularity issues, as we made no effort to exclude variants used in training"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "1000 bootstraps resampling the 36 protein datasets with replacement give the standard deviation of each assay rank score; the clinical ranking reports the standard error across pairwise comparisons.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Fig. 2 and Fig. 3 legends",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "over 1000 bootstraps of the analysis with 36 randomly selected protein datasets (with replacement)"
+     },
+     {
+      "source": "@paper",
+      "text": "Error bars represent the standard error across all comparisons with other VEPs."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A single amino acid substitution in a human protein, with either an assay fitness score or a clinical or population label.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, New DMS datasets and VEPs",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "13 new DMS datasets assessing the impacts of single amino acid substitutions"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human proteins. Some assays are carried out in other systems, for example yeast complementation assays.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "missense DMS measurements from 36 different human proteins"
+     },
+     {
+      "source": "@paper",
+      "text": "Indirect yeast complementation assay"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Deep mutational scanning, classified as direct (measuring the protein's own function) or indirect (for example growth or complementation). Clinical labels come from ClinVar assertions and gnomAD allele observations, not assays.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Fig. 1 legend; Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "DMS datasets are classified as “direct” if they directly measure the ability of the target protein to carry out one or more functions, with all others being classified as “indirect.”"
+     },
+     {
+      "source": "@paper",
+      "text": "Indirect growth assay in a human lymphoma cell line"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Inapplicable: the benchmark scores whatever each published predictor produces and does not restrict inputs. Coverage differs between predictors, with some scoring only substitutions reachable by a single nucleotide change.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Comparison of VEP performance using DMS data",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Some only provide predictions for those missense changes possible via single nucleotide changes"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "None: published predictors are used as they are, with no fine-tuning or retraining by the benchmark authors.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, VEPs",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "downloaded as pre-calculated results, obtained via a web interface, or obtained for a limited subset of mutations/proteins from the ProteinGym website"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Pairwise comparison on shared variants removes the advantage a predictor could gain from scoring only an easy subset, which the authors show can otherwise produce outliers.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "This could lead to inflated results for predictors that exclude a generally poorly predicted region of a protein."
+     },
+     {
+      "source": "@paper",
+      "text": "for each DMS dataset we perform a series of pairwise comparisons in which the correlation between every possible pair of VEPs with the DMS data is calculated using only predictions for variants shared between the two VEPs and the DMS set"
+     }
+    ]
+   },
+   {
+    "text": "The assay benchmark removes ClinVar and gnomAD variants, which the authors say offsets the advantage predictors gain from training on those databases.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "in order to help offset any advantage gained by certain VEPs against the data we use to assess their performance"
+     }
+    ]
+   },
+   {
+    "text": "Predictions, clinical labels and the analysis scripts are deposited on figshare, the data under CC BY 4.0 and the scripts under MIT.",
+    "source_ids": [
+     "@paper",
+     "@figshare-dms",
+     "@figshare-scripts"
+    ],
+    "source_locator": "Paper: Data availability; figshare records",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Scripts to reproduce this analysis are available at doi:10.6084/m9.figshare.28295408 and are released under an MIT license"
+     },
+     {
+      "source": "@figshare-dms",
+      "text": "\"name\": \"CC BY 4.0\""
+     },
+     {
+      "source": "@figshare-scripts",
+      "text": "\"name\": \"MIT\""
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "A rank score is relative, not absolute: it depends on which other predictors are in the comparison and is not a correlation or an AUROC.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Spearman's correlation and rank score",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The win rate of every VEP over every other VEP was then calculated across all proteins by dividing the number of wins by the number of times that particular pair of VEPs were tested."
+     }
+    ]
+   },
+   {
+    "text": "The clinical ranking excludes no training variants, so the authors say clinical-trained predictors are likely inflated there by circularity.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, Performance of VEPs on clinical variant classification",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "is highly inflated by circularity issues, as we made no effort to exclude variants used in training"
+     }
+    ]
+   },
+   {
+    "text": "The negative class is gnomAD population variants, which the authors accept will contain some pathogenic variants not yet classified, especially in recessive and incompletely penetrant genes.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "likely to be a small proportion of as-of-yet unclassified pathogenic variants in our negative class, particularly in recessive genes and those with incomplete penetrance"
+     }
+    ]
+   },
+   {
+    "text": "Each protein is represented by one assay score set, chosen as the one correlating best with the predictors on average, so the choice depends on the predictors being tested.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, New DMS datasets and VEPs",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We selected the dataset that had the highest median Spearman’s correlation with all VEPs in order to prevent outliers from unduly influencing the selection process."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Pairwise VEP ranking",
+   "steps": [
+    "Assay scores and predictor scores per protein",
+    "Remove ClinVar and gnomAD variants",
+    "Correlate each predictor pair on shared variants",
+    "Award a win to the higher correlation",
+    "Average win rate over all opponents",
+    "Rank score"
+   ],
+   "caption": "The clinical benchmark repeats the same steps with AUROC on ClinVar versus gnomAD variants.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods, Spearman's correlation and rank score",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The VEP that obtained the highest correlation in each pairwise comparison earned one point, while the VEP with the lower correlation earned none."
+    },
+    {
+     "source": "@paper",
+     "text": "The final rank score was calculated by averaging the win rate of each VEP against all other VEPs."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Per-predictor rank scores are in Additional file 2 Tables S3 and S8, which were not fetched; the existing source vep-lit-20261014-source-livesey2025-supplementary-2 holds the supplementary tables.",
+   "The per-protein variant counts in the clinical set are not given in the text read.",
+   "The SNV-accessible and gap-filled variants of the assay ranking, which the store holds as separate protocols, are described in parts of the article not quoted here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the NCBI PMC full-text XML (PMC12016141), the figshare API records 28295198, 28295249 and 28295408, and Figures_1_and_2.py from the scripts archive, all retrieved on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Download the deposited predictions and scripts from figshare and rebuild the two rankings.",
+  "prerequisites": [
+   "Python with pandas, numpy, tqdm, scipy and scikit-learn; the paper used scipy 1.5.4 on Python 3.6.8 and scikit-learn 0.18.1.",
+   "The prediction files from figshare 28295198 (DMS) and 28295249 (clinical), about 2.9 MB of supporting files bundled with the scripts."
+  ],
+  "steps": [
+   {
+    "title": "Get the scripts and supporting files",
+    "shell": "curl -L -o scripts.zip https://ndownloader.figshare.com/files/51978527\nunzip scripts.zip",
+    "explanation": "Downloads 'Scripts and supporting files.zip' from figshare article 28295408 and unpacks it. The curl and unzip lines are added by Rewire; the file address is from the figshare API record.",
+    "source_ids": [
+     "@figshare-scripts"
+    ],
+    "source_locator": "figshare record 28295408: files",
+    "quotes": [
+     {
+      "source": "@figshare-scripts",
+      "text": "https://ndownloader.figshare.com/files/51978527"
+     }
+    ]
+   },
+   {
+    "title": "Set the paths and rebuild the assay benchmark",
+    "shell": "# edit the paths at the top of Figures_1_and_2.py, for example:\n#   DMS_dir = '/path/to/prediction/files/'\npython Figures_1_and_2.py",
+    "explanation": "The script reads the per-protein prediction files, the DMS summary and the ClinVar and gnomAD variant files, and rebuilds the data behind Figures 1 and 2. The DMS_dir path must point at the files from figshare 28295198. The comment lines are added by Rewire.",
+    "source_ids": [
+     "@script"
+    ],
+    "source_locator": "Figures_1_and_2.py: header and path block",
+    "quotes": [
+     {
+      "source": "@script",
+      "text": "# Script to reproduce the data structures needed to plot Figures 1 and 2."
+     },
+     {
+      "source": "@script",
+      "text": "DMS_dir = '/path/to/prediction/files/'"
+     },
+     {
+      "source": "@script",
+      "text": "# The files required are at: 10.6084/m9.figshare.28295198 or bundled with this script."
+     }
+    ]
+   },
+   {
+    "title": "Rebuild the clinical ranking",
+    "shell": "# edit score_file_path in 'Figure 3.py' to the file from figshare 28295249\npython \"Figure 3.py\"",
+    "explanation": "Figure 3.py computes AUROC and average precision for the clinical variants and the pairwise ranking. Its path variable must point at the rank variants file. The comment line is added by Rewire.",
+    "source_ids": [
+     "@figshare-clinical",
+     "@figshare-scripts"
+    ],
+    "source_locator": "figshare record 28295249: files; archive listing",
+    "quotes": [
+     {
+      "source": "@figshare-clinical",
+      "text": "all_roc_rank_variants_v2.csv"
+     },
+     {
+      "source": "@figshare-scripts",
+      "text": "Scripts and supporting files.zip"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Unreported: the article does not state what the scripts print or write beyond the data structures behind Figures 1, 2 and 3."
+  ],
+  "limitations": [
+   "These commands were read from the deposited scripts and have not been executed by Rewire.",
+   "The scripts' input paths are placeholders and must be edited.",
+   "The scripts rebuild the authors' figures; they do not score a new predictor automatically."
+  ],
+  "source_ids": [
+   "@script",
+   "@figshare-scripts",
+   "@figshare-clinical"
+  ]
+ },
+ "structured": [
+  {
+   "task": "DMS benchmark, pairwise absolute Spearman win rate",
+   "dataset": "36 human DMS datasets",
+   "size": 207460,
+   "size_unit": "single amino acid variants in the whole set",
+   "split": "no split; ClinVar and gnomAD variants removed",
+   "primary_metric": "pairwise win rate on absolute Spearman",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://doi.org/10.6084/m9.figshare.28295408",
+   "data_url": "https://doi.org/10.6084/m9.figshare.28295198",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "MIT",
+   "released": "2025-01-28",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The final rank score was calculated by averaging the win rate of each VEP against all other VEPs."
+    },
+    {
+     "source": "@paper",
+     "text": "Scripts to reproduce this analysis are available at doi:10.6084/m9.figshare.28295408 and are released under an MIT license"
+    },
+    {
+     "source": "@figshare-scripts",
+     "text": "\"name\": \"MIT\""
+    },
+    {
+     "source": "@figshare-dms",
+     "text": "\"name\": \"CC BY 4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "across 36 proteins and covering 207,460 different single amino acid variants"
+    },
+    {
+     "source": "@paper",
+     "text": "allowed us to exclude all variants present in ClinVar and gnomAD from calculations of Spearman’s correlation"
+    },
+    {
+     "source": "@figshare-dms",
+     "text": "\"published_date\": \"2025-01-28T22:27:22Z\""
+    },
+    {
+     "source": "@figshare-dms",
+     "text": "VEP predictions for DMS in 36 proteins."
+    }
+   ]
+  },
+  {
+   "task": "Clinical benchmark, pairwise AUROC win rate",
+   "dataset": "ClinVar pathogenic versus gnomAD v4.1 putatively benign missense variants",
+   "size": 819,
+   "size_unit": "proteins with at least 10 variants of each class",
+   "split": "no split; no training variants excluded",
+   "primary_metric": "pairwise win rate on AUROC",
+   "metric_direction": "higher",
+   "results_url": null,
+   "code_url": "https://doi.org/10.6084/m9.figshare.28295408",
+   "data_url": "https://doi.org/10.6084/m9.figshare.28295249",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": "MIT",
+   "released": "2025-01-28",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The final rank score was calculated by averaging the win rate of each VEP against all other VEPs."
+    },
+    {
+     "source": "@paper",
+     "text": "Scripts to reproduce this analysis are available at doi:10.6084/m9.figshare.28295408 and are released under an MIT license"
+    },
+    {
+     "source": "@figshare-scripts",
+     "text": "\"name\": \"MIT\""
+    },
+    {
+     "source": "@figshare-dms",
+     "text": "\"name\": \"CC BY 4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "We generated predictions for 819 proteins that had at least 10 (likely) pathogenic and 10 putatively benign missense variants"
+    },
+    {
+     "source": "@paper",
+     "text": "is highly inflated by circularity issues, as we made no effort to exclude variants used in training"
+    },
+    {
+     "source": "@paper",
+     "text": "using AUROC as our comparison metric instead of Spearman’s correlation"
+    },
+    {
+     "source": "@figshare-clinical",
+     "text": "\"published_date\": \"2025-01-28T22:27:55Z\""
+    },
+    {
+     "source": "@figshare-clinical",
+     "text": "\"name\": \"CC BY 4.0\""
+    }
+   ]
+  }
+ ],
+ "notes": "This is the 2025 edition (Genome Biology 26:104), the third after the 2020 and 2023 Molecular Systems Biology papers; the earlier editions used other assay sets, predictor sets and, in 2020, another ranking method. size for the assay entry is the whole set (207,460 variants across 36 proteins), as the article gives no separate test count; size for the clinical entry counts qualifying proteins, not variants, because the article gives no variant total. There is no leaderboard, so results_url is null; per-predictor rank scores are in Additional file 2. The store holds further assay protocols (SNV-accessible only, gaps filled, direct assays only, indirect assays only) that this page describes only in general terms. The scripts and prediction files were downloaded from the figshare addresses in the data availability statement."
+}

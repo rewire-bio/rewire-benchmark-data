@@ -1,0 +1,1297 @@
+{
+ "record_id": "lit-microbial-20261011-virobench-benchmark-virobench",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Text layer of the ViroBench paper, arXiv 2605.25388v1",
+   "description": "Text extracted with pdftotext -layout from the arXiv PDF. The PDF is kept beside it as artifacts/paper.pdf. The main body is set in two columns, so quotes from it are single-line fragments.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2605.25388v1",
+   "url": "https://arxiv.org/abs/2605.25388v1",
+   "version": "arXiv v1",
+   "media_type": "text/plain",
+   "sha256": "48071e2e329430de04b90c16d92261af52fe953cfc424e8caa5acf2babc574c7",
+   "retrieved_at": "2026-11-26T23:52:31Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  },
+  {
+   "key": "readme",
+   "name": "QIANJINYDX/ViroBench README.md at commit ba7c3868",
+   "description": "Official repository README, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/QIANJINYDX/ViroBench/ba7c3868c41226a7add652d3145ed6e8f22b56c1/README.md",
+   "url": "https://github.com/QIANJINYDX/ViroBench",
+   "version": "git commit ba7c3868c41226a7add652d3145ed6e8f22b56c1",
+   "media_type": "text/markdown",
+   "sha256": "93137bc87d37ec37c7c009ac9b56e3c258ef315649c285789bfb00f9b848bfd7",
+   "retrieved_at": "2026-11-26T23:53:09Z",
+   "store_bytes": false
+  },
+  {
+   "key": "hf-dataset",
+   "name": "Hugging Face dataset API record for YDXX/ViroBench",
+   "description": "JSON metadata from the Hugging Face datasets API for the ViroBench data, including the licence tag.",
+   "file": "artifacts/hf-dataset.json",
+   "artifact_url": "https://huggingface.co/api/datasets/YDXX/ViroBench",
+   "url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "version": "dataset sha 77461edda1bc4f3c0ea96008384a678fefe04a14 at retrieval",
+   "media_type": "application/json",
+   "sha256": "14ed2816232851357f380dfd447523256d21e9223abdace9cf63813ff782bc81",
+   "retrieved_at": "2026-11-26T23:54:07Z",
+   "store_bytes": true,
+   "licence": "CC BY 4.0"
+  }
+ ],
+ "profile": {
+  "summary": "ViroBench tests nucleotide foundation models on viral sequences from NCBI. Its classification half asks a model to predict a virus's taxonomy (Kingdom to Family) and its host category, under two hard splits: one that holds out whole genera and one that splits by deposit date. Models are compared with a frozen backbone and a small trained head, scored by macro-F1, precision, recall and AUPRC. It is for anyone judging how a DNA or RNA model generalises to viruses it has not seen.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract, Section 3; README.md: Benchmark Suite",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we introduce ViroBench, the first comprehensive and large-scale"
+   },
+   {
+    "source": "@readme",
+    "text": "- **Understanding Axis**: taxonomy classification & host prediction"
+   },
+   {
+    "source": "@readme",
+    "text": "- **Genus-disjoint split** to reduce phylogenetic leakage  "
+   },
+   {
+    "source": "@readme",
+    "text": "- **Temporal** (split by record time to capture drift)"
+   },
+   {
+    "source": "@readme",
+    "text": "  - Frozen backbone encoder + lightweight supervised head (for classification)"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Two classification tasks. Taxonomy classification predicts five hierarchical labels from Kingdom to Family, testing whether a model's representation reflects viral evolutionary structure. Host prediction assigns a sequence to one of eight coarse host categories, testing whether the representation carries ecological signal. Each task is run on the whole viral corpus (ALL) and separately on the DNA and RNA subsets, under both splits, giving 12 classification scenarios. The paper also defines six generation scenarios on a second axis, which this page does not cover.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3.2.1; README.md: Benchmark Suite",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "• Taxonomy Classification: Predicts five hierarchical labels"
+     },
+     {
+      "source": "@paper",
+      "text": "(from Kingdom to Family). It evaluates the model’s ability to"
+     },
+     {
+      "source": "@paper",
+      "text": "• Host Prediction: Categorizes sequences into standardized"
+     },
+     {
+      "source": "@paper",
+      "text": "host classes to evaluate virus-host interaction patterns. This"
+     },
+     {
+      "source": "@paper",
+      "text": "Axis evaluates a model’s capacity to internalize fundamental biolog-"
+     },
+     {
+      "source": "@readme",
+      "text": "- **18 benchmark tasks**: 12 classification + 6 generation  "
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "The authors retrieved 273,974 virus-associated TaxIDs from NCBI RefSeq and GenBank and recorded taxonomy, the earliest discovery date and host for each. Raw host metadata, over 8,000 inconsistent strings, was standardised into eight coarse categories using the Qwen3-235B language model. Entries with incomplete taxonomy or missing timestamps were removed, only verified high-quality assemblies were kept, and species-level redundancy was resolved, leaving 58,314 samples. Two split protocols are defined over the same data: a genus-disjoint split with no genus shared between train, validation and test, and a temporal split by deposit date with stated cutoffs per panel (for example 2017.10 and 2020.02 for the ALL set). Both use an 8:1:1 train, validation and test ratio.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1, Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "974 virus-"
+     },
+     {
+      "source": "@paper",
+      "text": "associated TaxIDs from NCBI (RefSeq [32] and GenBank [4]). For"
+     },
+     {
+      "source": "@paper",
+      "text": "which originally contained over 8, 000 inconsistent strings, we used"
+     },
+     {
+      "source": "@paper",
+      "text": "grained categories (e.g., Bacterial, Plant, Human). To maintain data"
+     },
+     {
+      "source": "@paper",
+      "text": "The final ViroBench corpus consists"
+     },
+     {
+      "source": "@paper",
+      "text": "of 58,314 high-quality viral samples."
+     },
+     {
+      "source": "@paper",
+      "text": "A Genus-disjoint Split enforces strict"
+     },
+     {
+      "source": "@paper",
+      "text": "8:1:1 Ratio (Train/Val/Test)"
+     },
+     {
+      "source": "@paper",
+      "text": "Cutoffs: 2017.10 / 2020.02"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "The backbone is frozen: sequence embeddings are precomputed with each model's own pooling strategy and a lightweight multi-task classification head is trained on them. Long sequences are handled by windowing, with 8, 4 or 2 windows sampled per sequence during training; at validation and test time all windows are scored and aggregated into one sequence-level prediction. Learning rates from 10^-2 to 10^-4 and the different window configurations are tried, and results are reported as the mean with standard deviation across those settings. Metrics are AUPRC, recall, precision and macro-F1, chosen for the class imbalance. A CNN trained from scratch is the non-pretrained reference.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 4.1, Appendix frozen-backbone protocol; README.md: Unified Evaluation Protocol",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We evaluate all assessed foundation models using a frozen-backbone"
+     },
+     {
+      "source": "@paper",
+      "text": "and only a lightweight multi-task classification head is trained on"
+     },
+     {
+      "source": "@paper",
+      "text": "paired with random sampling of 8, 4, and 2 windows per sequence,"
+     },
+     {
+      "source": "@paper",
+      "text": "final sequence-level decisions. We extract embedding features from"
+     },
+     {
+      "source": "@paper",
+      "text": "we utilize a robust metric suite: Area Under the Precision-Recall"
+     },
+     {
+      "source": "@paper",
+      "text": "Curve (AUPRC), Recall, Precision, and Macro-F1 score. We tune"
+     },
+     {
+      "source": "@paper",
+      "text": "Results are reported as the mean"
+     },
+     {
+      "source": "@paper",
+      "text": "A CNN trained from scratch serves as a non-pretrained baseline"
+     },
+     {
+      "source": "@readme",
+      "text": "2) train a supervised MLP head on top of embeddings"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "Clone the repository, put the classification splits under data/all_viral/cls_data/, and run script/run_all.py with a model name and a dataset name of the form {DNA|RNA|ALL}-{taxon|host}-{genus|times}. The dataset itself is downloaded from the Hugging Face repository. The README says model-specific setup must follow each model's own documentation.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation, Quickstart",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+     },
+     {
+      "source": "@readme",
+      "text": "# Format: {DNA|RNA|ALL}-{taxon|host}-{genus|times}"
+     },
+     {
+      "source": "@readme",
+      "text": "For model-specific setup (e.g. Evo2, HyenaDNA), please refer to each model’s official documentation."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "One curated corpus of 58,314 viral samples from NCBI RefSeq and GenBank, used as ALL, DNA and RNA panels. Table 1 gives the label counts per panel, for example 29 / 55 / 214 / 390 / 319 labels at Kingdom, Phylum, Class, Order and Family for ALL viruses.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1, Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "of 58,314 high-quality viral samples."
+     },
+     {
+      "source": "@paper",
+      "text": "29 / 55 / 214 / 390 / 319"
+     },
+     {
+      "source": "@paper",
+      "text": "Hierarchy Count: Num. labels at Kingdom/Phylum/Class/Order/Family."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Two protocols over the same data, both 8:1:1 train, validation and test. Genus-disjoint: no genus appears in more than one partition. Temporal: split by deposit date, with per-panel cutoffs (ALL 2017.10 and 2020.02; DNA 2022.07 and 2023.08; RNA 2017.03 and 2017.11).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "8:1:1 Ratio (Train/Val/Test)"
+     },
+     {
+      "source": "@paper",
+      "text": "Cutoffs: 2017.10 / 2020.02"
+     },
+     {
+      "source": "@paper",
+      "text": "Cutoffs: 2022.07 / 2023.08"
+     },
+     {
+      "source": "@paper",
+      "text": "Cutoffs: 2017.03 / 2017.11"
+     },
+     {
+      "source": "@paper",
+      "text": "Cutoffs: Split points for Val/Test."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Macro-F1 is the headline classification metric (Table 25); AUPRC, recall and precision are also reported. Higher is better.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 4.1, Table 25 caption; README.md: Metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Curve (AUPRC), Recall, Precision, and Macro-F1 score. We tune"
+     },
+     {
+      "source": "@paper",
+      "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+     },
+     {
+      "source": "@readme",
+      "text": "- Precision,Recall,F1,AUPRC"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "66 nucleotide foundation models plus 4 conventional baselines, 70 methods in total; the paper names BLAST, Kraken2, a BiLSTM and a CNN trained from scratch among the conventional ones. The README says 67 baselines.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 4.1.1, Table 3; README.md: Baselines",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We extensively benchmarked 66 state-of-"
+     },
+     {
+      "source": "@paper",
+      "text": "the-art NFMs, together with 4 conventional baseline, totaling 70"
+     },
+     {
+      "source": "@paper",
+      "text": "A CNN trained from scratch serves as a non-pretrained baseline"
+     },
+     {
+      "source": "@readme",
+      "text": "### Baselines (67 models)"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "The genus-disjoint split removes genus overlap between partitions, which the authors describe as mandating phylogenetic extrapolation; the temporal split holds out later deposits. Overlap between test sequences and a model's own pretraining data is not controlled.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3.2.1; README.md: Highlights",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "A Genus-disjoint Split enforces strict"
+     },
+     {
+      "source": "@paper",
+      "text": "taxonomical isolation to mandate phylogenetic extrapolation, en-"
+     },
+     {
+      "source": "@readme",
+      "text": "- **Genus-disjoint split** to reduce phylogenetic leakage  "
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Means with standard deviations across the learning rate and window configurations tried, as stated in the Table 25 caption and the setup.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4.1, Table 25 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Results are reported as the mean"
+     },
+     {
+      "source": "@paper",
+      "text": "genus-disjoint (G-split) and temporal (T-split) protocols. Means (standard deviations) are reported."
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "One viral nucleotide sequence from an NCBI record, with taxonomy, deposit date and host metadata.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "associated TaxIDs from NCBI (RefSeq [32] and GenBank [4]). For"
+     },
+     {
+      "source": "@paper",
+      "text": "(1) Taxonomy, by extracting hierarchical lineages (from Kingdom to"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Viruses, split into DNA, RNA and unknown nucleic-acid types; host labels cover eight coarse categories such as bacterial, plant and human.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 3.1; README.md: Dataset Overview",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "grained categories (e.g., Bacterial, Plant, Human). To maintain data"
+     },
+     {
+      "source": "@readme",
+      "text": "  - nucleic-acid types: **DNA / RNA / Unknown**"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Inapplicable: labels are database annotations (NCBI taxonomy, deposit dates and host metadata standardised by a language model), not experimental measurements.",
+    "status": "inapplicable",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1"
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Nucleotide sequence only, read through each model's own tokeniser and pooling; sequences longer than a model's context are windowed.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix, Embedding Extraction and Pooling",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "integrity, pooling strategies strictly follow each model’s original"
+     },
+     {
+      "source": "@paper",
+      "text": "For sequences exceeding a model’s native context"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Frozen backbone with a lightweight supervised head for classification; no fine-tuning of the pretrained weights.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Appendix, frozen-backbone protocol",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "this pipeline, the pretrained weights of the NFMs are kept fixed,"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Both splits are harder than a random split: one removes whole genera, the other holds out later deposits, so memorised near-duplicates do not inflate scores.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.2.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "taxonomical isolation to mandate phylogenetic extrapolation, en-"
+     },
+     {
+      "source": "@paper",
+      "text": "chronologically to simulate real-world distribution drift, thereby"
+     }
+    ]
+   },
+   {
+    "text": "All models go through the same frozen-backbone protocol with a standard head, which the authors say reduces bias from different tokenisers and architectures.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "each model to train a standardized, lightweight classification head,"
+     },
+     {
+      "source": "@paper",
+      "text": "minimizing biases from heterogeneous tokenizers and architectures."
+     }
+    ]
+   },
+   {
+    "text": "Results are reported with standard deviations over learning rates and window settings rather than a single tuned number.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "(standard deviation) across these hyperparameter settings to ensure"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Host prediction is a single label over coarse categories, using the primary-host annotation; the authors say a multi-label version is future work.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Limitations and Ethical Considerations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "ViroBench has several limitations. Host prediction is framed as a"
+     },
+     {
+      "source": "@paper",
+      "text": "expand to multi-label prediction as metadata matures. Additionally,"
+     }
+    ]
+   },
+   {
+    "text": "The temporal split uses NCBI deposit dates, which the authors say reflect sequencing intensity rather than when a virus actually emerged.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Limitations and Ethical Considerations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "while the temporal split uses NCBI deposit dates for uniformity, we"
+     },
+     {
+      "source": "@paper",
+      "text": "acknowledge these reflect sequencing intensity rather than true"
+     }
+    ]
+   },
+   {
+    "text": "Host labels were standardised from over 8,000 inconsistent strings by a language model (Qwen3-235B), so label quality depends on that step.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3.1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "which originally contained over 8, 000 inconsistent strings, we used"
+     },
+     {
+      "source": "@paper",
+      "text": "Qwen3-235B"
+     }
+    ]
+   },
+   {
+    "text": "The repository carries no licence file, and the model counts differ between the paper (66 models, 70 methods) and the README (67 baselines).",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 4.1.1; README.md: Baselines",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "the-art NFMs, together with 4 conventional baseline, totaling 70"
+     },
+     {
+      "source": "@readme",
+      "text": "### Baselines (67 models)"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "ViroBench classification workflow",
+   "steps": [
+    "NCBI viral records with taxonomy, date and host",
+    "Filter and standardise to 58,314 samples",
+    "Genus-disjoint or temporal 8:1:1 split",
+    "Frozen model embeddings, windowed",
+    "Train lightweight head",
+    "Macro-F1, AUPRC, precision, recall"
+   ],
+   "caption": "The same corpus is split two ways; only the head is trained.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "Paper: Sections 3.1 to 4.1; README.md: Unified Evaluation Protocol",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "of 58,314 high-quality viral samples."
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@readme",
+     "text": "3) evaluate under genus-disjoint and temporal splits"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Table 1 gives label counts and ratios but no per-panel sequence counts, so the size of each test set is not stated in the parts read.",
+   "The repository has no licence file, so the terms for the code are not stated.",
+   "Per-model scores in Table 25 were not transcribed here.",
+   "The six generation scenarios on the paper's second axis are outside this page's scope."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the arXiv v1 PDF text layer (Abstract, Sections 2 to 4, Table 1, Table 25 caption, Limitations and the frozen-backbone appendix), the repository README.md at commit ba7c3868c41226a7add652d3145ed6e8f22b56c1, and the Hugging Face dataset API record, all retrieved on 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Clone the benchmark, download the data from Hugging Face and run one classification scenario with a chosen model.",
+  "prerequisites": [
+   "Python with the dependencies of the model you evaluate; the README says model-specific setup follows each model's own documentation.",
+   "The Hugging Face CLI, or git with Git Xet, to download the dataset.",
+   "Data under data/all_viral/cls_data/ for classification, or paths adjusted in the scripts."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/QIANJINYDX/ViroBench\ncd ViroBench\ngit checkout --detach ba7c3868c41226a7add652d3145ed6e8f22b56c1",
+    "explanation": "Clone the repository. The checkout line pins the commit read for this page and is added by Rewire.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Environment setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+     },
+     {
+      "source": "@readme",
+      "text": "cd ViroBench"
+     }
+    ]
+   },
+   {
+    "title": "Download the data",
+    "shell": "curl -LsSf https://hf.co/cli/install.sh | bash\nhf download YDXX/ViroBench --repo-type=dataset",
+    "explanation": "Installs the Hugging Face CLI and downloads the dataset, as the README's alternative route.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Download from Hugging Face",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "curl -LsSf https://hf.co/cli/install.sh | bash"
+     },
+     {
+      "source": "@readme",
+      "text": "hf download YDXX/ViroBench --repo-type=dataset"
+     }
+    ]
+   },
+   {
+    "title": "Run one classification scenario",
+    "shell": "python script/run_all.py \\\n  --model_name evo2_1b_base \\\n  --dataset_name ALL-taxon-genus",
+    "explanation": "Runs genus-disjoint taxonomy classification on all nucleic-acid types for one model. Other scenarios follow the pattern {DNA|RNA|ALL}-{taxon|host}-{genus|times}.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Run classification benchmark",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python script/run_all.py \\"
+     },
+     {
+      "source": "@readme",
+      "text": "  --dataset_name ALL-taxon-genus"
+     },
+     {
+      "source": "@readme",
+      "text": "# Format: {DNA|RNA|ALL}-{taxon|host}-{genus|times}"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Unreported: the README does not say what files the classification script writes. It recommends pushing result matrices to results/tables/ and plots to results/figures/."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "Paths may need adjusting if the data are not under data/all_viral/.",
+   "The repository has no licence file."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "ALL viruses taxonomy classification, G-Split",
+   "dataset": "ViroBench ALL viruses corpus",
+   "size": 58314,
+   "size_unit": "curated viral sequences in the whole corpus",
+   "split": "genus-disjoint, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "of 58,314 high-quality viral samples."
+    },
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "A Genus-disjoint Split enforces strict"
+    }
+   ]
+  },
+  {
+   "task": "ALL viruses taxonomy classification, T-Split",
+   "dataset": "ViroBench ALL viruses corpus",
+   "size": 58314,
+   "size_unit": "curated viral sequences in the whole corpus",
+   "split": "temporal by deposit date, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "of 58,314 high-quality viral samples."
+    },
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "chronologically to simulate real-world distribution drift, thereby"
+    }
+   ]
+  },
+  {
+   "task": "ALL viruses host classification, G-Split",
+   "dataset": "ViroBench ALL viruses corpus",
+   "size": 58314,
+   "size_unit": "curated viral sequences in the whole corpus",
+   "split": "genus-disjoint, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "of 58,314 high-quality viral samples."
+    },
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "A Genus-disjoint Split enforces strict"
+    }
+   ]
+  },
+  {
+   "task": "ALL viruses host classification, T-Split",
+   "dataset": "ViroBench ALL viruses corpus",
+   "size": 58314,
+   "size_unit": "curated viral sequences in the whole corpus",
+   "split": "temporal by deposit date, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "of 58,314 high-quality viral samples."
+    },
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "chronologically to simulate real-world distribution drift, thereby"
+    }
+   ]
+  },
+  {
+   "task": "DNA viruses taxonomy classification, G-Split",
+   "dataset": "ViroBench DNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "genus-disjoint, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "A Genus-disjoint Split enforces strict"
+    },
+    {
+     "source": "@paper",
+     "text": "9 / 14 / 20 / 51 / 160"
+    }
+   ]
+  },
+  {
+   "task": "DNA viruses taxonomy classification, T-Split",
+   "dataset": "ViroBench DNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "temporal by deposit date, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "chronologically to simulate real-world distribution drift, thereby"
+    },
+    {
+     "source": "@paper",
+     "text": "9 / 14 / 20 / 51 / 160"
+    }
+   ]
+  },
+  {
+   "task": "DNA viruses host classification, G-Split",
+   "dataset": "ViroBench DNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "genus-disjoint, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "A Genus-disjoint Split enforces strict"
+    },
+    {
+     "source": "@paper",
+     "text": "9 / 14 / 20 / 51 / 160"
+    }
+   ]
+  },
+  {
+   "task": "DNA viruses host classification, T-Split",
+   "dataset": "ViroBench DNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "temporal by deposit date, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "chronologically to simulate real-world distribution drift, thereby"
+    },
+    {
+     "source": "@paper",
+     "text": "9 / 14 / 20 / 51 / 160"
+    }
+   ]
+  },
+  {
+   "task": "RNA viruses taxonomy classification, G-Split",
+   "dataset": "ViroBench RNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "genus-disjoint, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "A Genus-disjoint Split enforces strict"
+    },
+    {
+     "source": "@paper",
+     "text": "4 / 12 / 30 / 58 / 139"
+    }
+   ]
+  },
+  {
+   "task": "RNA viruses taxonomy classification, T-Split",
+   "dataset": "ViroBench RNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "temporal by deposit date, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "chronologically to simulate real-world distribution drift, thereby"
+    },
+    {
+     "source": "@paper",
+     "text": "4 / 12 / 30 / 58 / 139"
+    }
+   ]
+  },
+  {
+   "task": "RNA viruses host classification, G-Split",
+   "dataset": "ViroBench RNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "genus-disjoint, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "A Genus-disjoint Split enforces strict"
+    },
+    {
+     "source": "@paper",
+     "text": "4 / 12 / 30 / 58 / 139"
+    }
+   ]
+  },
+  {
+   "task": "RNA viruses host classification, T-Split",
+   "dataset": "ViroBench RNA viruses corpus",
+   "size": null,
+   "size_unit": null,
+   "split": "temporal by deposit date, 8:1:1",
+   "primary_metric": "Macro-F1",
+   "metric_direction": "higher",
+   "results_url": "https://sii-agi4s.github.io/ViroBench/",
+   "code_url": "https://github.com/QIANJINYDX/ViroBench",
+   "data_url": "https://huggingface.co/datasets/YDXX/ViroBench",
+   "data_licence": "CC-BY-4.0",
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Table 25: Macro-F1 scores for viral taxonomy and host classification."
+    },
+    {
+     "source": "@readme",
+     "text": "Leaderboard-Website-blue)](https://sii-agi4s.github.io/ViroBench/)"
+    },
+    {
+     "source": "@readme",
+     "text": "https://huggingface.co/datasets/YDXX/ViroBench"
+    },
+    {
+     "source": "@readme",
+     "text": "git clone https://github.com/QIANJINYDX/ViroBench"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "\"license\":\"cc-by-4.0\""
+    },
+    {
+     "source": "@paper",
+     "text": "8:1:1 Ratio (Train/Val/Test)"
+    },
+    {
+     "source": "@paper",
+     "text": "chronologically to simulate real-world distribution drift, thereby"
+    },
+    {
+     "source": "@paper",
+     "text": "4 / 12 / 30 / 58 / 139"
+    }
+   ]
+  }
+ ],
+ "notes": "This page covers the 12 classification scenarios only, matching the store's 12 protocols; the paper's second axis (6 generation scenarios) is named but not described. size is the whole curated corpus (58,314 samples) for the four ALL-panel entries. For the DNA and RNA panels size is null: Table 1 gives only label counts at Kingdom, Phylum, Class, Order and Family (DNA 9 / 14 / 20 / 51 / 160; RNA 4 / 12 / 30 / 58 / 139) and the 8:1:1 ratio, not per-panel or per-test sample counts. code_licence is null: the repository carries no licence file (checked with the GitHub API, which returned licence null). The paper says 66 foundation models and 70 methods; the README says 67 baselines. The leaderboard site at https://sii-agi4s.github.io/ViroBench/ is taken from the README badge and was not fetched, so no leaderboard content is stated here. released is null because no source read states a release date. The paper is also published at KDD 2026 (doi 10.1145/3770855.3819057) per its own reference format block."
+}

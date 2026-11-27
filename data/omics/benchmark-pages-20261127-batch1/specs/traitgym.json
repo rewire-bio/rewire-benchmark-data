@@ -1,0 +1,833 @@
+{
+ "record_id": "lit-genomics-20261011-traitgym-benchmark-traitgym",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "TraitGym preprint (Benegas, Eraslan and Song), bioRxiv version 2, NCBI PMC full-text XML PMC11844472",
+   "description": "Full text of the bioRxiv preprint 10.1101/2025.02.11.637758 as deposited in PMC, fetched through NCBI E-utilities efetch. The XML is quoted as it is.",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11844472&rettype=xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11844472/",
+   "version": "bioRxiv preprint version 2 (PMC version 2)",
+   "media_type": "application/xml",
+   "retrieved_at": "2026-11-26T23:44:55Z",
+   "store_bytes": false,
+   "sha256": "46387a538a9fcc638b50411c8f796371ff7f41b1fe801e03f32b6c82f8327b0c",
+   "licence": "CC BY-NC-ND 4.0"
+  },
+  {
+   "key": "readme",
+   "name": "songlab-cal/TraitGym README.md at commit 4d80fe88",
+   "description": "Official repository file, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/songlab-cal/TraitGym/4d80fe889415ffc02d45c7cb5446a326288819bd/README.md",
+   "url": "https://github.com/songlab-cal/TraitGym",
+   "version": "git commit 4d80fe889415ffc02d45c7cb5446a326288819bd",
+   "media_type": "text/markdown",
+   "retrieved_at": "2026-11-26T23:45:57Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "f97e8db1e2bbc4b8d88d21f67175ff7293b5f319e8c602a521be6b651ad191e1"
+  },
+  {
+   "key": "license",
+   "name": "songlab-cal/TraitGym LICENSE at commit 4d80fe88",
+   "description": "Repository licence file, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/songlab-cal/TraitGym/4d80fe889415ffc02d45c7cb5446a326288819bd/LICENSE",
+   "url": "https://github.com/songlab-cal/TraitGym",
+   "version": "git commit 4d80fe889415ffc02d45c7cb5446a326288819bd",
+   "media_type": "text/plain",
+   "retrieved_at": "2026-11-26T23:46:01Z",
+   "licence": "MIT",
+   "store_bytes": true,
+   "sha256": "a80875d6110d29d5f2d9552bbe59a0483728965eeae43a9ae692e867327aa775"
+  },
+  {
+   "key": "hf",
+   "name": "Hugging Face dataset API record for songlab/TraitGym at revision 1fde1955",
+   "description": "Dataset metadata (card data, configurations, file list) from the Hugging Face API at the revision the store already cites.",
+   "file": "artifacts/hf-dataset.json",
+   "artifact_url": "https://huggingface.co/api/datasets/songlab/TraitGym/revision/1fde19555fe8c0a55b1382bdf4c6f7082209f566",
+   "url": "https://huggingface.co/datasets/songlab/TraitGym",
+   "version": "revision 1fde19555fe8c0a55b1382bdf4c6f7082209f566",
+   "media_type": "application/json",
+   "retrieved_at": "2026-11-26T23:46:47Z",
+   "store_bytes": true,
+   "sha256": "4477b9916113d2e2c7ef48453d5d25bd84c6829ccc1c4fbe11e4d2337d209843"
+  }
+ ],
+ "profile": {
+  "summary": "TraitGym tests whether a model can pick out causal non-coding single-nucleotide variants in the human genome. It has two datasets: causal variants for 113 Mendelian traits and strong causal candidates for 83 complex traits, each paired with matched control variants. It is for people comparing DNA language models, sequence-to-function models and conservation or integrative scores on regulatory variant interpretation.",
+  "summary_source_ids": [
+   "@paper"
+  ],
+  "summary_source_locator": "Paper: Abstract",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "In this work, we present TraitGym, a curated dataset of regulatory genetic variants that are either known to be causal or are strong candidates across 113 Mendelian and 83 complex traits, along with carefully constructed control variants."
+   },
+   {
+    "source": "@paper",
+    "text": "We frame the causal variant prediction task as a binary classification problem and benchmark various models, including functional-genomics-supervised models, self-supervised models, models that combine machine learning predictions with curated annotation features, and ensembles of these."
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "The task is binary classification: is a variant putatively causal for any trait or not. Only non-coding single-nucleotide variants are included, because the authors see interpretation of non-coding variants as a key use for DNA sequence models. A model sees the reference and alternate alleles and the surrounding DNA sequence.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4, Benchmark datasets and Task definition",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The task is to classify whether a variant is putatively causal for any trait or not. The input data consist of the reference and alternate allele together with the DNA sequence context."
+     },
+     {
+      "source": "@paper",
+      "text": "Further, we focus on single-nucleotide variants, the most common form of genetic variation, which is still challenging to interpret."
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Mendelian positives are causal non-coding variants for 113 Mendelian diseases from OMIM, with variants above 0.1% minor allele frequency in gnomAD removed; common gnomAD variants are the controls. Complex-trait positives come from statistical fine-mapping of UK Biobank association studies: variants with posterior inclusion probability above 0.9 in any trait. Each positive is matched to 9 controls on chromosome, consequence and distance to the transcription start site; complex-trait controls are also matched on minor allele frequency and LD score. Table 1 gives 338 causal variants among 3,380 for Mendelian traits and 1,140 among 11,400 for complex traits. Larger versions with millions of controls per positive are also provided.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4 and Table 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Curated causal non-coding variants for 113 Mendelian diseases were collected from Online Mendelian Inheritance in Man, OMIM"
+     },
+     {
+      "source": "@paper",
+      "text": "For additional stringency, we filtered out a small percentage of variants with minor allele frequency (MAF) greater than 0.1% in the Genome Aggregation Database, gnomAD"
+     },
+     {
+      "source": "@paper",
+      "text": "Putative causal and control non-coding variants for 83 complex traits were obtained by processing statistical fine-mapping results"
+     },
+     {
+      "source": "@paper",
+      "text": "Specifically, we used variants with posterior inclusion probability (PIP) in the credible set greater than 0.9 in any trait as positives and variants with PIP"
+     },
+     {
+      "source": "@paper",
+      "text": "For each putative causal non-coding variant, we sampled 9 non-coding variants from the control set, matching chromosome, consequence, and distance to transcription start site (TSS). For complex traits, we additionally matched MAF and linkage disequilibrium (LD) score"
+     },
+     {
+      "source": "@paper",
+      "text": "colspan=\"1\">Mendelian traits</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">338</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">3,380</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">113</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "colspan=\"1\">Complex traits</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">1,140</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">11,400</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">83</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "However, we also provide a larger version of the dataset with millions of negative controls per positive variant, for which we evaluate a subset of the models."
+     },
+     {
+      "source": "@paper",
+      "text": "We used gnomAD common variants (MAF &gt; 5%) as controls."
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "Models are scored zero-shot, or by ridge logistic regression on extracted features (linear probing). Linear probing uses one fold per chromosome: each chromosome is tested with a model trained on the others, and the regularisation is tuned by cross-validation on the training chromosomes. The metric is AUPRC per chromosome, averaged across chromosomes with weights by sample size, with a bootstrap standard error. With 9 controls per positive, a random score has AUPRC 0.1. The README names AUPRC_by_chrom_weighted_average as the main metric.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Sections 4 and 5; README.md: Resources",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "As evaluation metric, we calculate the area under the precision recall curve (AUPRC) for each chromosome (for a model trained on the remaining chromosomes), and then compute a weighted average across chromosomes based on sample size, together with a standard error estimated via bootstrapping"
+     },
+     {
+      "source": "@paper",
+      "text": "The baseline AUPRC is 0.1, which is the proportion of positives."
+     },
+     {
+      "source": "@paper",
+      "text": "We evaluate zero-shot model scores as well as ridge logistic regression classifiers (linear probing) trained using extracted features"
+     },
+     {
+      "source": "@paper",
+      "text": "We use a number of folds equal to the number of chromosomes. In each fold, we test on a single chromosome using a model trained on the remaining chromosomes, and the regularization hyperparameter is chosen based on cross-validation on the training chromosomes"
+     },
+     {
+      "source": "@readme",
+      "text": "`AUPRC_by_chrom_weighted_average` (main metric)"
+     },
+     {
+      "source": "@paper",
+      "text": "we sampled 9 non-coding variants from the control set"
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The README says to clone the repository, create the conda environment from workflow/envs/general.yaml, optionally download the precomputed datasets and predictions (6.7G) from Hugging Face into results/dataset, and ask Snakemake for a result path. Your own features go in a parquet file under results/dataset/{dataset}/features/, and Snakemake then computes zero-shot or logistic regression metrics for them. A Colab notebook, TraitGym.ipynb, is also offered.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Quick start, Installation, Running",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "First, clone the repo and `cd` into it."
+     },
+     {
+      "source": "@readme",
+      "text": "conda env create -f workflow/envs/general.yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "Optionally, download precomputed datasets and predictions (6.7G):"
+     },
+     {
+      "source": "@readme",
+      "text": "To evaluate your own set of model features, place a dataframe of shape `n_variants,n_features` in `results/dataset/{dataset}/features/{features}.parquet`."
+     },
+     {
+      "source": "@readme",
+      "text": "Example notebook to run variant effect prediction with a gLM, runs in 5 min on Google Colab: `TraitGym.ipynb`"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "Two: Mendelian traits (338 putatively causal variants, 3,380 in total, 113 traits) and complex traits (1,140 putatively causal variants, 11,400 in total, 83 traits), per Table 1. Expanded versions with millions of negatives also exist.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@hf"
+    ],
+    "source_locator": "Paper: Table 1 and Section 4; HF configs",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "colspan=\"1\">Mendelian traits</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">338</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">3,380</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">113</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "colspan=\"1\">Complex traits</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">1,140</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">11,400</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">83</td>"
+     },
+     {
+      "source": "@paper",
+      "text": "However, we also provide a larger version of the dataset with millions of negative controls per positive variant, for which we evaluate a subset of the models."
+     },
+     {
+      "source": "@hf",
+      "text": "\"config_name\":\"mendelian_traits\""
+     },
+     {
+      "source": "@hf",
+      "text": "\"config_name\":\"complex_traits\""
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "All variants are a test set. For linear probing, leave-one-chromosome-out: each chromosome is tested with a model trained on the remaining chromosomes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use a number of folds equal to the number of chromosomes. In each fold, we test on a single chromosome using a model trained on the remaining chromosomes, and the regularization hyperparameter is chosen based on cross-validation on the training chromosomes"
+     },
+     {
+      "source": "@hf",
+      "text": "\"split\":\"test\""
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "AUPRC computed per chromosome and averaged with sample-size weights; higher is better. Baseline 0.1. AUROC and global AUPRC are also reported.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4 Task definition; Section 6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "As evaluation metric, we calculate the area under the precision recall curve (AUPRC) for each chromosome (for a model trained on the remaining chromosomes), and then compute a weighted average across chromosomes based on sample size, together with a standard error estimated via bootstrapping"
+     },
+     {
+      "source": "@paper",
+      "text": "The baseline AUPRC is 0.1, which is the proportion of positives."
+     },
+     {
+      "source": "@paper",
+      "text": "we also report the area under the receiver operating characteristic (AUROC)"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "Functional-genomics-supervised models, self-supervised gLMs, integrative models (CADD) and conservation scores (phyloP-100v, phyloP-241m, phastCons-43p), plus ensembles.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 5 and Table 2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We benchmark functional-genomics-supervised models, self-supervised gLMs, integrative models and conservation scores"
+     },
+     {
+      "source": "@paper",
+      "text": "We evaluate phyloP trained on 100 vertebrates (phyloP-100v) and on 241 mammals (phyloP-241m), and phastCons trained on 43 primates (phastCons-43p)"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "Linear probes are tested on held-out chromosomes. CADD training variants overlap about 1% of TraitGym variants; the authors repeated the analysis without them and report stable results.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 5 and 6",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We use a number of folds equal to the number of chromosomes. In each fold, we test on a single chromosome using a model trained on the remaining chromosomes, and the regularization hyperparameter is chosen based on cross-validation on the training chromosomes"
+     },
+     {
+      "source": "@paper",
+      "text": "CADD is the only model trained on variants and its training variants overlap with around 1% of the variants in our datasets"
+     },
+     {
+      "source": "@paper",
+      "text": "We repeated our analysis upon removing this small amount of overlapping variants and found that the aforementioned results remain stable"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "A bootstrap standard error accompanies the weighted AUPRC.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4 Task definition",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "As evaluation metric, we calculate the area under the precision recall curve (AUPRC) for each chromosome (for a model trained on the remaining chromosomes), and then compute a weighted average across chromosomes based on sample size, together with a standard error estimated via bootstrapping"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A single-nucleotide non-coding variant with its DNA sequence context.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The task is to classify whether a variant is putatively causal for any trait or not. The input data consist of the reference and alternate allele together with the DNA sequence context."
+     },
+     {
+      "source": "@paper",
+      "text": "Further, we focus on single-nucleotide variants, the most common form of genetic variation, which is still challenging to interpret."
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 1",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this article, we present TraitGym, a curation of two non-coding variant benchmark datasets from human genetics"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "No experimental assay defines the labels: Mendelian labels come from OMIM curation, complex-trait labels from statistical fine-mapping of UK Biobank association studies.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Curated causal non-coding variants for 113 Mendelian diseases were collected from Online Mendelian Inheritance in Man, OMIM"
+     },
+     {
+      "source": "@paper",
+      "text": "Putative causal and control non-coding variants for 83 complex traits were obtained by processing statistical fine-mapping results"
+     },
+     {
+      "source": "@paper",
+      "text": "Specifically, we used variants with posterior inclusion probability (PIP) in the credible set greater than 0.9 in any trait as positives and variants with PIP"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "Reference and alternate allele with the DNA sequence context. Benchmarked models also include alignment-based and annotation-based scores such as CADD and phyloP.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 4 and 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The task is to classify whether a variant is putatively causal for any trait or not. The input data consist of the reference and alternate allele together with the DNA sequence context."
+     },
+     {
+      "source": "@paper",
+      "text": "We benchmark functional-genomics-supervised models, self-supervised gLMs, integrative models and conservation scores"
+     },
+     {
+      "source": "@paper",
+      "text": "We evaluate phyloP trained on 100 vertebrates (phyloP-100v) and on 241 mammals (phyloP-241m), and phastCons trained on 43 primates (phastCons-43p)"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Zero-shot scores and linear probing (ridge logistic regression on extracted features, trained on other chromosomes).",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We evaluate zero-shot model scores as well as ridge logistic regression classifiers (linear probing) trained using extracted features"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Controls are matched to each positive on chromosome, consequence and TSS distance, and for complex traits also on MAF and LD score, so simple confounders are less likely to drive scores.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 4, Matching positives and negatives",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For each putative causal non-coding variant, we sampled 9 non-coding variants from the control set, matching chromosome, consequence, and distance to transcription start site (TSS). For complex traits, we additionally matched MAF and linkage disequilibrium (LD) score"
+     }
+    ]
+   },
+   {
+    "text": "Small enough to run large models: the authors chose 9 controls per positive for that reason, and the README offers a Colab notebook that runs in about 5 minutes.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Section 4; README.md: Quick start",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We sampled only 9 controls per positive variant in order to be able to evaluate even the most computationally demanding models."
+     },
+     {
+      "source": "@readme",
+      "text": "runs in 5 min on Google Colab"
+     }
+    ]
+   },
+   {
+    "text": "The authors state it is the only benchmark of causal non-coding variant prediction covering both Mendelian and complex human traits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 3, Related work",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Thus, TraitGym is the only benchmark of causal non-coding variant prediction for both Mendelian and complex human traits."
+     }
+    ]
+   },
+   {
+    "text": "Data, features, predictions and per-model metrics are published on Hugging Face under an MIT licence, with code under MIT.",
+    "source_ids": [
+     "@hf",
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "HF card data; LICENSE; README.md: Resources",
+    "quotes": [
+     {
+      "source": "@hf",
+      "text": "\"license\":\"mit\""
+     },
+     {
+      "source": "@license",
+      "text": "MIT License"
+     },
+     {
+      "source": "@readme",
+      "text": "Predictions: `{dataset}/preds/{subset}/{model}.parquet`"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The authors say it has limited ability to resolve subtle differences in performance; some differences only show on the expanded datasets.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 7, Discussion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "TraitGym was designed to have simple metrics and be tractable to run for even billion parameter models, but has limited ability to resolve subtle differences in performance."
+     }
+    ]
+   },
+   {
+    "text": "Datasets are small for supervised probes: the authors note overfitting, and several linear probes score worse than zero-shot on Mendelian traits.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 6, Mendelian traits",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "It can be challenging to avoid overfitting when training high-dimensional models on this relatively small dataset, and several linear probing models perform worse than zero-shot."
+     }
+    ]
+   },
+   {
+    "text": "Disease variants are few in the complex-trait set: 53 of the 1,140 putative causal variants affect a disease trait.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Section 6, Results by trait",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Among the 1,140 putative causal variants for complex traits, only 53 affect a disease trait"
+     }
+    ]
+   },
+   {
+    "text": "Human only and single-nucleotide variants only.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Sections 1 and 4",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "In this article, we present TraitGym, a curation of two non-coding variant benchmark datasets from human genetics"
+     },
+     {
+      "source": "@paper",
+      "text": "Further, we focus on single-nucleotide variants, the most common form of genetic variation, which is still challenging to interpret."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "TraitGym workflow",
+   "steps": [
+    "OMIM causal variants and UK Biobank fine-mapped variants",
+    "Match 9 controls per positive",
+    "Zero-shot score or chromosome-held-out linear probe",
+    "AUPRC per chromosome",
+    "Weighted average with bootstrap standard error"
+   ],
+   "caption": "How a TraitGym score is produced, as the paper describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Sections 4 and 5",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "Curated causal non-coding variants for 113 Mendelian diseases were collected from Online Mendelian Inheritance in Man, OMIM"
+    },
+    {
+     "source": "@paper",
+     "text": "Putative causal and control non-coding variants for 83 complex traits were obtained by processing statistical fine-mapping results"
+    },
+    {
+     "source": "@paper",
+     "text": "For each putative causal non-coding variant, we sampled 9 non-coding variants from the control set, matching chromosome, consequence, and distance to transcription start site (TSS). For complex traits, we additionally matched MAF and linkage disequilibrium (LD) score"
+    },
+    {
+     "source": "@paper",
+     "text": "As evaluation metric, we calculate the area under the precision recall curve (AUPRC) for each chromosome (for a model trained on the remaining chromosomes), and then compute a weighted average across chromosomes based on sample size, together with a standard error estimated via bootstrapping"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Appendix B (bootstrap and probe details) and the supplementary figures are not in the PMC XML and were not read.",
+   "The leaderboard space was not fetched; its contents and update practice are not described here.",
+   "The bioRxiv PDF (https://www.biorxiv.org/content/10.1101/2025.02.11.637758v2.full.pdf) was not requested because of rate limiting; the PMC copy of version 2 was used."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read the PMC XML of the bioRxiv version 2 preprint (PMC11844472), songlab-cal/TraitGym README.md and LICENSE at commit 4d80fe889415ffc02d45c7cb5446a326288819bd, and the Hugging Face API record for songlab/TraitGym at revision 1fde19555fe8c0a55b1382bdf4c6f7082209f566, all retrieved 2026-11-26. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the TraitGym workflow, download the published datasets and predictions, and compute the main metric for one zero-shot score on the complex traits dataset.",
+  "prerequisites": [
+   "git and conda.",
+   "About 6.7G of disk for the optional precomputed datasets and predictions, as the README states.",
+   "Snakemake (the README runs it after activating the TraitGym conda environment; whether that environment installs it is not stated)."
+  ],
+  "steps": [
+   {
+    "title": "Get the code",
+    "shell": "git clone https://github.com/songlab-cal/TraitGym\ncd TraitGym\ngit checkout --detach 4d80fe889415ffc02d45c7cb5446a326288819bd",
+    "explanation": "The README says to clone the repository and cd into it; the clone line uses the repository address the README gives. The checkout line pins the commit read for this page.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Code, Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "First, clone the repo and `cd` into it."
+     },
+     {
+      "source": "@readme",
+      "text": "Code (https://github.com/songlab-cal/TraitGym)"
+     }
+    ]
+   },
+   {
+    "title": "Install dependencies",
+    "shell": "conda env create -f workflow/envs/general.yaml\nconda activate TraitGym",
+    "explanation": "Creates and activates the TraitGym conda environment.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda env create -f workflow/envs/general.yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "conda activate TraitGym"
+     }
+    ]
+   },
+   {
+    "title": "Download datasets and predictions",
+    "shell": "mkdir -p results/dataset\nhuggingface-cli download songlab/TraitGym --repo-type dataset --local-dir results/dataset/",
+    "explanation": "Optional in the README; fetches the precomputed datasets and predictions (6.7G).",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "mkdir -p results/dataset"
+     },
+     {
+      "source": "@readme",
+      "text": "huggingface-cli download songlab/TraitGym --repo-type dataset --local-dir results/dataset/"
+     }
+    ]
+   },
+   {
+    "title": "Compute one result",
+    "shell": "snakemake --cores all results/dataset/complex_traits_matched_9/AUPRC_by_chrom_weighted_average/all/GPN-MSA_absLLR.plus.score.csv --dry-run\nsnakemake --cores all results/dataset/complex_traits_matched_9/AUPRC_by_chrom_weighted_average/all/GPN-MSA_absLLR.plus.score.csv",
+    "explanation": "Uses the README's example path for a zero-shot LLR score. The first line prints the execution plan; the second computes the file. The README notes this file is already computed after the download and suggests adding --touch if Snakemake tries to rerun existing files.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Running",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "results/dataset/complex_traits_matched_9/AUPRC_by_chrom_weighted_average/all/GPN-MSA_absLLR.plus.score.csv"
+     },
+     {
+      "source": "@readme",
+      "text": "snakemake --cores all <path> --touch"
+     },
+     {
+      "source": "@readme",
+      "text": "snakemake --cores all <path> --dry-run"
+     },
+     {
+      "source": "@readme",
+      "text": "Example paths (these are already computed):"
+     },
+     {
+      "source": "@readme",
+      "text": "snakemake --cores all <path>"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A CSV at the requested path under results/dataset/complex_traits_matched_9/AUPRC_by_chrom_weighted_average/all/, holding the metric for that score."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The README does not describe the columns of the metric CSV.",
+   "Evaluating a new model needs its features in a parquet file and, for linear probing, a feature set defined in config/config.yaml, as the README explains."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "structured": [
+  {
+   "task": "Mendelian traits",
+   "dataset": "mendelian_traits_matched_9",
+   "size": 3380,
+   "size_unit": "variants (338 putatively causal)",
+   "split": "All variants are test data; for linear probing, leave one chromosome out (test on one chromosome, train on the rest).",
+   "primary_metric": "AUPRC by chromosome, weighted average",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/songlab/TraitGym-leaderboard",
+   "code_url": "https://github.com/songlab-cal/TraitGym",
+   "data_url": "https://huggingface.co/datasets/songlab/TraitGym",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "colspan=\"1\">Mendelian traits</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">338</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">3,380</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">113</td>"
+    },
+    {
+     "source": "@paper",
+     "text": "We use a number of folds equal to the number of chromosomes. In each fold, we test on a single chromosome using a model trained on the remaining chromosomes, and the regularization hyperparameter is chosen based on cross-validation on the training chromosomes"
+    },
+    {
+     "source": "@readme",
+     "text": "`mendelian_traits_matched_9` (`mendelian_traits`)"
+    },
+    {
+     "source": "@readme",
+     "text": "`AUPRC_by_chrom_weighted_average` (main metric)"
+    },
+    {
+     "source": "@paper",
+     "text": "https://huggingface.co/datasets/songlab/TraitGym"
+    },
+    {
+     "source": "@paper",
+     "text": "https://huggingface.co/spaces/songlab/TraitGym-leaderboard"
+    },
+    {
+     "source": "@readme",
+     "text": "Code (https://github.com/songlab-cal/TraitGym)"
+    },
+    {
+     "source": "@hf",
+     "text": "\"license\":\"mit\""
+    },
+    {
+     "source": "@license",
+     "text": "MIT License"
+    },
+    {
+     "source": "@hf",
+     "text": "\"split\":\"test\""
+    }
+   ]
+  },
+  {
+   "task": "Complex traits",
+   "dataset": "complex_traits_matched_9",
+   "size": 11400,
+   "size_unit": "variants (1,140 putatively causal)",
+   "split": "All variants are test data; for linear probing, leave one chromosome out (test on one chromosome, train on the rest).",
+   "primary_metric": "AUPRC by chromosome, weighted average",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/songlab/TraitGym-leaderboard",
+   "code_url": "https://github.com/songlab-cal/TraitGym",
+   "data_url": "https://huggingface.co/datasets/songlab/TraitGym",
+   "data_licence": "MIT",
+   "code_licence": "MIT",
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "colspan=\"1\">Complex traits</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">1,140</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">11,400</td><td align=\"right\" valign=\"middle\" rowspan=\"1\" colspan=\"1\">83</td>"
+    },
+    {
+     "source": "@paper",
+     "text": "We use a number of folds equal to the number of chromosomes. In each fold, we test on a single chromosome using a model trained on the remaining chromosomes, and the regularization hyperparameter is chosen based on cross-validation on the training chromosomes"
+    },
+    {
+     "source": "@readme",
+     "text": "`complex_traits_matched_9` (`complex_traits`)"
+    },
+    {
+     "source": "@readme",
+     "text": "`AUPRC_by_chrom_weighted_average` (main metric)"
+    },
+    {
+     "source": "@paper",
+     "text": "https://huggingface.co/datasets/songlab/TraitGym"
+    },
+    {
+     "source": "@paper",
+     "text": "https://huggingface.co/spaces/songlab/TraitGym-leaderboard"
+    },
+    {
+     "source": "@readme",
+     "text": "Code (https://github.com/songlab-cal/TraitGym)"
+    },
+    {
+     "source": "@hf",
+     "text": "\"license\":\"mit\""
+    },
+    {
+     "source": "@license",
+     "text": "MIT License"
+    },
+    {
+     "source": "@hf",
+     "text": "\"split\":\"test\""
+    }
+   ]
+  }
+ ],
+ "notes": "The paper copy is the bioRxiv version 2 preprint as deposited in PMC (CC BY-NC-ND, so store_bytes is false). The README cites both bioRxiv v1 and v2. The data licence (MIT) comes from the Hugging Face card data at revision 1fde1955. Table 1 counts are quoted from the raw XML table cell markup because no prose sentence repeats them. The bioRxiv PDF was not requested today. bioRxiv PDF address, not requested: https://www.biorxiv.org/content/10.1101/2025.02.11.637758v2.full.pdf"
+}

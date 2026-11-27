@@ -1,0 +1,1261 @@
+{
+ "record_id": "lit-genomics-20261011-ntbench-benchmark-nucleotide-transformer-benchmark",
+ "sources": [
+  {
+   "key": "paper",
+   "name": "Dalla-Torre et al. 2025, Nucleotide Transformer: building and evaluating robust foundation models for human genomics, Nature Methods (NCBI PMC full-text XML)",
+   "description": "Full-text JATS XML of the published article from NCBI E-utilities efetch (db=pmc, id=11810778).",
+   "file": "artifacts/paper-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11810778&rettype=xml",
+   "url": "https://doi.org/10.1038/s41592-024-02523-z",
+   "version": "PMC11810778 as retrieved",
+   "media_type": "application/xml",
+   "sha256": "9be208eec2156686050f19890311a47efcde5e0a666da0bd7a312c6689b55622",
+   "retrieved_at": "2026-11-27T00:13:36Z",
+   "licence": "CC BY-NC-ND 4.0",
+   "store_bytes": false
+  },
+  {
+   "key": "si",
+   "name": "Text layer of the Nucleotide Transformer Supplementary Information PDF",
+   "description": "Text extracted with pdftotext -layout from the publisher's Supplementary Information PDF, which holds Supplementary Tables 1 to 12. The PDF is kept beside it as artifacts/supplementary-information.pdf.",
+   "file": "artifacts/supplementary-information.txt",
+   "artifact_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41592-024-02523-z/MediaObjects/41592_2024_2523_MOESM1_ESM.pdf",
+   "url": "https://doi.org/10.1038/s41592-024-02523-z",
+   "version": "Supplementary Information as published with Nature Methods (2025)",
+   "media_type": "text/plain",
+   "sha256": "3bbf2a64d52bc2490c0c6c0ac8154fea63e61103432bb99bfd27509440da8b1f",
+   "retrieved_at": "2026-11-27T00:14:02Z",
+   "store_bytes": false
+  },
+  {
+   "key": "hf-dataset",
+   "name": "Hugging Face dataset API record for InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "description": "JSON metadata from the Hugging Face datasets API for the revised 18-task benchmark data.",
+   "file": "artifacts/hf-dataset.json",
+   "artifact_url": "https://huggingface.co/api/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "version": "dataset sha 851f9946252e90c665cdb3cc3eedb78f1f26197c at retrieval",
+   "media_type": "application/json",
+   "sha256": "540ee5ccd3dc8d0cacc7611b6517284a0cbf1f2812bcdbde5cf24dc075620505",
+   "retrieved_at": "2026-11-27T00:13:52Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "The Nucleotide Transformer benchmark is a set of 18 human genomic classification tasks: ten histone marks in K562, three promoter tasks, two enhancer tasks and three splice site tasks. Each is a small balanced dataset of short sequences with a fixed chromosome-based test split, scored by Matthews correlation coefficient under tenfold cross-validation. The paper uses it to compare DNA language models after probing or fine-tuning, and the data are published on Hugging Face with an interactive leaderboard.",
+  "summary_source_ids": [
+   "@paper",
+   "@si",
+   "@hf-dataset"
+  ],
+  "summary_source_locator": "Paper: Methods, Nucleotide Transformer downstream tasks; Supplementary Table 5; Hugging Face dataset record",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Histone ChIP-seq data for ten histone marks in the K562 human cell line were obtained from ENCODE"
+   },
+   {
+    "source": "@paper",
+    "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+   },
+   {
+    "source": "@paper",
+    "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+   },
+   {
+    "source": "@hf-dataset",
+    "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+   },
+   {
+    "source": "@paper",
+    "text": "We have established an interactive leaderboard containing results for all models across each task to facilitate comparisons"
+   }
+  ],
+  "sections": [
+   {
+    "title": "What it measures",
+    "body": "Whether a model's representation of a short DNA sequence carries the signal for a specific regulatory or structural feature. The ten epigenetic tasks ask whether a 1 kb sequence overlaps a histone mark peak in K562. The promoter tasks ask whether a 300 bp sequence contains a promoter, a TATA-box promoter or a promoter without a TATA box. The enhancer tasks ask whether a 400 bp sequence contains an enhancer, and in the multi-label version whether it is tissue-specific or tissue-invariant. The splice tasks ask whether a 600 bp sequence has an acceptor or donor site in the centre.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Nucleotide Transformer downstream tasks",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we selected 1-kb genomic sequences containing peaks as positive examples and all 1-kb sequences not overlapping peaks as negative examples"
+     },
+     {
+      "source": "@paper",
+      "text": "These positive and negative examples were used to create three different binary classification tasks: presence of any promoter element (Promoter all), a promoter with a TATA-box motif (Promoter TATA) or a promoter without a TATA-box motif (Promoter non-TATA)."
+     },
+     {
+      "source": "@paper",
+      "text": "We created a binary classification task for the presence of enhancer elements in the sequence (Enhancer) and a multilabel prediction task with labels being tissue-specific enhancer, tissue-invariant enhancer or none (Enhancer types)."
+     },
+     {
+      "source": "@paper",
+      "text": "We selected 600-bp genomic sequences containing a splice acceptor or donor site in the center as positive examples"
+     }
+    ]
+   },
+   {
+    "title": "How it is built",
+    "body": "Histone marks come from ten ENCODE ChIP-seq narrowPeak files for K562, each identifier listed in the Methods. Promoters come from the Eukaryotic Promoter Database (29,598 regions, 3,065 of them TATA-box). Enhancers come from ENCODE SCREEN, with distal and proximal combined and tissue specificity from the Meuleman DHS index. Splice sites come from GENCODE V44, excluding level-3 automated annotations, extracted with the HISAT2 script. Sequences containing N are removed, each dataset is balanced by subsampling negatives to the number of positives, and the sets are then capped at 30,000 training and 3,000 validation and test examples so a new model can be benchmarked quickly. Supplementary Table 5 lists the resulting sizes per task, from 5,062 training sequences for Promoter non-TATA to 30,000 for most tasks.",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary Table 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We downloaded all human promoters from the Eukaryotic Promoter Database"
+     },
+     {
+      "source": "@paper",
+      "text": "This resulted in 29,598 promoter regions, 3,065 of which were TATA-box promoters"
+     },
+     {
+      "source": "@paper",
+      "text": "Annotations were filtered to exclude level-3 transcripts (automated annotation), so that all training data were annotated by a human."
+     },
+     {
+      "source": "@paper",
+      "text": "We balanced each dataset by subsampling the negative examples to the same number of positive examples."
+     },
+     {
+      "source": "@paper",
+      "text": "we further randomly subsampled examples to a maximum of 30,000 for training and 3,000 for validation and testing"
+     },
+     {
+      "source": "@si",
+      "text": "Promoter non-TATA          5062            212            300       MCC        Human"
+     }
+    ]
+   },
+   {
+    "title": "Evaluation methodology",
+    "body": "The split is by chromosome: chromosomes 20 and 21 are the test set and the rest is training. Evaluation uses tenfold cross-validation on the training set, training ten times with a different tenth held out for validation and checkpoint selection, and evaluating every run on the same held-out test set; the median across the ten folds is the reported performance. The metric is binary or multi-class MCC. For a single number per model, the authors take the median MCC within each of the three task categories (chromatin profiles, regulatory elements and splicing) and then the mean of those three.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Dataset splits and performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+     },
+     {
+      "source": "@paper",
+      "text": "We used a tenfold cross-validation scheme to evaluate each model, where the training set is split into ten folds, and each time we used nine of those parts for training and reserved one-tenth for validation and selecting the final checkpoint."
+     },
+     {
+      "source": "@paper",
+      "text": "We used the median performance across the ten folds as the final performance metric of each model on a given task."
+     },
+     {
+      "source": "@paper",
+      "text": "we calculated for each model the mean MCC across the three different categories of task (chromatin profiles, regulatory elements and splicing), where for each category we used the median MCC across tasks"
+     }
+    ]
+   },
+   {
+    "title": "Probing and fine-tuning",
+    "body": "The paper reports two ways of using a pretrained model. Probing stores embeddings from ten layers of the model and trains a downstream logistic regression or MLP on them, with a hyperparameter search of 100 trials guided by a Tree-structured Parzen Estimator and the same tenfold scheme; the authors say this produced 760,000 downstream models. Fine-tuning is parameter-efficient on the transformer part. A logistic regression on the tokenised sequence, before the transformer layers, is the raw baseline.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Probing",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we compute and store the embeddings returned by ten layers of the model"
+     },
+     {
+      "source": "@paper",
+      "text": "We tested logistic regression with the default hyperparameters from scikit-learn"
+     },
+     {
+      "source": "@paper",
+      "text": "This procedure is run 100 times with a Tree-structured Parzen Estimator solver"
+     },
+     {
+      "source": "@paper",
+      "text": "This probing strategy resulted in 760,000 downstream models trained"
+     },
+     {
+      "source": "@paper",
+      "text": "As a baseline, we evaluated the performance of a logistic regression model that takes as input the tokenized sequence, before passing the tokens through the transformer layers."
+     }
+    ]
+   },
+   {
+    "title": "How to run it",
+    "body": "The task data are published as a Hugging Face dataset, the revised version released after peer review, which the dataset card recommends using in place of the older one. The paper gives no command line pipeline for a third party to score a model, and results are collected in an interactive leaderboard on Hugging Face Spaces.",
+    "source_ids": [
+     "@hf-dataset",
+     "@paper"
+    ],
+    "source_locator": "Hugging Face dataset record: description; Paper: Data availability",
+    "quotes": [
+     {
+      "source": "@hf-dataset",
+      "text": "We note that this is an updated version of this benchmark after the paper has been through peer-review."
+     },
+     {
+      "source": "@paper",
+      "text": "We have established an interactive leaderboard ("
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Datasets",
+    "value": "18 tasks. Ten histone marks (H2AFZ, H3K27ac, H3K27me3, H3K36me3, H3K4me1, H3K4me2, H3K4me3, H3K9ac, H3K9me3, H4K20me1) at 1 kb; Promoter all, TATA and non-TATA at 300 bp; Splice site all, donor and acceptor at 600 bp; Enhancer and Enhancer types at 400 bp. Training sets run from 5,062 to 30,000 sequences and test sets from 212 to 3,000, as Supplementary Table 5 prints them.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "Supplementary Table 5",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "H2AFZ                     30000           3000           1000       MCC        Human"
+     },
+     {
+      "source": "@si",
+      "text": "Promoter non-TATA          5062            212            300       MCC        Human"
+     },
+     {
+      "source": "@si",
+      "text": "Enhancer types            30000           3000            400       MCC        Human"
+     },
+     {
+      "source": "@si",
+      "text": "Nucleotide Transformer downstream tasks metadata."
+     }
+    ]
+   },
+   {
+    "label": "Splits",
+    "value": "Test is chromosomes 20 and 21; everything else is training, and the training set is further split tenfold for validation and checkpoint selection. Each dataset is class-balanced by subsampling negatives.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Dataset splits and performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+     },
+     {
+      "source": "@paper",
+      "text": "We balanced each dataset by subsampling the negative examples to the same number of positive examples."
+     }
+    ]
+   },
+   {
+    "label": "Metrics",
+    "value": "Matthews correlation coefficient, binary or multi-class depending on the task, higher is better; the median over the ten folds is reported per task.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary Table 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+     },
+     {
+      "source": "@si",
+      "text": "Reported"
+     }
+    ]
+   },
+   {
+    "label": "Baselines",
+    "value": "A logistic regression on the tokenised sequence as a raw probe, BPNet at three sizes, and three published pretrained models: DNABERT-2, HyenaDNA at 1 kb and 32 kb context, and Enformer's torso. DNABERT-1 was excluded because its maximum input is 512 bp.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods, Comparison with published pre-trained genomics models; Supplementary tables",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We compared the fine-tuned performance of NT models on the 18 downstream tasks with three different pre-trained models: DNABERT-2 (ref. "
+     },
+     {
+      "source": "@paper",
+      "text": "We excluded DNABERT-1 from this comparison as it can only handle a maximum input length of 512 bp"
+     },
+     {
+      "source": "@si",
+      "text": "BPNet (X-large)"
+     },
+     {
+      "source": "@si",
+      "text": "Raw Probe"
+     }
+    ]
+   },
+   {
+    "label": "Leakage controls",
+    "value": "The chromosome split is the only control: there is no sequence identity filter and no removal of homologous regions. The authors warn that Enformer was pretrained with different data splits, so its benchmark performance may be inflated by leakage.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Comparison with published pre-trained genomics models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we note that Enformer has been pretrained originally using different data splits and thus its performance in our benchmark evaluation might be inflated due to potential data leakage"
+     }
+    ]
+   },
+   {
+    "label": "Uncertainty",
+    "value": "Tenfold cross-validation per model and task, reported as the median; the supplementary tables print a value with a spread for each model and task.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary tables",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We repeated this procedure ten times per model, each time reserving a different tenth for validation and evaluating the final performance on the same held-out test set."
+     },
+     {
+      "source": "@si",
+      "text": "NT-1000G (2.5B)          0.425 (± 0.01)"
+     }
+    ]
+   },
+   {
+    "label": "Entity type",
+    "value": "A short DNA sequence of fixed length (300, 400, 600 or 1,000 bp) with a binary or multi-class label.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@si"
+    ],
+    "source_locator": "Paper: Methods; Supplementary Table 5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We selected 300-bp genomic sequences containing promoters as positive examples"
+     },
+     {
+      "source": "@si",
+      "text": "Max sequence"
+     }
+    ]
+   },
+   {
+    "label": "Organisms",
+    "value": "Human only; Supplementary Table 5 lists Human for all 18 tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "Supplementary Table 5",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "Splice acceptor           30000           3000            600       MCC        Human"
+     }
+    ]
+   },
+   {
+    "label": "Assays",
+    "value": "Histone ChIP-seq in K562 for the epigenetic tasks; the other labels are annotations, from the Eukaryotic Promoter Database, ENCODE SCREEN with the Meuleman DHS index, and GENCODE V44 transcript annotation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Nucleotide Transformer downstream tasks",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Histone ChIP-seq data for ten histone marks in the K562 human cell line were obtained from ENCODE"
+     },
+     {
+      "source": "@paper",
+      "text": "Human enhancer elements were retrieved from ENCODE’s SCREEN database"
+     },
+     {
+      "source": "@paper",
+      "text": "We obtained all human annotated splice sites from GENCODE"
+     }
+    ]
+   },
+   {
+    "label": "Allowed inputs",
+    "value": "DNA sequence only, of the task's fixed length.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Nucleotide Transformer downstream tasks",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We selected 400-bp genomic sequences containing enhancers as positive examples"
+     }
+    ]
+   },
+   {
+    "label": "Adaptation",
+    "value": "Both probing (frozen embeddings with a trained logistic regression or MLP head, with a hyperparameter search) and parameter-efficient fine-tuning of the transformer; HyenaDNA was fully fine-tuned because the parameter-efficient method did not fit its architecture.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Probing; Comparison with published pre-trained genomics models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "using the embeddings of each individual layer as inputs, we trained several downstream models to solve the downstream task"
+     },
+     {
+      "source": "@paper",
+      "text": "performed parameter-efficient fine-tuning on the transformer part of every model as described above, using the same cross-validation scheme for a fair comparison"
+     },
+     {
+      "source": "@paper",
+      "text": "Only for HyenaDNA we performed full fine-tuning due to the incompatibility of our parameter-efficient fine-tuning approach with the model architecture."
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Small, balanced and capped datasets, so a new model can be evaluated on all 18 tasks quickly.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Dataset splits and performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "To obtain small-sized datasets that can be used to benchmark any new design choice or model quickly, we further randomly subsampled examples to a maximum of 30,000 for training and 3,000 for validation and testing"
+     }
+    ]
+   },
+   {
+    "text": "Tenfold cross-validation with a fixed held-out test set and a median across folds, rather than a single training run.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Dataset splits and performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We used the median performance across the ten folds as the final performance metric of each model on a given task."
+     }
+    ]
+   },
+   {
+    "text": "The data are published on Hugging Face in a revised post-review version, with an interactive leaderboard for cross-model comparison.",
+    "source_ids": [
+     "@hf-dataset",
+     "@paper"
+    ],
+    "source_locator": "Hugging Face dataset record; Paper: Data availability",
+    "quotes": [
+     {
+      "source": "@hf-dataset",
+      "text": "We highly encourage to move to this version in detriment of the older version."
+     },
+     {
+      "source": "@paper",
+      "text": "containing results for all models across each task to facilitate comparisons"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Short sequences and a chromosome split only; the paper describes no sequence identity or homology filtering and does not say whether the test chromosomes were in each model's pretraining data.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Dataset splits and performance evaluation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Model training and performance evaluation were performed on different sets of chromosomes from the human genome."
+     },
+     {
+      "source": "@paper",
+      "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+     }
+    ]
+   },
+   {
+    "text": "Two of the comparison models are not on equal footing: Enformer was trained supervised with different splits, which the authors say may inflate its score, and HyenaDNA was fully fine-tuned while the others were not.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Methods, Comparison with published pre-trained genomics models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Note that Enformer has been originally trained in a supervised fashion to solve chromatin and gene expression tasks"
+     },
+     {
+      "source": "@paper",
+      "text": "Only for HyenaDNA we performed full fine-tuning due to the incompatibility of our parameter-efficient fine-tuning approach with the model architecture."
+     }
+    ]
+   },
+   {
+    "text": "Some test sets are small (212 sequences for Promoter non-TATA, 776 for H3K4me3), so differences on those tasks rest on few examples.",
+    "source_ids": [
+     "@si"
+    ],
+    "source_locator": "Supplementary Table 5",
+    "quotes": [
+     {
+      "source": "@si",
+      "text": "Promoter non-TATA          5062            212            300       MCC        Human"
+     },
+     {
+      "source": "@si",
+      "text": "H3K4me3                   17468            776           1000       MCC        Human"
+     }
+    ]
+   },
+   {
+    "text": "There is no released evaluation harness: the data and a leaderboard are public, but the paper describes no command line pipeline for a third party to score a model the same way.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Data availability",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "as well as our downstream tasks benchmark ("
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Nucleotide Transformer benchmark workflow",
+   "steps": [
+    "ENCODE, EPD, SCREEN and GENCODE annotations",
+    "Fixed-length positive and negative sequences",
+    "Balance classes and cap dataset size",
+    "Chromosomes 20 and 21 held out as test",
+    "Tenfold cross-validation, probe or fine-tune",
+    "Median MCC per task"
+   ],
+   "caption": "Eighteen tasks are built the same way and scored with one metric.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: Methods",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We balanced each dataset by subsampling the negative examples to the same number of positive examples."
+    },
+    {
+     "source": "@paper",
+     "text": "We used the median performance across the ten folds as the final performance metric of each model on a given task."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "Per-model MCC values from Supplementary Tables 5 to 9 were read in part but not transcribed here.",
+   "The Hugging Face Space leaderboard page itself was not fetched, so no leaderboard content is stated.",
+   "The dataset card gives no licence, and the Hugging Face API record carries no licence tag."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read the NCBI PMC full-text XML (PMC11810778), the Supplementary Information PDF text layer (Supplementary Table 5 and the model comparison tables) and the Hugging Face dataset API record, all retrieved on 2026-11-27. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": null,
+ "no_run_guide_reason": "The paper and the dataset record give no commands for scoring a model on these tasks: the data are a Hugging Face dataset and the training, probing and fine-tuning procedures are described in prose only. The authors' own code repository is for the Nucleotide Transformer models, not for this benchmark's evaluation.",
+ "structured": [
+  {
+   "task": "NT benchmark H2AFZ",
+   "dataset": "NT benchmark H2AFZ",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H2AFZ                     30000           3000           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K27ac",
+   "dataset": "NT benchmark H3K27ac",
+   "size": 1616,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K27ac                   30000           1616           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K27me3",
+   "dataset": "NT benchmark H3K27me3",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K27me3                  30000           3000           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K36me3",
+   "dataset": "NT benchmark H3K36me3",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K36me3                  30000           3000           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K4me1",
+   "dataset": "NT benchmark H3K4me1",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K4me1                   30000           3000           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K4me2",
+   "dataset": "NT benchmark H3K4me2",
+   "size": 2138,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K4me2                   30000           2138           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K4me3",
+   "dataset": "NT benchmark H3K4me3",
+   "size": 776,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K4me3                   17468            776           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K9ac",
+   "dataset": "NT benchmark H3K9ac",
+   "size": 1004,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K9ac                    23274           1004           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H3K9me3",
+   "dataset": "NT benchmark H3K9me3",
+   "size": 850,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H3K9me3                   27438            850           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark H4K20me1",
+   "dataset": "NT benchmark H4K20me1",
+   "size": 2270,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "H4K20me1                  30000           2270           1000       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Promoter all",
+   "dataset": "NT benchmark Promoter all",
+   "size": 1584,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Promoter all              30000           1584            300       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Promoter TATA",
+   "dataset": "NT benchmark Promoter TATA",
+   "size": 1372,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Promoter TATA             30000           1372            300       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Promoter non-TATA",
+   "dataset": "NT benchmark Promoter non-TATA",
+   "size": 212,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Promoter non-TATA          5062            212            300       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Splice site all",
+   "dataset": "NT benchmark Splice site all",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Splice site all           30000           3000            600       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Splice donor",
+   "dataset": "NT benchmark Splice donor",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Splice donor              30000           3000            600       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Splice acceptor",
+   "dataset": "NT benchmark Splice acceptor",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Splice acceptor           30000           3000            600       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Enhancer",
+   "dataset": "NT benchmark Enhancer",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Enhancer                  30000           3000            400       MCC        Human"
+    }
+   ]
+  },
+  {
+   "task": "NT benchmark Enhancer types",
+   "dataset": "NT benchmark Enhancer types",
+   "size": 3000,
+   "size_unit": "test sequences",
+   "split": "chromosomes 20 and 21 held out, tenfold cross-validation on the rest",
+   "primary_metric": "MCC",
+   "metric_direction": "higher",
+   "results_url": "https://huggingface.co/spaces/InstaDeepAI/nucleotide_transformer_benchmark",
+   "code_url": null,
+   "data_url": "https://huggingface.co/datasets/InstaDeepAI/nucleotide_transformer_downstream_tasks_revised",
+   "data_licence": null,
+   "code_licence": null,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "we used the binary or multi-class MCC as the metric as it is robust to uneven label ratios"
+    },
+    {
+     "source": "@paper",
+     "text": "sequences from chromosomes 20 and 21 were used for the test and the remainder were used for training the different models"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "dataset features the 18 downstream tasks presented in the Nucleotide Transformer paper"
+    },
+    {
+     "source": "@hf-dataset",
+     "text": "nucleotide_transformer_downstream_tasks_revised"
+    },
+    {
+     "source": "@si",
+     "text": "Enhancer types            30000           3000            400       MCC        Human"
+    }
+   ]
+  }
+ ],
+ "notes": "This record is the benchmark defined in the Nucleotide Transformer paper (Nature Methods 2025). size is the test sequence count from Supplementary Table 5; training sizes are in the same table. The store holds 37 protocols for 19 datasets, which are the 18 tasks in two adaptation modes (probing and parameter-efficient fine-tuning) plus an aggregate; this page lists one structured entry per task, since the metric and split are the same in both modes. results_url is the interactive leaderboard named in the data availability statement; the Space page was not fetched. No licence is stated for the Hugging Face dataset, so data_licence is null. Supplementary Tables 6, 7 and 9, which hold the probing and fine-tuning results, were not transcribed."
+}
