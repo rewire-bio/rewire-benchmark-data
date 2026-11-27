@@ -97,12 +97,13 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 ## Running things
 
-18. **Run guides tried: 18 trials of 14 guides, 3 completed.** [run-guide-trials.md](run-guide-trials.md)
+18. **Run guides tried: 4 completed of 18.** [run-guide-trials.md](run-guide-trials.md)
     runs a guide on a clean GitHub runner with no credentials and returns a receipt. SAFFRON,
-    GPN-Promoter and MutBERT completed. Six guides missing an install line were corrected, and five
-    whose sources fail on a clean machine now say so
-    ([trial 2 review](reviews/2026-11-27-run-guide-trial-2.md)). Next: rerun the corrected guides,
-    and try the rest of the candidates.
+    GPN-Promoter, MutBERT and ESM-1b (after its correction) completed. Guides missing an install
+    line or with a wrong path were corrected, and those whose sources fail on a clean machine now
+    say so ([trial 2 review](reviews/2026-11-27-run-guide-trial-2.md), which also holds draft
+    reports to developers). Next: rerun CARP, MIF, MIF-ST and Stack, and try the rest of the
+    candidates.
 19. **Run guide status.** The schema has one status, `source_reviewed_not_executed`. An executed
     guide needs a second, with a receipt: commands, versions, hardware, output hash, time.
 20. **Recipes.** A model can be rerun through `rewirebench` only when it has a registered adapter.
