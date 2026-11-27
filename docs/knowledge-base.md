@@ -229,10 +229,4 @@ it rests on `near` settings.
 
 ## Known gaps
 
-- Methods, most benchmarks and most Tier 2 and Tier 3 models have no profile yet.
-- No run guide has been executed. An executed guide needs a status the schema does not have yet.
-- Settings are a pilot. No setting record or same-checkpoint rule exists yet.
-- The structured checkpoint facts are collected and not yet loaded into the records or the graph.
-- Agents add models and sources. They do not yet add results from papers.
-- Some source records hash a file derived from the address they name (text extracted from a PDF, a
-  file taken out of an archive) and do not yet say so.
+[todo.md](todo.md) lists what is left to do, grouped by goal, with the first step for each.
