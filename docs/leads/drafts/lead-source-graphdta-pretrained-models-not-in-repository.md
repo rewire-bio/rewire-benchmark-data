@@ -3,7 +3,7 @@
 Raise at: https://github.com/thinng/GraphDTA (issues)  
 Register entry: `lead-source-graphdta-pretrained-models-not-in-repository`
 
-The GraphDTA paper (Bioinformatics, doi 10.1093/bioinformatics/btaa921) states in its availability section:
+The GraphDTA paper (Bioinformatics, doi 10.1093/bioinformatics/btaa921) states in its abstract, under Availability of implementation:
 
 > Related data, pre-trained models and source code are publicly available at https://github.com/thinng/GraphDTA.
 

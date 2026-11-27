@@ -3,7 +3,7 @@
 Raise at: https://github.com/ma-compbio/DNALONGBENCH (issues)  
 Register entry: `lead-source-dnalongbench-cnn-best-checkpoint-unused`
 
-In `experiments/CNN/train.py` at commit 6c43266c6dc85b5529b5a784b880ee88cc1a54b3, the `trainer` function saves the model whenever the validation score improves:
+In `experiments/CNN/train.py` of ma-compbio/DNALONGBENCH at commit 6c43266c6dc85b5529b5a784b880ee88cc1a54b3, the `trainer` function saves the model whenever the validation score improves:
 
 > `torch.save(model.state_dict(), os.path.join(save_dir, "best_model.pt"))`
 
