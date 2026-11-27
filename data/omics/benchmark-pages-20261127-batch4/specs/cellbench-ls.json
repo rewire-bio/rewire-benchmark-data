@@ -1,0 +1,495 @@
+{
+  "record_id": "intake-403-20261126-benchmark-cellbench-ls",
+  "sources": [
+    {
+      "key": "europepmc",
+      "name": "Europe PMC record for doi 10.64898/2026.04.01.714123, full metadata and abstract",
+      "description": "Europe PMC REST search response with resultType=core for the preprint's DOI. It carries the current title, the author list, the publication date and the full structured abstract. It is the only open copy of the authors' own text that this run was allowed to fetch: the preprint itself is on bioRxiv, which this run was told not to request, and Europe PMC records it as not open access and not in PMC.",
+      "file": "artifacts/europepmc-core.json",
+      "artifact_url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI%3A%2210.64898%2F2026.04.01.714123%22&resultType=core&format=json",
+      "url": "https://europepmc.org/article/PPR/PPR1216366",
+      "version": "Europe PMC record PPR1216366, as served on 27 November 2026",
+      "media_type": "application/json",
+      "sha256": "cdd58658eece8ca99b7e5e4d4485f7fe2cd0ed66f96671442d61d2b42e9d1600",
+      "retrieved_at": "2026-11-27T05:09:00Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "CellBench is an evaluation of single-cell foundation models used as frozen feature extractors, that is with their weights unchanged and only a light head fitted on top. The authors compare 13 such models with classical methods fitted on the training data itself, across 12 human and mouse cohorts and four genetic perturbation screens. Their reported conclusions are that different models preserve different biological information, that classical baselines stay competitive, that human-pretrained representations transfer to supervised mouse analyses but under a shared decoder none beats simply predicting no change for unseen perturbation targets, and that neither model size nor reported pretraining data volume predicts performance. This page is written from the abstract and metadata alone, because the preprint's full text is on bioRxiv, which this run was not allowed to request.",
+    "summary_source_ids": [
+      "@europepmc"
+    ],
+    "summary_source_locator": "Europe PMC record: title and abstract, Summary and In Brief sections",
+    "summary_quotes": [
+      {
+        "source": "@europepmc",
+        "text": "Here, we present CellBench, a unified benchmark of frozen scFM representations across tissues, species, and genetic perturbation screens."
+      },
+      {
+        "source": "@europepmc",
+        "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+      },
+      {
+        "source": "@europepmc",
+        "text": "We find that different models capture distinct aspects of cellular biology, while classical baselines remain competitive across tasks."
+      },
+      {
+        "source": "@europepmc",
+        "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "What a single-cell foundation model's embedding keeps, and whether it is worth using instead of a method fitted on the data at hand. The authors frame the open question as which biological information the embeddings preserve and when the models beat dataset-fitted methods. Two kinds of task are distinguished in the abstract: representing observed cellular states, which the authors treat as the observational side, and predicting how cells respond to genetic interventions, which they report as a different matter where success on the first does not carry over. A third question is evidential rather than biological: whether a model's apparent advantage survives the removal of cohorts that overlap its own pretraining records.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary, The Bigger Picture and Highlights sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Single-cell foundation models (scFMs) are increasingly used for transcriptomic analysis, yet it remains unclear what biological information their embeddings preserve and when they outper- form dataset-fitted methods."
+          },
+          {
+            "source": "@europepmc",
+            "text": "It also reveals an important distinction between representing observed cellular states and predicting how cells respond to genetic interventions."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Excluding identifier-matched cohorts preserves rankings but reduces annotation gains"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The abstract gives the shape of the data and nothing more: 12 human and mouse cohorts, covering tissues and species, and four genetic perturbation screens. The comparison set is 13 frozen foundation models against classical baselines that are fitted on the training data. The perturbation side is said to include unseen perturbation targets. Nothing in the material that could be fetched names the cohorts, the cell counts, the gene sets, the screens or the splits, so none of those is stated here.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and In Brief sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Here, we present CellBench, a unified benchmark of frozen scFM representations across tissues, species, and genetic perturbation screens."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Three things can be said from the abstract. First, the backbones are frozen, so what is evaluated is the representation rather than a fine-tuned model, and the comparison is against methods fitted on the training data. Second, the perturbation task is scored on genome-wide absolute error against an explicit reference of predicting no change, and the authors report that under a shared decoder no model improves on that reference for unseen targets. Third, a sensitivity analysis removes cohorts whose sample or donor identifiers match a model's pretraining records, and the authors report that this reduces the annotation advantages while leaving the model rankings largely unchanged. The metrics for the other tasks, the aggregation across cohorts, the number of seeds and the exact splits are not in the material that could be fetched.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary, Highlights and In Brief sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Here, we present CellBench, a unified benchmark of frozen scFM representations across tissues, species, and genetic perturbation screens."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Excluding cohorts with sample or donor identifier matches to pretraining records substantially reduces annotation advantages without changing model rankings appreciably."
+          },
+          {
+            "source": "@europepmc",
+            "text": "We find that different models capture distinct aspects of cellular biology, while classical baselines remain competitive across tasks."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "12 human and mouse cohorts and four genetic perturbation screens, as the abstract states. No cohort name, cell count, gene count or accession is given in the material that could be fetched; those are in the preprint's full text, which is on bioRxiv and was not requested.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, In Brief section",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Not extracted. The abstract refers to baselines fitted on training data, and to unseen perturbation targets, so train and test parts exist, but no saved file states how they are drawn, whether by donor, by cohort or at random. One deliberate exclusion is described: cohorts whose sample or donor identifiers match a model's pretraining records are dropped in a sensitivity analysis.",
+        "status": "unextracted",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and In Brief sections"
+      },
+      {
+        "label": "Metrics",
+        "value": "Only one is named: genome-wide absolute error for the perturbation task, lower is better, measured against the reference of predicting no change. The metrics for the other tasks, including the annotation task whose advantages the overlap analysis reduces, are not named in the material that could be fetched.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary section",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Classical methods fitted on the training data, which the authors report remain competitive across tasks, and for the perturbation task an explicit zero-change reference, that is predicting no change for the unseen target. The individual baseline methods are not named in the material that could be fetched.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and In Brief sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "We find that different models capture distinct aspects of cellular biology, while classical baselines remain competitive across tasks."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Different models capture different biological information. Human-pretrained models transfer well to mouse tissues, yet with a shared decoder none beats predicting no change on unseen perturbations."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "One is described and it is the paper's own point: cohorts whose sample or donor identifiers match a model's pretraining records are excluded in a sensitivity analysis, and the authors report that doing so substantially reduces the annotation advantages while leaving the rankings largely unchanged. The abstract also notes that pretraining data are not always fully documented, which limits how far such a check can go.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary, Highlights and The Bigger Picture sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Excluding cohorts with sample or donor identifier matches to pretraining records substantially reduces annotation advantages without changing model rankings appreciably."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Excluding identifier-matched cohorts preserves rankings but reduces annotation gains"
+          },
+          {
+            "source": "@europepmc",
+            "text": "Model size and training data volume poorly predict performance, and removing human studies overlapping pretraining data erases the human annotation gain over baselines."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Not extracted. The abstract mentions the strength of the evidence behind reported performance, and warns that stable rankings can hide small or dataset-dependent advantages, but no saved file states seeds, replicates, confidence intervals or statistical tests.",
+        "status": "unextracted",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and The Bigger Picture sections"
+      },
+      {
+        "label": "Entity type",
+        "value": "Not fully stated. The tasks described are representing observed cellular states, which implies a cell and its embedding, and predicting the response to a genetic intervention, which implies a perturbation target, but no saved file defines the unit of evaluation for any task.",
+        "status": "unextracted",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, The Bigger Picture section"
+      },
+      {
+        "label": "Organisms",
+        "value": "Human and mouse. The cohorts are described as human and mouse, and one of the paper's questions is whether human-pretrained representations transfer to supervised mouse analyses.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and In Brief sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell transcriptomics, and genetic perturbation screens read out by sequencing. The abstract describes the models as used for transcriptomic analysis and the four perturbation data sets as genetic perturbation screens, but names no protocol.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and In Brief sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Single-cell foundation models (scFMs) are increasingly used for transcriptomic analysis, yet it remains unclear what biological information their embeddings preserve and when they outper- form dataset-fitted methods."
+          },
+          {
+            "source": "@europepmc",
+            "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "A frozen representation of the expression data. The backbones are not updated, so what enters the downstream task is the model's own embedding of a cell, with a head or decoder on top; for the perturbation task the abstract refers to a shared decoder across models. Nothing else is described as an input.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary section",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Here, we present CellBench, a unified benchmark of frozen scFM representations across tissues, species, and genetic perturbation screens."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Frozen backbones with a fitted head. The foundation models are evaluated as frozen representations, so they are not fine-tuned, and the perturbation task uses a decoder shared across models. The record's own earlier note describes the setting as zero-shot representation for clustering and batch correction with lightweight fine-tuning of task-specific heads for the other tasks, but that wording comes from an earlier version's abstract and is not in the text fetched here.",
+        "status": "source_checked",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary section",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Here, we present CellBench, a unified benchmark of frozen scFM representations across tissues, species, and genetic perturbation screens."
+          },
+          {
+            "source": "@europepmc",
+            "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The comparison includes methods fitted on the data at hand, and the authors report that those remain competitive, which is the comparison a reader needs before adopting a foundation model.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and The Bigger Picture sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "We find that different models capture distinct aspects of cellular biology, while classical baselines remain competitive across tasks."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Strong classical baselines, appropriate controls, and transparent pretraining records are essential for determining when these models provide reliable benefits."
+          }
+        ]
+      },
+      {
+        "text": "The perturbation task is anchored to a reference that is easy to beat by accident and hard to beat honestly: predicting no change. The authors report that under a shared decoder none of the models improves on it for unseen targets.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and In Brief sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Different models capture different biological information. Human-pretrained models transfer well to mouse tissues, yet with a shared decoder none beats predicting no change on unseen perturbations."
+          }
+        ]
+      },
+      {
+        "text": "It tests its own results against pretraining overlap, dropping cohorts whose sample or donor identifiers match a model's pretraining records, and reports what that does to the annotation advantage.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, Summary and Highlights sections",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Excluding cohorts with sample or donor identifier matches to pretraining records substantially reduces annotation advantages without changing model rankings appreciably."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Excluding identifier-matched cohorts preserves rankings but reduces annotation gains"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Only the abstract and the record metadata could be read. The preprint is on bioRxiv, Europe PMC marks it as not open access and not held in PMC, and this run was told not to request bioRxiv, so no cohort, metric, split or result value from the paper is on this page.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: isOpenAccess and inPMC fields, full text URL list",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "\"isOpenAccess\":\"N\""
+          },
+          {
+            "source": "@europepmc",
+            "text": "\"url\":\"https://doi.org/10.64898/2026.04.01.714123\""
+          }
+        ]
+      },
+      {
+        "text": "The work is a moving target. Europe PMC serves this DOI under the title CellBench: task-dependent performance and generalization limits of single-cell foundation models, while the record in the store holds two earlier titles for the same DOI, so the name CellBench-LS and the task description taken from the earlier abstracts may no longer match the current version.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: title, doi and source fields",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "CellBench: task-dependent performance and generalization limits of single-cell foundation models"
+          },
+          {
+            "source": "@europepmc",
+            "text": "\"doi\":\"10.64898/2026.04.01.714123\""
+          },
+          {
+            "source": "@europepmc",
+            "text": "\"source\":\"PPR\""
+          }
+        ]
+      },
+      {
+        "text": "It is a preprint with no result table, code address or data address in anything that could be fetched here, so no score on it can be checked and nothing can be rerun.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: pubType and full text URL list",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "\"publisher\":\"bioRxiv\""
+          },
+          {
+            "source": "@europepmc",
+            "text": "\"url\":\"https://doi.org/10.64898/2026.04.01.714123\""
+          }
+        ]
+      },
+      {
+        "text": "The authors themselves warn that stable rankings can hide small or dataset-dependent advantages, especially where pretraining data are not fully documented, so the rankings this benchmark produces should not be read as a general ordering of models.",
+        "source_ids": [
+          "@europepmc"
+        ],
+        "source_locator": "Europe PMC record: abstract, The Bigger Picture section",
+        "quotes": [
+          {
+            "source": "@europepmc",
+            "text": "Moreover, stable model rankings can hide small or dataset-dependent advantages, especially when pretraining data are not fully documented."
+          },
+          {
+            "source": "@europepmc",
+            "text": "Neither model size nor reported pretraining data volume reliably predicts performance."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "CellBench workflow as the abstract describes it",
+      "steps": [
+        "12 human and mouse cohorts and four genetic perturbation screens",
+        "13 foundation models used as frozen representations",
+        "classical methods fitted on the training data as baselines",
+        "observational tasks on cellular states, and perturbation prediction under a shared decoder",
+        "perturbation error compared with predicting no change",
+        "repeat with pretraining-overlapping cohorts excluded"
+      ],
+      "caption": "The steps are those the abstract names; the metrics and splits for the observational tasks are not in the material that could be fetched.",
+      "source_ids": [
+        "@europepmc"
+      ],
+      "source_locator": "Europe PMC record: abstract, Summary and In Brief sections",
+      "quotes": [
+        {
+          "source": "@europepmc",
+          "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+        },
+        {
+          "source": "@europepmc",
+          "text": "Human-pretrained representations transfer to supervised mouse analyses, but under a shared decoder they fail to improve genome-wide absolute error over predicting no change for unseen perturbation targets."
+        },
+        {
+          "source": "@europepmc",
+          "text": "Excluding cohorts with sample or donor identifier matches to pretraining records substantially reduces annotation advantages without changing model rankings appreciably."
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The preprint's full text was not read. It is on bioRxiv, which this run was told not to request, and Europe PMC records it as not open access and not in PMC, so the cohorts, the splits, the metrics for the observational tasks, the model list and every result value are missing from this page.",
+      "No code or data address is given in the material that could be fetched, so there is no run guide.",
+      "The title in the store does not match the title Europe PMC now serves for the same DOI, and the earlier versions' task description could not be checked against the current text.",
+      "Which 13 foundation models and which classical baselines were compared is not stated in the abstract."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the Europe PMC core search response for doi 10.64898/2026.04.01.714123, record PPR1216366, including its title, author list, dates and full structured abstract. The bioRxiv full text was not requested. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "No code or data address for this benchmark appears in any source that could be fetched. The only open copy of the authors' own text is the Europe PMC abstract, which names no repository, no download and no scoring script, and the preprint itself is on bioRxiv, which this run was told not to request.",
+  "structured": [
+    {
+      "task": "Frozen representation evaluation across observational tasks and perturbation prediction",
+      "dataset": "12 human and mouse cohorts and four genetic perturbation screens",
+      "size": null,
+      "size_unit": "cells or perturbations, not stated in any source that could be fetched",
+      "split": null,
+      "primary_metric": null,
+      "metric_direction": null,
+      "results_url": "https://doi.org/10.64898/2026.04.01.714123",
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-04-05",
+      "quotes": [
+        {
+          "source": "@europepmc",
+          "text": "CellBench compares 13 frozen single-cell foundation models with classical baselines fitted on training data across 12 human and mouse cohorts and four genetic perturbation screens."
+        },
+        {
+          "source": "@europepmc",
+          "text": "\"url\":\"https://doi.org/10.64898/2026.04.01.714123\""
+        },
+        {
+          "source": "@europepmc",
+          "text": "\"firstPublicationDate\":\"2026-04-05\""
+        }
+      ]
+    }
+  ],
+  "notes": "Coverage is limited and deliberately so. The record's two attached sources are bioRxiv pages for the same DOI, https://www.biorxiv.org/content/10.64898/2026.04.01.714123v1 and the v2 address; this run was told not to request bioRxiv, and the saved Europe PMC record PPR1216366 marks the preprint isOpenAccess N and inPMC N, so the full text was not available. The page is therefore written from the Europe PMC core record's title, author list, date and structured abstract only. One doubt for a human, the name: Europe PMC serves this DOI as CellBench: task-dependent performance and generalization limits of single-cell foundation models, while the store holds CellBench-LS from v1 and a different v2 title, so the record's name, task field and scope note come from abstracts that the current version has replaced. The released date 2026-04-05 is the Europe PMC first publication date for the preprint."
+}

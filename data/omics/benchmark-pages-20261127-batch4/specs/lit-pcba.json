@@ -1,0 +1,720 @@
+{
+  "record_id": "hitdisc-20261022-benchmark-litpcba",
+  "sources": [
+    {
+      "key": "official-page",
+      "name": "Text of the LIT-PCBA official project page, drugdesign.unistra.fr",
+      "description": "Plain text extracted with a short Python script from the official project page, which carries the download links and the per-target data content table. The served HTML is kept beside it as artifacts/litpcba-page.html.",
+      "file": "artifacts/litpcba-page.txt",
+      "artifact_url": "https://drugdesign.unistra.fr/LIT-PCBA/",
+      "url": "https://drugdesign.unistra.fr/LIT-PCBA/",
+      "version": "text of the page as served on 2026-11-27",
+      "media_type": "text/plain",
+      "sha256": "59e841fd5a129532ef5a38960767f6c823968710e9b007c0b44a4c3354652938",
+      "retrieved_at": "2026-11-27T04:19:09Z",
+      "store_bytes": false
+    },
+    {
+      "key": "audit",
+      "name": "Text layer of Huang, Knight and Naprienko, Data Leakage and Redundancy in the LIT-PCBA Benchmark, arXiv 2507.21404v2",
+      "description": "Text extracted with pdftotext -layout from the arXiv PDF. The PDF is kept beside it as artifacts/audit.pdf. This is an independent audit of the benchmark, not a source by its authors.",
+      "file": "artifacts/audit.txt",
+      "artifact_url": "https://arxiv.org/pdf/2507.21404v2",
+      "url": "https://arxiv.org/abs/2507.21404v2",
+      "version": "arXiv v2, updated 2025-08-07",
+      "media_type": "text/plain",
+      "sha256": "65450dc103c78a9e6ffe8f52fd63e2aa7cd0b090e88f485d89e99d3fd05e7abc",
+      "retrieved_at": "2026-11-27T04:21:53Z",
+      "store_bytes": false
+    },
+    {
+      "key": "arxiv-meta",
+      "name": "arXiv API metadata for 2507.21404v2",
+      "description": "arXiv Atom API response for the audit paper, giving its title and dates.",
+      "file": "artifacts/arxiv-meta.xml",
+      "artifact_url": "http://export.arxiv.org/api/query?id_list=2507.21404v2",
+      "url": "https://arxiv.org/abs/2507.21404v2",
+      "version": "API response of 2026-11-27",
+      "media_type": "application/xml",
+      "sha256": "84b0e506bac559dceb87dc7460d0e831bd15c101d8376e3a40ea56846cf8cefd",
+      "retrieved_at": "2026-11-27T04:21:57Z",
+      "store_bytes": false
+    },
+    {
+      "key": "shen",
+      "name": "Text of Shen et al., Unlocking the application potential of AlphaFold3-like approaches in virtual screening, Chemical Science, from the PMC full-text XML",
+      "description": "Plain text extracted from the PMC full-text JATS XML (PMC12704515) by stripping tags with a short Python script; the XML is kept beside it as artifacts/shen2025-pmc.xml. This paper scores co-folding methods on a five-target subset of LIT-PCBA and states its own totals for the full set.",
+      "file": "artifacts/shen2025.txt",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12704515&rettype=xml",
+      "url": "https://doi.org/10.1039/d5sc06481c",
+      "version": "text of PMC12704515 full text",
+      "media_type": "text/plain",
+      "sha256": "f9d1e5644130453a4044313042fddfd3bf63e72a8007ce46acf44c2e6d38dde8",
+      "retrieved_at": "2026-11-27T04:18:23Z",
+      "store_bytes": false
+    },
+    {
+      "key": "zenodo-source-data",
+      "name": "Zenodo record 17568813, source data for the Shen et al. virtual screening paper (API response)",
+      "description": "Zenodo REST API record for the source data of the paper that scores methods on the LIT-PCBA subset, giving the licence, date and file list.",
+      "file": "artifacts/zenodo-17568813.json",
+      "artifact_url": "https://zenodo.org/api/records/17568813",
+      "url": "https://zenodo.org/records/17568813",
+      "version": "API response of 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "bcbab4a4b76b55fab4dce42d201f2c4da42bb91e6393d7ae3b62d816a900ebe3",
+      "retrieved_at": "2026-11-27T04:19:48Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "LIT-PCBA is a virtual screening benchmark of 15 protein target sets whose actives and inactives both come from measured PubChem BioAssay dose-response data, rather than from synthetic decoys. The official page states 7761 actives and 382674 unique inactives, publishes per-target counts, and offers the full data and an AVE-unbiased version. Method developers use it to test whether a model ranks measured actives above measured inactives at a realistic class imbalance.",
+    "summary_source_ids": [
+      "@official-page",
+      "@audit"
+    ],
+    "summary_source_locator": "Official page: header and data content table; audit paper: Section 2",
+    "summary_quotes": [
+      {
+        "source": "@official-page",
+        "text": "15 target sets, 7761 actives and 382674 unique inactives selected from high-confidence PubChem Bioassay data"
+      },
+      {
+        "source": "@official-page",
+        "text": "Download Full data here"
+      },
+      {
+        "source": "@official-page",
+        "text": "Download AVE unbiased data here"
+      },
+      {
+        "source": "@audit",
+        "text": "comprises 15 protein targets,"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The benchmark asks whether a method can pick measured actives out of a large library of measured inactives for each of 15 targets. Because the negatives were assayed rather than generated, the ratio of actives to inactives is as lopsided as a real screen: ADRB2 has 17 actives against 311748 inactives, while ALDH1 has 5363 actives against 101874 inactives. The audit paper describes the intended capability as recovering novel chemotypes, that is finding actives whose chemistry differs from what the model has already seen.",
+        "source_ids": [
+          "@official-page",
+          "@audit"
+        ],
+        "source_locator": "Official page: data content table; audit paper: Abstract and Introduction",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "492947 \n ADRB2 \n Beta2 adrenergic receptor \n Agonists \n 17 \n 311748 \n 8"
+          },
+          {
+            "source": "@official-page",
+            "text": "1030 \n ALDH1 \n Aldehyde dihydrogenase 1 \n Inhibitors \n 5363 \n 101874 \n 8"
+          },
+          {
+            "source": "@audit",
+            "text": "the benchmark does not measure the intended"
+          },
+          {
+            "source": "@audit",
+            "text": "ability to recover novel chemotypes"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Each target set is drawn from a PubChem BioAssay identifier and holds measured actives and inactives plus one or more PDB templates; the official table gives the assay identifier, the target, whether the ligands are agonists, antagonists or inhibitors, the active and inactive counts and the number of PDB templates. The audit paper describes three components per target: query ligands taken from co-crystal structures, a training set and a validation set, with training and validation partitioned by the asymmetric validation embedding (AVE) protocol. Its Table 1 prints the per-target split sizes, for example 4020 training and 1343 validation actives for ALDH1. The official page offers both the full data and an AVE-unbiased version.",
+        "source_ids": [
+          "@official-page",
+          "@audit"
+        ],
+        "source_locator": "Official page: data content table and download links; audit paper: Section 2 and Table 1",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "AID \n Set \n Target \n Ligands \n Actives \n Inactives \n PDB templates"
+          },
+          {
+            "source": "@audit",
+            "text": "For each target, LIT-PCBA provides three components: a set of query ligands from co-crystal structures, a training set for model fitting,"
+          },
+          {
+            "source": "@audit",
+            "text": "training/validation compounds are partitioned using"
+          },
+          {
+            "source": "@audit",
+            "text": "the asymmetric validation embedding (AVE) protocol"
+          },
+          {
+            "source": "@audit",
+            "text": "ALDH1           8       5363      4020         1343   101 874    76 577       25 297"
+          },
+          {
+            "source": "@official-page",
+            "text": "Download AVE unbiased data here"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A submission ranks each target's library, and the ranking is scored for early enrichment. The audit paper describes the usual protocol: the co-crystal query ligands are the fixed inputs, the LIT-PCBA validation split is treated as the held-out test set, and the ranking is scored with measures such as normalised EF1%, average precision, ROC AUC and BEDROC; single-ligand evaluation scores one query at a time and reports the mean across queries, while multi-ligand evaluation ranks by the maximum similarity over all queries, the max-pooling the original paper adopts. Because the active-to-inactive ratio varies so much across targets, both the audit paper and Shen et al. normalise the enrichment factor by each target's theoretical maximum (nEF1% or NEF). There is no central leaderboard; each paper publishes its own numbers.",
+        "source_ids": [
+          "@audit",
+          "@shen"
+        ],
+        "source_locator": "Audit paper: Section 2 and Section 3.1.1; Shen et al.: Methods 'Evaluation metrics'",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "Ranking metrics (e.g., nEF1% ,"
+          },
+          {
+            "source": "@audit",
+            "text": "treating the LIT-PCBA “validation” split as a held-out test set in standard ML terminology."
+          },
+          {
+            "source": "@audit",
+            "text": "Single-ligand evaluation ranks the library using one query at a time"
+          },
+          {
+            "source": "@audit",
+            "text": "The original LIT-PCBA paper adopts simple max-pooling over queries"
+          },
+          {
+            "source": "@audit",
+            "text": "each score should be normalized by"
+          },
+          {
+            "source": "@shen",
+            "text": "we employed not only the conventional EF1% but also the normalized enrichment factor (NEF)"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "15 target sets. The official page states 7761 actives and 382674 unique inactives from high-confidence PubChem BioAssay data, with per-target counts; Shen et al. state 10 030 confirmed actives and 2 798 737 confirmed inactives for the full set. Neither source reconciles the two figures.",
+        "status": "source_checked",
+        "source_ids": [
+          "@official-page",
+          "@shen"
+        ],
+        "source_locator": "Official page: header; Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "15 target sets, 7761 actives and 382674 unique inactives selected from high-confidence PubChem Bioassay data"
+          },
+          {
+            "source": "@shen",
+            "text": "The full set contains a total of 15 targets, 10 030 confirmed actives and 2 798 737 confirmed inactives."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Per target: query ligands from co-crystal structures, a training set and a validation set, with training and validation partitioned by the AVE protocol. The audit paper's Table 1 gives the per-target sizes, for example FEN1 with 269 training and 91 validation actives and 263 771 training and 86 947 validation inactives. The official page also publishes an AVE-unbiased version of the data.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit",
+          "@official-page"
+        ],
+        "source_locator": "Audit paper: Section 2 and Table 1; official page: download links",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "FEN1            1        360       269           91   350 718   263 771       86 947"
+          },
+          {
+            "source": "@audit",
+            "text": "the asymmetric validation embedding (AVE) protocol"
+          },
+          {
+            "source": "@official-page",
+            "text": "Download AVE unbiased data here"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Enrichment at the top of the ranking, higher is better. The audit paper names nEF1%, average precision, ROC AUC and BEDROC as the ranking metrics in use and argues for reporting mean, median and the normalised nEF1%. Shen et al. use AUROC, BEDROC (alpha = 80.5), EF at 0.5%, 1% and 5%, and the normalised enrichment factor NEF for this benchmark.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit",
+          "@shen"
+        ],
+        "source_locator": "Audit paper: Section 2 and Section 3.1.1; Shen et al.: Methods 'Evaluation metrics'",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "average precision, ROC AUC, BEDROC) are computed"
+          },
+          {
+            "source": "@audit",
+            "text": "both the mean and the median across"
+          },
+          {
+            "source": "@shen",
+            "text": "we supplemented EF1% with the normalized enrichment factor (NEF)"
+          },
+          {
+            "source": "@shen",
+            "text": "We evaluated EF at 0.5%, 1%, and 5% thresholds to capture performance across different screening depths."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Not published by the benchmark itself in the sources read. The audit paper supplies a parameter-free memorisation baseline built from 4096-bit ECFP4 fingerprints against the training actives, reaching a median raw EF1% of 4.15 on the validation set under the multi-ligand protocol, and compares it with the CHEESE EspSim and ShapeSim encoders, ECFP4, ROCS and SFX. Shen et al. use Glide and Gnina as baselines on their five-target subset.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit",
+          "@shen"
+        ],
+        "source_locator": "Audit paper: Section 3.1 and Table 2; Shen et al.: Results 'Performance on a subset of LIT-PCBA dataset'",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "The stereo-agnostic memorization baseline is built from 4096-bit ECFP4 fingerprints and uses only"
+          },
+          {
+            "source": "@audit",
+            "text": "the baseline reaches a median raw EF1% of 4.15 on the validation set"
+          },
+          {
+            "source": "@shen",
+            "text": "with Glide and Gnina as baselines"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "The AVE protocol is the benchmark's own control, and the audit paper reports that it does not hold. It finds 2,491 unique inactives shared between training and validation across the 15 targets, 323 active training-validation pairs at ECFP4 Tanimoto at or above 0.6 in ALDH1 alone, query ligands that also appear in the training or validation set, and near-duplicate query ligands within a set. It concludes that the benchmark in its current form does not measure the ability to recover novel chemotypes and that zero-shot evaluations are also affected.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit"
+        ],
+        "source_locator": "Audit paper: Abstract; Sections 5.1.1 and 5.1.2",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "our analysis uncovered a total of 2,491 unique inactives shared between training and validation sets across the 15 targets"
+          },
+          {
+            "source": "@audit",
+            "text": "we identified 323 active training–validation"
+          },
+          {
+            "source": "@audit",
+            "text": "the query ligand D8G (from PDB code 3H6O) appears in the validation set"
+          },
+          {
+            "source": "@audit",
+            "text": "Even models evaluated in “zero-shot” mode are affected by analog leakage into the query set"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "The benchmark asks for none in the sources read. The audit paper argues that a single summary statistic is not enough and that mean, median and nEF1% should all be reported, because one outlier target can move the result.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit"
+        ],
+        "source_locator": "Audit paper: Section 3.1.1",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "as relying on a single statistic allows even a single outlier"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A compound in a target's library, labelled active or inactive from a dose-response assay; query ligands are compounds taken from co-crystal structures.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit",
+          "@official-page"
+        ],
+        "source_locator": "Audit paper: Section 2; official page: data content table",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "each with at least one co-crystal structure and curated bioactive/inactive compounds from PubChem"
+          },
+          {
+            "source": "@official-page",
+            "text": "Actives \n Inactives \n PDB templates"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Not stated in the files read. The target list names human proteins such as the beta2 adrenergic receptor, estrogen receptor alpha and cellular tumor antigen p53, but no species column is printed.",
+        "status": "unreported",
+        "source_ids": [
+          "@official-page"
+        ],
+        "source_locator": "Official page: data content table"
+      },
+      {
+        "label": "Assays",
+        "value": "PubChem BioAssay dose-response data: both actives and inactives are measured. Shen et al. describe the compounds as derived from real-world screening campaigns and both classes as experimentally verified.",
+        "status": "source_checked",
+        "source_ids": [
+          "@official-page",
+          "@shen"
+        ],
+        "source_locator": "Official page: header; Shen et al.: Results 'Performance on a subset of LIT-PCBA dataset' and Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "selected from high-confidence PubChem Bioassay data"
+          },
+          {
+            "source": "@shen",
+            "text": "contains active and inactive compounds derived from real-world screening campaigns"
+          },
+          {
+            "source": "@shen",
+            "text": "is characterized by experimentally verified bioactivities for all compounds"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Not fixed by the benchmark. Each target ships PDB templates and query ligands, so ligand-based methods may use the query ligands and structure-based methods the templates; Shen et al. picked one of the recommended PDB entries per target for their docking baselines.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit",
+          "@shen"
+        ],
+        "source_locator": "Audit paper: Section 2; Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "the first step is to extract one or more ligands are from co-crystallized PDB structures; these are the queries, which serve as the fixed inputs for similarity-based virtual screening"
+          },
+          {
+            "source": "@shen",
+            "text": "only a single structure was selected from multiple recommended PDB entries"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Both are in use. The benchmark provides a training set, so a model may be fitted on it and tested on the validation split; methods may also be run zero-shot from the query ligands or the structures, as Shen et al. do with co-folding methods run at default settings.",
+        "status": "source_checked",
+        "source_ids": [
+          "@audit",
+          "@shen"
+        ],
+        "source_locator": "Audit paper: Section 2; Shen et al.: Methods 'Complex structure prediction'",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "If LIT-PCBA is used for training, the queries are used to"
+          },
+          {
+            "source": "@audit",
+            "text": "Even models evaluated in a “zero-shot” setting are not immune"
+          },
+          {
+            "source": "@shen",
+            "text": "All other parameters remained at their default or recommended values."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Both classes are measured: actives and inactives come from high-confidence PubChem BioAssay data, so enrichment is not an artefact of generated decoys. Shen et al. turned to it for that reason after a reviewer questioned decoy-based sets.",
+        "source_ids": [
+          "@official-page",
+          "@shen"
+        ],
+        "source_locator": "Official page: header; Shen et al.: Results 'Performance on a subset of LIT-PCBA dataset'",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "selected from high-confidence PubChem Bioassay data"
+          },
+          {
+            "source": "@shen",
+            "text": "In contrast, LIT-PCBA, another widely-accepted benchmark for VS, contains active and inactive compounds derived from real-world screening campaigns."
+          }
+        ]
+      },
+      {
+        "text": "The per-target composition is published on the official page, with the assay identifier, actives, inactives and number of PDB templates for each of the 15 sets, so a reader can see the class imbalance before choosing a metric.",
+        "source_ids": [
+          "@official-page"
+        ],
+        "source_locator": "Official page: data content table",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "AID \n Set \n Target \n Ligands \n Actives \n Inactives \n PDB templates"
+          },
+          {
+            "source": "@official-page",
+            "text": "651631 \n TP53 \n Cellular tumor antigen p53 \n Inhibitors \n 64 \n 3345 \n 6"
+          }
+        ]
+      },
+      {
+        "text": "An AVE-unbiased version of the data is published alongside the full data, so the AVE-debiased split can be used without rebuilding it.",
+        "source_ids": [
+          "@official-page"
+        ],
+        "source_locator": "Official page: download links",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "Download AVE unbiased data here"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Huang, Knight and Naprienko audit the benchmark and conclude it is compromised by leakage: 2,491 unique inactives shared between training and validation, 323 active training-validation analogue pairs at ECFP4 Tanimoto at or above 0.6 in ALDH1 alone, and query ligands repeated in other splits. They report that a parameter-free memorisation baseline matches or exceeds published results and say nearly all published LIT-PCBA results are undermined.",
+        "source_ids": [
+          "@audit"
+        ],
+        "source_locator": "Audit paper: Abstract; Sections 3 and 5.1",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "a trivial memorization-based baseline"
+          },
+          {
+            "source": "@audit",
+            "text": "These data integrity failures undermine nearly all published LIT-PCBA results."
+          },
+          {
+            "source": "@audit",
+            "text": "our analysis uncovered a total of 2,491 unique inactives shared between training and validation sets across the 15 targets"
+          }
+        ]
+      },
+      {
+        "text": "The official page and Shen et al. print different totals for the full set (7761 actives and 382674 unique inactives against 10 030 actives and 2 798 737 inactives), and neither explains the difference.",
+        "source_ids": [
+          "@official-page",
+          "@shen"
+        ],
+        "source_locator": "Official page: header; Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@official-page",
+            "text": "7761 actives and 382674 unique inactives"
+          },
+          {
+            "source": "@shen",
+            "text": "10 030 confirmed actives and 2 798 737 confirmed inactives"
+          }
+        ]
+      },
+      {
+        "text": "Raw EF1% is not comparable across targets here, because the active-to-inactive ratio varies by orders of magnitude; the audit paper and Shen et al. both normalise it, and published numbers using raw EF1% can invert a ranking.",
+        "source_ids": [
+          "@audit",
+          "@shen"
+        ],
+        "source_locator": "Audit paper: Section 3.1.1 and 3.1.2; Shen et al.: Results 'Performance on a subset of LIT-PCBA dataset'",
+        "quotes": [
+          {
+            "source": "@audit",
+            "text": "Raw EF1% values are scale-dependent: the denominator changes with the number of screened"
+          },
+          {
+            "source": "@audit",
+            "text": "Selective reporting of a single summary statistic or relying on unnormalized scores can invert"
+          },
+          {
+            "source": "@shen",
+            "text": "given the substantial variation in the ratio of actives to inactives across different targets"
+          }
+        ]
+      },
+      {
+        "text": "Published results are often on subsets, not the 15 targets: Shen et al. scored five targets with fewer than 100 000 compounds each and dropped MTORC1 despite it meeting the size rule, because its recommended structures have ambiguous binding sites.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "only a subset of five targets (Table S2), each with fewer than 100 000 compounds, were involved in this study"
+          },
+          {
+            "source": "@shen",
+            "text": "MTORC1 was excluded despite meeting the size criterion due to ambiguous binding sites in the recommended PDB structures"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "LIT-PCBA screening evaluation",
+      "steps": [
+        "PubChem BioAssay dose-response data per target",
+        "Actives and inactives, AVE split into training and validation",
+        "Query ligands from co-crystal structures",
+        "Method ranks the validation library",
+        "Enrichment, normalised per target"
+      ],
+      "caption": "Measured actives and inactives are split by the AVE protocol; a method ranks the held-out library, usually from the co-crystal query ligands, and the ranking is scored for early enrichment normalised to each target's maximum.",
+      "source_ids": [
+        "@audit",
+        "@official-page"
+      ],
+      "source_locator": "Audit paper: Section 2 and Section 3.1.1; official page: header",
+      "quotes": [
+        {
+          "source": "@audit",
+          "text": "For each target, LIT-PCBA provides three components: a set of query ligands from co-crystal structures, a training set for model fitting,"
+        },
+        {
+          "source": "@audit",
+          "text": "the asymmetric validation embedding (AVE) protocol"
+        },
+        {
+          "source": "@official-page",
+          "text": "selected from high-confidence PubChem Bioassay data"
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The LIT-PCBA primary paper (doi 10.1021/acs.jcim.0c00155) is closed access and was not retrieved, so the benchmark's own account of compound curation, the activity thresholds and the AVE procedure was not read.",
+      "The official page prints no licence, no version string and no date, so the terms of use for the data are not known.",
+      "Shen et al.'s per-target table for their five-target subset is in their supplementary information, which was not retrieved."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the official project page as served on 2026-11-27, the full text layer of the audit paper arXiv 2507.21404v2, its arXiv API metadata, the PMC full text of Shen et al. (PMC12704515) and the Zenodo API record 17568813, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The official page offers data downloads only, with no evaluation or scoring code, and none of the sources read gives commands for scoring a ranking on this benchmark.",
+  "structured": [
+    {
+      "task": "Virtual screening on LIT-PCBA, full set as published",
+      "dataset": "LIT-PCBA",
+      "size": 15,
+      "size_unit": "target sets",
+      "split": "AVE-partitioned training and validation, plus co-crystal query ligands",
+      "primary_metric": "nEF1%",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": "https://drugdesign.unistra.fr/LIT-PCBA/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@official-page",
+          "text": "15 target sets, 7761 actives and 382674 unique inactives selected from high-confidence PubChem Bioassay data"
+        },
+        {
+          "source": "@audit",
+          "text": "the asymmetric validation embedding (AVE) protocol"
+        },
+        {
+          "source": "@audit",
+          "text": "a set of query ligands from co-crystal structures"
+        },
+        {
+          "source": "@audit",
+          "text": "yielding the dimensionless nEF1%"
+        },
+        {
+          "source": "@shen",
+          "text": "https://drugdesign.unistra.fr/LIT-PCBA"
+        }
+      ]
+    },
+    {
+      "task": "ALDH1 validation set",
+      "dataset": "LIT-PCBA ALDH1",
+      "size": 1343,
+      "size_unit": "validation actives",
+      "split": "AVE-partitioned training and validation",
+      "primary_metric": "nEF1%",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": "https://drugdesign.unistra.fr/LIT-PCBA/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@audit",
+          "text": "ALDH1           8       5363      4020         1343   101 874    76 577       25 297"
+        },
+        {
+          "source": "@audit",
+          "text": "Act. (V) (validation actives)"
+        },
+        {
+          "source": "@audit",
+          "text": "the asymmetric validation embedding (AVE) protocol"
+        },
+        {
+          "source": "@audit",
+          "text": "yielding the dimensionless nEF1%"
+        },
+        {
+          "source": "@official-page",
+          "text": "Download Full data here"
+        },
+        {
+          "source": "@shen",
+          "text": "https://drugdesign.unistra.fr/LIT-PCBA"
+        }
+      ]
+    },
+    {
+      "task": "LIT-PCBA five-target subset as scored by Shen et al.",
+      "dataset": "LIT-PCBA subset of five targets with fewer than 100 000 compounds each",
+      "size": 5,
+      "size_unit": "targets",
+      "split": "no split; library ranked per target",
+      "primary_metric": "Normalized enrichment factor (NEF)",
+      "metric_direction": "higher",
+      "results_url": "https://zenodo.org/records/17568813",
+      "code_url": null,
+      "data_url": "https://drugdesign.unistra.fr/LIT-PCBA/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@shen",
+          "text": "only a subset of five targets (Table S2), each with fewer than 100 000 compounds, were involved in this study"
+        },
+        {
+          "source": "@shen",
+          "text": "we employed not only the conventional EF1% but also the normalized enrichment factor (NEF)"
+        },
+        {
+          "source": "@shen",
+          "text": "The source data generated and analyzed in this study at https://zenodo.org/records/17568813"
+        },
+        {
+          "source": "@shen",
+          "text": "https://drugdesign.unistra.fr/LIT-PCBA"
+        }
+      ]
+    }
+  ],
+  "notes": "The benchmark's own paper is closed access, so this page is written from the official project page, the independent audit on arXiv and Shen et al.'s description. The audit paper is not by the benchmark's authors: its findings are recorded as their claims. Shen et al.'s article is licensed CC BY-NC 3.0, which is not one of the short identifiers this format allows, so that source carries no licence field and its bytes are not stored; the audit's arXiv metadata states no licence, so its bytes are not stored either. Three sizes are kept apart: 15 target sets for the whole benchmark, the ALDH1 validation actives for that one set, and the five targets Shen et al. scored. The official page's totals (7761 actives, 382674 unique inactives) and Shen et al.'s (10 030 and 2 798 737) are both recorded without an explanation, because no saved file gives one. Records 03 (DEKOIS 2.0) and 12 (GPCRrecent) share the Shen et al. source with this one."
+}

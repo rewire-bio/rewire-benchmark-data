@@ -1,0 +1,842 @@
+{
+  "record_id": "hitdisc-20261022-benchmark-mfpcba",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Full text JATS XML of the MF-PCBA paper, PMC10170507",
+      "description": "NCBI PMC full-text XML fetched through E-utilities. This is the 2023 Journal of Chemical Information and Modeling paper that introduces MF-PCBA, published under a CC BY 4.0 licence.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=10170507",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC10170507/",
+      "version": "PMC10170507.1, doi 10.1021/acs.jcim.2c01569",
+      "media_type": "application/xml",
+      "sha256": "7680515e5de187808bf92f1c398247154abfa30c7523dc16248278573e2ecc6e",
+      "retrieved_at": "2026-11-27T04:57:14Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "readme",
+      "name": "davidbuterez/mf-pcba README.md at commit 776cb013a5ab9949adfc9c11a212cd7ad7dada7a",
+      "description": "Official repository README, pinned to a commit. Holds the retrieval script's arguments, worked invocations, the split notebook, the random seeds file and the requirements.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/davidbuterez/mf-pcba/776cb013a5ab9949adfc9c11a212cd7ad7dada7a/README.md",
+      "url": "https://github.com/davidbuterez/mf-pcba",
+      "version": "git commit 776cb013a5ab9949adfc9c11a212cd7ad7dada7a",
+      "media_type": "text/markdown",
+      "sha256": "17f4b3d253ddac92e983d4cca2e18212b8332580c2504ed4f4414ce4eaebcd9c",
+      "retrieved_at": "2026-11-27T04:57:36Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "davidbuterez/mf-pcba LICENSE at commit 776cb013a5ab9949adfc9c11a212cd7ad7dada7a",
+      "description": "The repository licence file.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/davidbuterez/mf-pcba/776cb013a5ab9949adfc9c11a212cd7ad7dada7a/LICENSE",
+      "url": "https://github.com/davidbuterez/mf-pcba/blob/main/LICENSE",
+      "version": "git commit 776cb013a5ab9949adfc9c11a212cd7ad7dada7a",
+      "media_type": "text/plain",
+      "sha256": "49fa8f2b10580b763a156f1454f2b0b965a673b3e7142e768e55c074dccb60d4",
+      "retrieved_at": "2026-11-27T04:57:39Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "MF-PCBA is a set of 60 drug screening data sets assembled from PubChem BioAssay, each pairing two measurement qualities for the same project: a large, noisy primary screen at a single concentration, and the much smaller dose-response confirmation of the compounds that came through it. The prediction task is regression on the dose-response values, and the point of the benchmark is whether a model can use the hundreds of thousands of primary measurements to predict the few thousand confirmatory ones better than it could from the confirmatory data alone. The collection holds over 16.6 million unique compound and target interactions and over 1.1 million unique compounds, with five fixed random splits per data set. It is for people building molecular property prediction methods, particularly transfer learning between cheap and expensive measurements.",
+    "summary_source_ids": [
+      "@paper",
+      "@readme"
+    ],
+    "summary_source_locator": "Paper: Abstract, Methods (MF-PCBA Format and Problem Specification, Assay Overlap and Size Considerations); README.md: Abstract",
+    "summary_quotes": [
+      {
+        "source": "@readme",
+        "text": "we introduce MF-PCBA (Multi Fidelity PubChem BioAssay), a curated collection of 60 datasets that includes two data modalities for each dataset, corresponding to primary and confirmatory screening, an aspect that we call"
+      },
+      {
+        "source": "@paper",
+        "text": "In terms of size, MF-PCBA consists of over 16.6 million unique compound–target interactions, with over 1.1 million unique compounds."
+      },
+      {
+        "source": "@paper",
+        "text": "the prediction problem can be naturally formulated as a supervised regression task. At the same time, the binary activity labels from PubChem are included for each dataset."
+      },
+      {
+        "source": "@paper",
+        "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether low-quality data helps. In a real screening campaign a library is tested once at a single dose, then the hits are retested over a dose range to get a reliable potency. Machine learning work usually models only the second, small set and throws the first away. MF-PCBA keeps both and asks for predictions of the dose-response values, so a method is judged on whether it can turn hundreds of thousands of noisy single-dose measurements into better predictions of a few thousand reliable ones. The authors describe the training sets for the confirmatory-only task as typically fewer than 2000 instances, against primary screens orders of magnitude larger. They also point out that the relationship between the two is not simply strong: the per-data-set correlation between paired single-dose and dose-response values is printed for every one of the 60 sets, and it includes weak and negative values.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Introduction, Methods (MF-PCBA Format and Problem Specification, Evaluation Strategies), Table 1; README.md: Abstract",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the machine learning task is formulated as a supervised learning problem on confirmatory data, i.e., molecules with DR measurements."
+          },
+          {
+            "source": "@paper",
+            "text": "the simplest task is training and evaluating models exclusively on data points with DR labels, corresponding to training sets with typically less than 2000 instances, and ignoring the orders-of-magnitude larger SD datasets."
+          },
+          {
+            "source": "@readme",
+            "text": "Multi-fidelity data accurately reflects real-world HTS conventions, and presents a new, challenging task for machine learning: the integration of low and high-fidelity measurements through molecular representation learning, taking into account the orders-of-magnitude difference in size between the primary and confirmatory screens."
+          },
+          {
+            "source": "@paper",
+            "text": "for the Paired SD/DR Measurements, and the Associated"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The 60 projects were found by hand, searching PubChem BioAssay for primary and confirmatory screening terms, because the two halves of a campaign may sit in one assay or in two and the formats differ. The assays date from 2008 to 2018. Everything after the selection is automated through PubChem's REST interface: the assay rows are downloaded by identifier, SMILES strings are fetched per compound, replicate primary measurements are averaged by mean, with a median option in the code, and dose-response values reported as half maximal concentrations or their logarithms are converted to pXC50. Four RDKit filtering steps follow: sanitisation, keeping the largest fragment to drop counterions, removing stereochemistry and then deduplicating on SMILES, which makes the task modelling racemic mixtures, and neutralising charges. The paper reports how many compounds each step removed on average. Each finished data set holds the compound identifier, the SMILES string and the single-dose and dose-response activity values, with PubChem's binary activity labels included, and five random 80, 10, 10 splits of the dose-response data are provided with their seeds published.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods (Data Acquisition, Filtering Steps, MF-PCBA Format and Problem Specification), Results (Effects of Filtering); README.md: General, Random seeds",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We manually searched the PubChem BioAssays\ndatabase using the terms “high-throughput screening”,\n“HTS”, “primary”, “confirmatory”,\n“single dose”, “dose response”, “SD”,\nand “DR”."
+          },
+          {
+            "source": "@paper",
+            "text": "The date range of the assays is 2008–2018"
+          },
+          {
+            "source": "@paper",
+            "text": "Any replicate measurements present for the primary screens are aggregated by taking the mean."
+          },
+          {
+            "source": "@paper",
+            "text": "are always converted to the corresponding pXC"
+          },
+          {
+            "source": "@paper",
+            "text": "The filtering pipeline consists of four major steps implemented using the open-source library RDKit"
+          },
+          {
+            "source": "@paper",
+            "text": "Thus, we select only the unique molecules based on the SMILES representation and consider the task of modeling the activity of racemic mixtures."
+          },
+          {
+            "source": "@paper",
+            "text": "On average, this step led to the removal of 863"
+          },
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          },
+          {
+            "source": "@readme",
+            "text": "The five random seeds for each of the 60 multi-fidelity datasets are provided in the file `MF_PCBA_random_seeds.json`, with an example of their usage in `split_DR_with_random_seeds.ipynb`."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "One model per data set: the authors say they consider only single-task learning, so a separate model is trained for each of the 60 sets. The recommended comparison is between a dose-response-only model, trained on confirmatory data alone, and a model that also uses the primary data, so that any gain can be attributed to the extra modality. The paper's own evaluation uses two ways of adding the primary information: appending the measured single-dose value to the compound's feature vector, and training a graph neural network on all the primary data and appending the embedding it produces, which also works for molecules it never saw. For the dose-response regression the authors recommend the coefficient of determination together with an error metric, mean absolute error or root mean square error; for the classification form of the task, the Matthews correlation coefficient together with the area under the ROC curve. Their reported numbers come from random forests, support vector machines and graph neural networks for the confirmatory step, with graph networks for the primary step, over the five provided splits.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Assay Overlap and Size Considerations, Evaluation Strategies and Multifidelity Modeling)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we currently only consider single-task learning, such that a separate model is trained for each of the datasets present in MF-PCBA."
+          },
+          {
+            "source": "@paper",
+            "text": "When designing models for MF-PCBA, we recommend evaluating in terms of “DR only” models, which are trained exclusively on confirmatory activity data, and “SD + DR” models that integrate the two modalities."
+          },
+          {
+            "source": "@paper",
+            "text": "The first augmentation corresponds to the inclusion of the experimentally determined SD activity value in the internal representation (fixed-dimension vector) of each compound in a machine learning model"
+          },
+          {
+            "source": "@paper",
+            "text": "The second augmentation requires a separate machine learning model (here, a graph neural network) to be trained on the entirety of the available SD data in a supervised fashion."
+          },
+          {
+            "source": "@paper",
+            "text": "In terms of performance metrics, we recommend the use of"
+          },
+          {
+            "source": "@paper",
+            "text": "coupled with an error metric such as the mean absolute error (MAE) or root-mean-square error (RMSE) for regression tasks and the Matthews correlation coefficient (MCC) coupled with the area under the receiver operating characteristic curve (AUROC) for classification."
+          },
+          {
+            "source": "@paper",
+            "text": "The evaluation includes three machine learning algorithms for DR modeling: random forests (RF), support vector machines (SVM), and deep learning (GNNs). Separately, we use GNNs for the SD modeling step."
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The data are not distributed as a file: the repository downloads and rebuilds them from PubChem. Install Python 3.9 or later with pandas, numpy, rdkit, tqdm and scipy, then call the retrieval script with the primary assay identifier, the names of the columns holding the single-dose and dose-response values, the transformation to apply to the dose-response values, the confirmatory assay identifier when it is a separate assay, and an output directory. Ready-made scripts for all 60 data sets are in the retrieve-scripts directory, and the authors note they can be run in parallel. A notebook then splits the dose-response data into train, validation and test sets five times using the published seeds, writing one numbered directory per split. The paper reports that rebuilding one data set of 335,445 primary molecules took 554.52 seconds on the machine described.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md: General, Provided scripts, Random seeds, Requirements, Example workflow; Paper: Data Availability",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "At least Python 3.9 is required for argument parsing. The code requires the following libraries: `pandas`, `numpy`, `rdkit`, `tqdm`, `scipy`."
+          },
+          {
+            "source": "@readme",
+            "text": "python pubchem_retrieve.py --AID \"1445\" --list_of_sd_cols \"Primary Inhibition\" \"Primary Inhibition Rep 2\" \"Primary Inhibition Rep 3\" --list_of_dr_cols \"IC50\" --transform_dr \"pXC50\" --save_dir retrieved"
+          },
+          {
+            "source": "@readme",
+            "text": "Scripts to download, filter, and assemble all 60 multi-fidelity datasets (individually) are provided in the directory `retrieve-scripts`"
+          },
+          {
+            "source": "@readme",
+            "text": "After this step, the DR data is split into train, validation, and test sets 5 different times"
+          },
+          {
+            "source": "@paper",
+            "text": "The run time for AID 504329 (335,445 SD molecules) is 554.52 s"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "60 multifidelity data sets, each a primary single-dose screen paired with its dose-response confirmation, drawn from PubChem BioAssay with assay dates from 2008 to 2018. In total over 16.6 million unique compound and target interactions and over 1.1 million unique compounds. Table 1 of the paper lists every data set with its assay identifiers, assay type, measurement types, unfiltered sizes and the correlation between the paired measurements; primary screen sizes there run to the hundreds of thousands and confirmatory sets to the hundreds or low thousands. The collection is also split into MF-PCBA-23, the previously analysed subset, and the disjoint MF-PCBA-37.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Table 1, Methods (Data Acquisition, Assay Overlap and Size Considerations), Results",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "In total, MF-PCBA contains over 16.6 million unique molecule-protein interactions."
+          },
+          {
+            "source": "@paper",
+            "text": "In terms of size, MF-PCBA consists of over 16.6 million unique compound–target interactions, with over 1.1 million unique compounds."
+          },
+          {
+            "source": "@paper",
+            "text": "The date range of the assays is 2008–2018"
+          },
+          {
+            "source": "@paper",
+            "text": "MF-PCBA-23 refers to the previously analyzed subset"
+          },
+          {
+            "source": "@paper",
+            "text": "These datasets cover a wide spectrum of assay technologies and end points, from biochemical inhibition data to phenotypic experiments on whole organisms."
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Five random splits per data set, 80 per cent train, 10 per cent validation and 10 per cent test, drawn over the dose-response data only. The seeds are published in the repository as a JSON file with a notebook that applies them, so the same five splits can be reproduced. The primary single-dose data are not split: they are available in full as the low-fidelity source.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, MF-PCBA Format and Problem Specification; README.md: Random seeds, Example workflow",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          },
+          {
+            "source": "@readme",
+            "text": "The five random seeds for each of the 60 multi-fidelity datasets are provided in the file `MF_PCBA_random_seeds.json`, with an example of their usage in `split_DR_with_random_seeds.ipynb`."
+          },
+          {
+            "source": "@readme",
+            "text": "After this step, the DR data is split into train, validation, and test sets 5 different times"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "For the regression task, the authors recommend the coefficient of determination together with mean absolute error or root mean square error. For the classification form, using PubChem's binary activity labels, the Matthews correlation coefficient together with the area under the ROC curve. Higher is better for the coefficient of determination, the Matthews coefficient and the area under the curve; lower is better for the error metrics. The benchmark defines no single aggregate score across the 60 data sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Evaluation Strategies and Multifidelity Modeling",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In terms of performance metrics, we recommend the use of"
+          },
+          {
+            "source": "@paper",
+            "text": "coupled with an error metric such as the mean absolute error (MAE) or root-mean-square error (RMSE) for regression tasks and the Matthews correlation coefficient (MCC) coupled with the area under the receiver operating characteristic curve (AUROC) for classification."
+          },
+          {
+            "source": "@paper",
+            "text": "the prediction problem can be naturally formulated as a supervised regression task. At the same time, the binary activity labels from PubChem are included for each dataset."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "The paper's own evaluation: random forests, support vector machines and graph neural networks for the dose-response step, each run as a confirmatory-only model and as a multifidelity model, with a graph neural network trained on the primary data to produce the embeddings for the second augmentation. The authors report this for all 60 data sets, focusing their analysis on the 37 that were new in this work.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Evaluation Strategies and Multifidelity Modeling; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The evaluation includes three machine learning algorithms for DR modeling: random forests (RF), support vector machines (SVM), and deep learning (GNNs). Separately, we use GNNs for the SD modeling step."
+          },
+          {
+            "source": "@paper",
+            "text": "we provide an evaluation of the multifidelity integration performance for all 60 datasets based on the multifidelity modeling workflow recently proposed by Buterez et al."
+          },
+          {
+            "source": "@paper",
+            "text": "focusing on the\nanalysis of the additional 37 datasets that complete the collection\nof 60 datasets"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Deduplication and an overlap check, but no structural split. Stereochemistry is removed and molecules are deduplicated on SMILES within a data set, so the same structure cannot appear twice. The splits are random over compounds, not by scaffold or by cluster, so analogues can fall on both sides. The authors do check overlap with other collections: no assay in common with the 128 assays of PCBA, 27 confirmatory assays in common with the 1310 assays of an earlier ChEMBL-derived set, and no overlap in primary assays. Overlap between the 60 data sets themselves is limited, with over 75.6 per cent of values missing if all compounds are matched against all primary screens.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Filtering Steps, MF-PCBA Format and Problem Specification, Assay Overlap and Size Considerations)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Thus, we select only the unique molecules based on the SMILES representation and consider the task of modeling the activity of racemic mixtures."
+          },
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          },
+          {
+            "source": "@paper",
+            "text": "MF-PCBA shares no overlap in terms of common assays with the 128 assays of PCBA. Twenty-seven of the confirmatory assays that we use are also present in the 1310 assays reported by Mayr et al. There is no overlap in terms of the primary screening assays."
+          },
+          {
+            "source": "@paper",
+            "text": "we find that over 75.6% of values are NaNs"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Five splits per data set, whose seeds are published, so a result is reported over five runs rather than one. The paper reports its filtering effects as means with standard deviations, and Table 1 gives a p value alongside each data set's correlation between the paired measurements. The benchmark does not ask for multiple model seeds beyond the five splits.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, MF-PCBA Format and Problem Specification; Results, Effects of Filtering on Dataset Size; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          },
+          {
+            "source": "@paper",
+            "text": "On average, this step led to the removal of 863"
+          },
+          {
+            "source": "@paper",
+            "text": "for the Paired SD/DR Measurements, and the Associated"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A molecule in one screening project. Each row is a compound, identified by its PubChem compound identifier and a SMILES string, carrying a single-dose activity value, a dose-response value, or both, for that project's target. Stereochemistry is stripped, so a row stands for a racemic mixture.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, MF-PCBA Format and Problem Specification; Filtering Steps",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "each of the 60 multifidelity datasets contains the PubChem CID for\neach molecule, the corresponding molecular structure (SMILES), and\nthe SD and DR activity values."
+          },
+          {
+            "source": "@paper",
+            "text": "Thus, we select only the unique molecules based on the SMILES representation and consider the task of modeling the activity of racemic mixtures."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Mostly inapplicable: the examples are small molecules and the labels are activity against a target or in a cell or organism assay, not sequences from a species. The paper says the assays span biochemical inhibition through to phenotypic experiments on whole organisms, and Table 1 marks each data set's assay type, but no saved file gives a species list.",
+        "status": "inapplicable",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Data Acquisition and Table 1"
+      },
+      {
+        "label": "Assays",
+        "value": "High-throughput screening data from PubChem of two kinds. Primary screens are single-concentration measurements, reported as percent inhibition, percent activity or a B-score at a stated concentration, sometimes with replicates, which are averaged. Confirmatory screens are dose-response measurements reported as half maximal inhibitory, activity or effective concentrations, or their logarithms, all converted to pXC50. Assay types in Table 1 include biochemical, cell-based and whole-organism readouts.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Data Acquisition; Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Among the selected bioassays, primary screens might be reported at\ndifferent concentrations and with multiple replicates."
+          },
+          {
+            "source": "@paper",
+            "text": "Any replicate measurements present for the primary screens are aggregated by taking the mean."
+          },
+          {
+            "source": "@paper",
+            "text": "are always converted to the corresponding pXC"
+          },
+          {
+            "source": "@paper",
+            "text": "These datasets cover a wide spectrum of assay technologies and end points, from biochemical inhibition data to phenotypic experiments on whole organisms."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The molecular structure, plus the primary screening data as the extra modality. The authors say any algorithm that works on fixed-dimension vectors applies, naming fingerprints, physical and chemical descriptors and atom and bond encodings, and the multifidelity augmentations add either the measured single-dose value or an embedding learned from the primary screen. No protein structure or sequence is provided.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, MF-PCBA Format and Problem Specification; Evaluation Strategies",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A wide range of machine learning techniques are\napplicable on MF-PCBA, including any algorithm that operates on fixed-dimension\nvector representations (molecular fingerprints, physical and chemical\ndescriptors, atom and bond encodings, etc.)."
+          },
+          {
+            "source": "@paper",
+            "text": "The first augmentation corresponds to the inclusion of the experimentally determined SD activity value in the internal representation (fixed-dimension vector) of each compound in a machine learning model"
+          },
+          {
+            "source": "@paper",
+            "text": "The second augmentation requires a separate machine learning model (here, a graph neural network) to be trained on the entirety of the available SD data in a supervised fashion."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Training from scratch, one model per data set. The authors state they consider only single-task learning, with a separate model for each data set, and the multifidelity setting adds a transfer step: a model trained on the primary screen supplies embeddings to the confirmatory model. There is no zero-shot or pretrained-and-frozen setting defined by the benchmark.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Assay Overlap and Size Considerations; Evaluation Strategies",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we currently only consider single-task learning, such that a separate model is trained for each of the datasets present in MF-PCBA."
+          },
+          {
+            "source": "@paper",
+            "text": "The second augmentation requires a separate machine learning model (here, a graph neural network) to be trained on the entirety of the available SD data in a supervised fashion."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "It keeps the part of screening data that other collections discard. Each data set pairs the full primary screen with its dose-response confirmation, which is what a real campaign produces, and the authors state no earlier collection explicitly considered screening data of different fidelities.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Assay Overlap and Size Considerations; README.md: Abstract",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "to the best of our\nknowledge no previous work explicitly considered HTS data of different\nfidelities or proposed transfer learning in this context"
+          },
+          {
+            "source": "@readme",
+            "text": "Multi-fidelity data accurately reflects real-world HTS conventions, and presents a new, challenging task for machine learning: the integration of low and high-fidelity measurements through molecular representation learning, taking into account the orders-of-magnitude difference in size between the primary and confirmatory screens."
+          }
+        ]
+      },
+      {
+        "text": "The splits are fixed and published. Five random 80, 10, 10 splits per data set with their seeds in the repository, and a notebook that writes them out, so two groups can score on the same test sets.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, MF-PCBA Format and Problem Specification; README.md: Random seeds",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          },
+          {
+            "source": "@readme",
+            "text": "The five random seeds for each of the 60 multi-fidelity datasets are provided in the file `MF_PCBA_random_seeds.json`, with an example of their usage in `split_DR_with_random_seeds.ipynb`."
+          }
+        ]
+      },
+      {
+        "text": "The curation is reproducible and documented step by step: the filtering is four named RDKit operations, the paper reports how many compounds each removed, and the MIT licensed code rebuilds every data set from PubChem rather than shipping a snapshot.",
+        "source_ids": [
+          "@paper",
+          "@readme",
+          "@licence"
+        ],
+        "source_locator": "Paper: Methods, Filtering Steps; Results, Effects of Filtering; README.md: Provided scripts; LICENSE",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The filtering pipeline consists of four major steps implemented using the open-source library RDKit"
+          },
+          {
+            "source": "@paper",
+            "text": "In this section, we first report the effect of the filtering steps with regard to the number of removed compounds."
+          },
+          {
+            "source": "@readme",
+            "text": "Scripts to download, filter, and assemble all 60 multi-fidelity datasets (individually) are provided in the directory `retrieve-scripts`"
+          },
+          {
+            "source": "@licence",
+            "text": "MIT License"
+          }
+        ]
+      },
+      {
+        "text": "The authors state a recommended comparison, confirmatory-only against multifidelity models, and recommended metrics for both the regression and the classification form, which makes two papers' numbers more likely to mean the same thing.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Evaluation Strategies and Multifidelity Modeling",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "When designing models for MF-PCBA, we recommend evaluating in terms of “DR only” models, which are trained exclusively on confirmatory activity data, and “SD + DR” models that integrate the two modalities."
+          },
+          {
+            "source": "@paper",
+            "text": "coupled with an error metric such as the mean absolute error (MAE) or root-mean-square error (RMSE) for regression tasks and the Matthews correlation coefficient (MCC) coupled with the area under the receiver operating characteristic curve (AUROC) for classification."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The test sets are small and the splits are random over compounds, not structural. Confirmatory training sets are typically fewer than 2000 molecules, a 10 per cent test split is therefore in the hundreds, and nothing stops close analogues from sitting on both sides of a split.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Evaluation Strategies; MF-PCBA Format and Problem Specification",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "the simplest task is training and evaluating models exclusively on data points with DR labels, corresponding to training sets with typically less than 2000 instances, and ignoring the orders-of-magnitude larger SD datasets."
+          },
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          }
+        ]
+      },
+      {
+        "text": "Chemical information was deliberately thrown away for consistency: stereochemistry is removed and molecules are then merged on their flat structure, so the labels describe racemic mixtures and a method cannot be credited for handling stereochemistry.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Filtering Steps",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Thus, we select only the unique molecules based on the SMILES representation and consider the task of modeling the activity of racemic mixtures."
+          },
+          {
+            "source": "@paper",
+            "text": "We choose to remove this information because stereochemical\nannotations are not consistently recorded and not effectively exploited\nby many baseline methods."
+          }
+        ]
+      },
+      {
+        "text": "The selection was manual and the sources are heterogeneous. The authors had to search PubChem by hand because formats and conventions differ, primary screens come at different concentrations and with different readouts, and units for confirmatory values are not always consistent, so comparability across the 60 data sets is limited.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Data Acquisition",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The manual search\nstep is necessary due to the nature of reporting HTS results."
+          },
+          {
+            "source": "@paper",
+            "text": "confirmatory screens can be reported in different formats (usually"
+          },
+          {
+            "source": "@paper",
+            "text": "Among the selected bioassays, primary screens might be reported at\ndifferent concentrations and with multiple replicates."
+          }
+        ]
+      },
+      {
+        "text": "There is no leaderboard and no distributed data file. Every user rebuilds the data from PubChem with the scripts, which takes minutes per data set and depends on PubChem's current contents, and the benchmark defines no aggregate score over the 60 sets.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Data Availability; README.md: Provided scripts",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The source code to download, filter, and assemble all 60 MF-PCBA datasets (individually) is available at"
+          },
+          {
+            "source": "@paper",
+            "text": "The run time for AID 504329 (335,445 SD molecules) is 554.52 s"
+          },
+          {
+            "source": "@readme",
+            "text": "It can be used to download, filter, and assemble the MF-PCBA datasets in a format that is easily usable for machine learning."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "MF-PCBA workflow",
+      "steps": [
+        "pick a PubChem project with a primary and a confirmatory screen",
+        "download assay rows and SMILES through the PubChem API",
+        "average primary replicates, convert dose-response values to pXC50",
+        "four RDKit filters: sanitise, largest fragment, remove stereochemistry, neutralise",
+        "five fixed 80, 10, 10 splits of the dose-response data",
+        "train a confirmatory-only model and a model augmented with the primary data",
+        "compare the coefficient of determination and an error metric"
+      ],
+      "caption": "The primary screen is the low-fidelity modality: it is never split, only used as extra information.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Methods (Data Acquisition, Filtering Steps, MF-PCBA Format and Problem Specification, Evaluation Strategies)",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we used PubChem’s representational\nstate transfer application programming interface (REST API) to retrieve\neach assay as a comma-separated values (CSV) file based on its AID"
+        },
+        {
+          "source": "@paper",
+          "text": "The filtering pipeline consists of four major steps implemented using the open-source library RDKit"
+        },
+        {
+          "source": "@paper",
+          "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+        },
+        {
+          "source": "@paper",
+          "text": "When designing models for MF-PCBA, we recommend evaluating in terms of “DR only” models, which are trained exclusively on confirmatory activity data, and “SD + DR” models that integrate the two modalities."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Table 1's per-data-set rows, which hold each data set's assay identifiers, sizes and correlations, were not transcribed here, so no individual data set's size is given.",
+      "The supporting information, which holds the molecule counts after each filtering step, the assay versions and dates and the full results tables, was not fetched.",
+      "No licence is stated for the assembled data themselves. The code is MIT and the paper is CC BY 4.0; the measurements come from PubChem, whose terms are not printed in any saved file.",
+      "The repository was read only at its README, so the retrieval script and the splitting notebook were not opened and their behaviour is described as the README describes it."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the NCBI PMC full-text XML of PMC10170507, and README.md and LICENSE of davidbuterez/mf-pcba at commit 776cb013a5ab9949adfc9c11a212cd7ad7dada7a. The supporting information was not fetched. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Rebuild one or all of the 60 data sets from PubChem and write the five published splits of the dose-response data.",
+    "prerequisites": [
+      "Python 3.9 or later with pandas, numpy, rdkit, tqdm and scipy.",
+      "An internet connection: the data are downloaded from PubChem, and the paper reports 554.52 seconds for a data set with 335,445 primary molecules on the machine it describes.",
+      "The code is MIT licensed. No licence is stated for the assembled data; the measurements come from PubChem."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/davidbuterez/mf-pcba\ncd mf-pcba\ngit checkout --detach 776cb013a5ab9949adfc9c11a212cd7ad7dada7a",
+        "explanation": "The paper's data availability statement names this repository as the way to download, filter and assemble the data sets. The clone and the detach at the commit read for this page were added here.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Data Availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The source code to download, filter, and assemble all 60 MF-PCBA datasets (individually) is available at"
+          }
+        ]
+      },
+      {
+        "title": "Install the requirements",
+        "shell": "pip install pandas numpy rdkit tqdm scipy",
+        "explanation": "The README lists these libraries and a minimum of Python 3.9. The pip line was written here from that list; the README prints the names, not a command.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "At least Python 3.9 is required for argument parsing. The code requires the following libraries: `pandas`, `numpy`, `rdkit`, `tqdm`, `scipy`."
+          }
+        ]
+      },
+      {
+        "title": "Rebuild one data set",
+        "shell": "python pubchem_retrieve.py --AID \"1445\" --list_of_sd_cols \"Primary Inhibition\" \"Primary Inhibition Rep 2\" \"Primary Inhibition Rep 3\" --list_of_dr_cols \"IC50\" --transform_dr \"pXC50\" --save_dir retrieved",
+        "explanation": "The README's first worked invocation, for the case where the primary and confirmatory data are in a single PubChem assay. For a project split across two assays the README's second example adds --AID_DR with the confirmatory identifier. Scripts for all 60 data sets are in retrieve-scripts.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: General, Provided scripts",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python pubchem_retrieve.py --AID \"1445\" --list_of_sd_cols \"Primary Inhibition\" \"Primary Inhibition Rep 2\" \"Primary Inhibition Rep 3\" --list_of_dr_cols \"IC50\" --transform_dr \"pXC50\" --save_dir retrieved"
+          },
+          {
+            "source": "@readme",
+            "text": "Scripts to download, filter, and assemble all 60 multi-fidelity datasets (individually) are provided in the directory `retrieve-scripts`"
+          }
+        ]
+      },
+      {
+        "title": "Write the five splits",
+        "shell": "jupyter notebook split_DR_with_random_seeds.ipynb",
+        "explanation": "The README says this notebook splits the dose-response data five times using the published seeds, writing train, validation and test CSV files into one numbered directory per split. The jupyter command was added here; the notebook name and its behaviour are the README's.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md: Random seeds, Example workflow; Paper: Methods, MF-PCBA Format and Problem Specification",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "The five random seeds for each of the 60 multi-fidelity datasets are provided in the file `MF_PCBA_random_seeds.json`, with an example of their usage in `split_DR_with_random_seeds.ipynb`."
+          },
+          {
+            "source": "@readme",
+            "text": "After this step, the DR data is split into train, validation, and test sets 5 different times"
+          },
+          {
+            "source": "@paper",
+            "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A CSV file per data set holding the compound identifier, the SMILES string and the single-dose and dose-response activity values, in one file when both came from the same assay and two files otherwise.",
+      "One numbered directory per split, each with train, validate and test CSV files for the dose-response data."
+    ],
+    "limitations": [
+      "These commands were read from the paper and the repository README and have not been executed by Rewire. No script or notebook in the repository was opened.",
+      "The data are rebuilt from PubChem at run time, so the result depends on PubChem's current contents rather than on a fixed archive.",
+      "No training or scoring code is in this repository. The README points to a separate repository for the multifidelity modelling workflows."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Dose-response activity regression with primary screening data as a second modality",
+      "dataset": "MF-PCBA, 60 multifidelity data sets",
+      "size": 16600000,
+      "size_unit": "unique compound and target interactions in the whole collection, over; per-dataset test sets are 10 per cent of each dose-response set",
+      "split": "five random 80, 10, 10 splits of the dose-response data, seeds published",
+      "primary_metric": "coefficient of determination on the dose-response values",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/davidbuterez/mf-pcba",
+      "data_url": "https://github.com/davidbuterez/mf-pcba",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "In terms of size, MF-PCBA consists of over 16.6 million unique compound–target interactions, with over 1.1 million unique compounds."
+        },
+        {
+          "source": "@paper",
+          "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+        },
+        {
+          "source": "@paper",
+          "text": "In terms of performance metrics, we recommend the use of"
+        },
+        {
+          "source": "@paper",
+          "text": "The source code to download, filter, and assemble all 60 MF-PCBA datasets (individually) is available at"
+        },
+        {
+          "source": "@licence",
+          "text": "MIT License"
+        }
+      ]
+    },
+    {
+      "task": "Binary activity classification",
+      "dataset": "MF-PCBA, 60 multifidelity data sets, PubChem activity labels",
+      "size": null,
+      "size_unit": "test compounds per data set, not stated",
+      "split": "five random 80, 10, 10 splits of the dose-response data, seeds published",
+      "primary_metric": "Matthews correlation coefficient, with the area under the ROC curve",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/davidbuterez/mf-pcba",
+      "data_url": "https://github.com/davidbuterez/mf-pcba",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "the prediction problem can be naturally formulated as a supervised regression task. At the same time, the binary activity labels from PubChem are included for each dataset."
+        },
+        {
+          "source": "@paper",
+          "text": "coupled with an error metric such as the mean absolute error (MAE) or root-mean-square error (RMSE) for regression tasks and the Matthews correlation coefficient (MCC) coupled with the area under the receiver operating characteristic curve (AUROC) for classification."
+        },
+        {
+          "source": "@paper",
+          "text": "Furthermore, we provide five random splits per dataset (80%/10%/10% split ratios for the train/validation/test sets) for the DR data."
+        }
+      ]
+    }
+  ],
+  "notes": "The 16.6 million figure is the whole collection's count of unique compound and target interactions, not a test set: the test set is 10 per cent of each data set's dose-response rows, and no saved file prints those counts, which sit in Table 1 of the paper. 1.1 million is the number of unique compounds in the collection. The 60 data sets split into MF-PCBA-23, analysed in earlier work, and the disjoint MF-PCBA-37 that this paper added, and the paper's results focus on the 37. The data are not distributed: the MIT licensed repository rebuilds them from PubChem, so a rebuilt copy depends on PubChem at the time of running, and no licence is stated for the assembled data. The paper is CC BY 4.0. The repository's README points to a separate repository for the multifidelity modelling code, which was not fetched."
+}

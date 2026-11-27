@@ -1,0 +1,864 @@
+{
+  "record_id": "lit-cells-networks-20261011-ye2026grn-benchmark-static-grn-fm",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text layer of Ye et al. 2026, Benchmarking Static Gene Regulatory Network Reconstruction and Dynamic Transition Probing in Single-Cell Foundation Models, bioRxiv v1",
+      "description": "Text extracted with pdftotext -layout from the bioRxiv v1 PDF. The PDF was not fetched again for this page: it was copied from the Rewire store's archived copy (data/omics/lit-cells-networks-20261011-ye2026grn/artifacts in rewire-benchmark-data), whose SHA-256 a6c3aae569b1f1614c71569efb0692f15700aea473c64c7bc0bc660e81330dc7 matches the hash on that batch's source record. The PDF is kept beside it as artifacts/paper.pdf.",
+      "file": "artifacts/paper.txt",
+      "artifact_url": "https://www.biorxiv.org/content/10.64898/2026.05.17.725083v1.full.pdf",
+      "url": "https://doi.org/10.64898/2026.05.17.725083",
+      "version": "bioRxiv v1, posted 2026-05-20",
+      "media_type": "text/plain",
+      "sha256": "2aed0ca3f3c4c17c5707059e5d85db281c068a3fb089a4e4284c98307f636948",
+      "retrieved_at": "2026-10-11T21:36:31Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "A single paper's benchmark of how well six single-cell foundation models recover gene regulatory networks without any training, compared with three classical network inference methods. Networks are built from six BEELINE single-cell RNA-seq datasets from mouse and human and checked against four kinds of reference network. A second task, dynamic transition probing, asks whether a model can move early-cell expression profiles towards later states. It is for researchers choosing a foundation model, or a way of reading one, for network inference.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Abstract; Section 2.1",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "Here, we introduce a unified benchmark"
+      },
+      {
+        "source": "@paper",
+        "text": "cell foundation models and three classical baselines across six datasets and four"
+      },
+      {
+        "source": "@paper",
+        "text": "we therefore introduce dynamic transition probing, which"
+      },
+      {
+        "source": "@paper",
+        "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The benchmark asks which part of a single-cell foundation model carries gene regulatory information and how that compares with conventional inference. Three readings of each model are compared: cosine similarity of the pretrained gene token embeddings (costok), cosine similarity of final-layer hidden states (coshid), and last-layer attention scores (attn). The inferred networks are scored at the edge level, the transcription factor (TF) level and the topology level. A second task, dynamic transition probing, tests whether a model's learned gene relationships can drive early-cell expression towards the observed late-cell state without temporal supervision.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 1, 2.1 to 2.3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "it remains unclear which model components contain useful GRN information and when these representations actually improve"
+          },
+          {
+            "source": "@paper",
+            "text": "Pretrained token embeddings (costok ). For each model, we extract gene embeddings from"
+          },
+          {
+            "source": "@paper",
+            "text": "Final-layer hidden states (coshid ). We pass each input cell through the model and extract"
+          },
+          {
+            "source": "@paper",
+            "text": "Attention-derived scores (attn). For transformer-based models, we extract encoder atten-"
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluate reconstructed GRNs at three levels."
+          },
+          {
+            "source": "@paper",
+            "text": "it asks whether a pretrained model, when given only an early-cell"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Six BEELINE datasets are used: mouse dendritic cells (mDC), three mouse haematopoietic stem-cell lineages (mHSC-E, mHSC-GM, mHSC-L), human mature hepatocytes (hHep) and human embryonic stem cells (hESC). Raw data were preprocessed with the BEELINE protocol. Genes whose expression varies with pseudotime were selected with a generalised additive model and Bonferroni correction (corrected P < 0.01). Two TF-prioritised gene sets were then built: TFs+500 and TFs+1000 keep all significant TFs plus the top 500 or 1000 most dynamically variable non-TF genes. Main results use TFs+500. Reference networks are cell-type-specific ChIP-seq, non-specific ChIP-seq, STRING functional interactions and OmniPath. Table 2 gives the TF and gene counts and network density for each dataset, gene set and reference.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1; Appendix A.1, Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "mouse dendritic cells (mDC) [19], three mouse hematopoietic stem-cell lineages [20]: erythroid"
+          },
+          {
+            "source": "@paper",
+            "text": "Raw expression data were"
+          },
+          {
+            "source": "@paper",
+            "text": "Genes with corrected P < 0.01 were considered significantly variable."
+          },
+          {
+            "source": "@paper",
+            "text": "In the TFs+500 setting, all significant TFs were retained first, followed by the top 500"
+          },
+          {
+            "source": "@paper",
+            "text": "Unless otherwise stated, the main results are"
+          },
+          {
+            "source": "@paper",
+            "text": "Table 2: Statistics of regulatory networks under TFs+500 and TFs+1000 settings."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Every method outputs ranked gene pairs. Scoring is restricted to TF-target candidates: the source gene must be a reference TF and the target must be in the reference gene set. Edges are ranked by absolute weight, and the top K edges, with K equal to the number of reference edges, give the early precision. The early precision ratio (EPR) divides this by the edge density of the candidate space, and the AUPRC ratio divides the average precision by the same density, so values above 1 beat random ranking. Main-text results average over the six datasets and three references (STRING, non-specific ChIP-seq and OmniPath); cell-type-specific ChIP-seq is reported in the appendix only, because every method was near random on it. TF-level F1 and five graph metrics, compared with STRING through a normalised closeness score, are secondary analyses. For dynamic transition probing, early and late cells are the lowest and highest 20% pseudotime quantiles, and the score is directional accuracy on the 30% of genes with the largest observed change; mDC is left out of the aggregate comparison.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 2.2, 3.1, 3.4; Appendices B.2, B.3, C, D.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The source gene must be a ground-truth TF, and the target gene must belong to the reference gene set."
+          },
+          {
+            "source": "@paper",
+            "text": "Predicted edges are ranked by the absolute value of their edge weight, with ties assigned the same"
+          },
+          {
+            "source": "@paper",
+            "text": "An EPR greater than 1 indicates enrichment over random ranking."
+          },
+          {
+            "source": "@paper",
+            "text": "In the main results, we report the AUPRC ratio, defined as the observed AUPRC normalized by the"
+          },
+          {
+            "source": "@paper",
+            "text": "Cell-type-specific ChIP-seq references are excluded from the main comparison because all"
+          },
+          {
+            "source": "@paper",
+            "text": "We use q = 20% in all experiments."
+          },
+          {
+            "source": "@paper",
+            "text": "We report directional accuracy on the top 30%"
+          },
+          {
+            "source": "@paper",
+            "text": "We excluded the"
+          }
+        ]
+      },
+      {
+        "title": "Dynamic transition probing",
+        "body": "Continuous-value models (scGPT, scFoundation, scPRINT) start from the mean expression vector of early cells and pass the state repeatedly through the model, with an exponential moving average (alpha = 0.9). Rank-driven models (Geneformer, LangCell, scCello) start from ranked gene tokens and accept random token swaps that raise the masked-token likelihood, 8 proposals per iteration. The model never receives time labels, pseudotime or late-cell profiles. A gene counts as correct when the sign of the predicted change matches the observed early-to-late change. As a control, the scGPT analysis was repeated with randomly initialised weights.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.4; Appendices C.1 and C.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Continuous-value models, including scGPT, scFoundation, and scPRINT, operate directly on expres-"
+          },
+          {
+            "source": "@paper",
+            "text": "We set α = 0.9, corresponding to a 0.1 update rate for the model-predicted profile."
+          },
+          {
+            "source": "@paper",
+            "text": "Rank-driven models, including Geneformer, LangCell, and scCello, represent cells as gene-rank"
+          },
+          {
+            "source": "@paper",
+            "text": "We repeat this process for Tswap = 8 random swap proposals"
+          },
+          {
+            "source": "@paper",
+            "text": "During inference, the model receives no time labels, pseudotime values, or late-cell profiles."
+          },
+          {
+            "source": "@paper",
+            "text": "with randomly initialized weights under the same iterative refinement procedure."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Six BEELINE single-cell RNA-seq datasets: mDC, mHSC-E, mHSC-GM, mHSC-L, hHep and hESC, each in two TF-prioritised gene sets (TFs+500 and TFs+1000) and against four references. Sizes vary by reference; for example, against STRING under TFs+500, hESC has 343 TFs and 517 genes and mHSC-L has 39 TFs and 74 genes (Table 2). The number of cells per dataset is not given in the paper.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1; Appendix A.1, Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+          },
+          {
+            "source": "@paper",
+            "text": "hESC             343         517       0.02"
+          },
+          {
+            "source": "@paper",
+            "text": "mHSC-L            39          74       0.05"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None for the static task: foundation models are used zero-shot with no training split, and the classical baselines are fitted on each test expression matrix. For dynamic probing, early cells are the lowest 20% and late cells the highest 20% of pseudotime.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.1; Appendix C.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Classical machine learning baselines remained competitive, but they fit a dataset-specific model"
+          },
+          {
+            "source": "@paper",
+            "text": "Early cells are defined by the lowest pseudotime quantile, and late cells by"
+          },
+          {
+            "source": "@paper",
+            "text": "We use q = 20% in all experiments."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Early precision ratio (EPR) and AUPRC ratio for edges, both ratios over a random predictor, higher is better, values above 1 beat random. Secondary: TF-level F1 (higher is better) and a closeness score to STRING for five graph metrics. Dynamic probing: directional accuracy on the top 30% most-changed genes, higher is better.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1 caption; Appendices B.3 and D",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Both metrics are reported as ratios over a random predictor; values >1 indicate"
+          },
+          {
+            "source": "@paper",
+            "text": "Precision, recall, and F1 score are computed for each TF."
+          },
+          {
+            "source": "@paper",
+            "text": "For each metric, we compare the predicted network with the STRING reference using a normalized"
+          },
+          {
+            "source": "@paper",
+            "text": "We report directional accuracy on the top 30%"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "GENIE3, DeepSEM and GRNBoost, which infer networks directly from the expression matrix. For dynamic probing, scGPT with randomly initialised weights is the control.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1; Section 3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we also include three classical machine learning baselines, GENIE3 [11],"
+          },
+          {
+            "source": "@paper",
+            "text": "with randomly initialized weights under the same iterative refinement procedure."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Not reported. The paper does not say whether the BEELINE datasets or the reference networks overlap with the foundation models' pretraining data.",
+        "status": "unreported",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 2 and 4; Appendix A"
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Mean and standard deviation across the six datasets are reported in the main table. No seeds, replicates or confidence intervals are reported.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Table 1 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Values are mean ± standard deviation"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A ranked TF-target gene pair (edge) for the static task; a gene's direction of expression change for dynamic probing.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Sections 2.1 and 2.3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we treat GRN inference as a"
+          },
+          {
+            "source": "@paper",
+            "text": "we compare the sign of the predicted expression or rank change with the sign of the observed"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Mouse (mDC and the three mHSC lineages) and human (hHep and hESC).",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "mouse dendritic cells (mDC) [19], three mouse hematopoietic stem-cell lineages [20]: erythroid"
+          },
+          {
+            "source": "@paper",
+            "text": "atocytes (hHep) [21], and human embryonic stem cells (hESC) [22]."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell RNA-seq expression for inputs. Reference edges come from cell-type-specific and non-specific ChIP-seq, STRING functional interactions and OmniPath pathway or signalling interactions.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "idence sources: cell-type-specific ChIP-seq networks [28, 29, 30], non-specific ChIP-seq net-"
+          },
+          {
+            "source": "@paper",
+            "text": "works [31, 32, 33], functional interaction networks from STRING [34], and pathway- or signaling-"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The single-cell expression matrix and, for foundation models, their own token embeddings, hidden states or attention. In dynamic probing the model sees only the early-cell state, with no time labels, pseudotime or late-cell profiles.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1; Appendix C.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Given the same expression data, all methods are evaluated under the"
+          },
+          {
+            "source": "@paper",
+            "text": "During inference, the model receives no time labels, pseudotime values, or late-cell profiles."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot only: foundation models are not fine-tuned, prompted or adapted. The classical baselines are trained on each dataset.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we evaluate models in a zero-"
+          },
+          {
+            "source": "@paper",
+            "text": "shot setting without fine-tuning, prompting, or task-specific adaptation"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "All methods share one preprocessing, one candidate gene set, one graph-construction rule and one set of references and metrics, so the three ways of reading a model are compared on equal terms.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "all methods are evaluated under the"
+          },
+          {
+            "source": "@paper",
+            "text": "same preprocessing procedure, candidate gene set, graph-construction rules, reference networks, and"
+          }
+        ]
+      },
+      {
+        "text": "Four reference types with different evidence (ChIP-seq of two kinds, STRING, OmniPath) are scored separately, and the complete per-dataset tables for both gene sets are printed in the appendix, including the near-random cell-type-specific ChIP-seq results.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 2.1; Appendix E",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Tables 4–7 report detailed per-dataset results for all methods across the six single-cell datasets."
+          },
+          {
+            "source": "@paper",
+            "text": "methods showed near-random performance on this setting, but the complete results are still reported"
+          }
+        ]
+      },
+      {
+        "text": "The dynamic probing task includes a randomly initialised scGPT control, which the authors use to show that the signal depends on pretraining rather than the iteration itself.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This result indicates that the dynamic probing signal does not arise from the iterative"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The authors state that reference networks are incomplete and biased towards well-studied genes, and every method was near random against cell-type-specific ChIP-seq, so that reference is left out of the main comparison.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "First, reference GRNs are incomplete and biased toward well-"
+          },
+          {
+            "source": "@paper",
+            "text": "studied genes; cell-type-specific ChIP-seq references yielded near-random performance for all"
+          }
+        ]
+      },
+      {
+        "text": "Only zero-shot use is tested, and the extraction strategies are deliberately simple; the authors say fine-tuning or head-selective attention might recover more signal.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Third, our extraction strategies are intentionally simple for fair comparison;"
+          }
+        ]
+      },
+      {
+        "text": "The paper names no code, data release or leaderboard, and reports no seeds or confidence intervals, so the results cannot be rerun from public files. It is a preprint not certified by peer review.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: whole text; page header",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "(which was not certified by peer review)"
+          }
+        ]
+      },
+      {
+        "text": "The Table 1 caption lists the references as STRING, Cell-type-specific ChIP-seq and OmniPath, while the text says the main comparison uses non-specific ChIP-seq. Readers should check which ChIP-seq column they are reading.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Section 3.1; Table 1 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "networks (STRING, Cell-type-specific ChIP-seq, OmniPath)"
+          },
+          {
+            "source": "@paper",
+            "text": "three main reference sources: STRING, non-specific ChIP-seq, and OmniPath"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Ye et al. 2026 GRN benchmark workflow",
+      "steps": [
+        "BEELINE expression matrix",
+        "TF-prioritised gene set",
+        "Model representation (costok, coshid or attn)",
+        "Ranked TF-target edges",
+        "EPR and AUPRC ratio against each reference"
+      ],
+      "caption": "The static GRN task: the same expression data pass through each model, are turned into ranked TF-target edges and scored against four reference networks.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Figure 1 caption; Section 2.1",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "single-cell expression matrix, representation extraction from pretrained models, GRN construction,"
+        },
+        {
+          "source": "@paper",
+          "text": "and quantitative evaluation."
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "No code repository, data release or leaderboard is named in the paper, so there is no runner, licence or download address to record.",
+      "Cell counts per dataset and the number of reference edges per network are not printed; only TF counts, gene counts and densities (Table 2).",
+      "The PDF was copied from the Rewire store's archive rather than fetched again, because bioRxiv was not to be requested in this run; no PMC or arXiv copy was found."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the full text layer of the bioRxiv v1 PDF (posted 2026-05-20), copied from the Rewire store archive with its hash matching the store's source record. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The paper names no code repository or data release, so there are no published commands to run.",
+  "structured": [
+    {
+      "task": "Static GRN reconstruction, TFs+500, STRING reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Performance was measured by the early precision ratio (EPR) and the area under the precision–recall"
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+500, non-specific ChIP-seq reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Performance was measured by the early precision ratio (EPR) and the area under the precision–recall"
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+500, OmniPath reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Performance was measured by the early precision ratio (EPR) and the area under the precision–recall"
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+500, cell-type-specific ChIP-seq reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 4: Early precision ratio of different methods (TF+500)."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+1000, STRING reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 5: EPR Performance comparison of different methods across datasets (TF+1000)."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+1000, non-specific ChIP-seq reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 5: EPR Performance comparison of different methods across datasets (TF+1000)."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+1000, OmniPath reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 5: EPR Performance comparison of different methods across datasets (TF+1000)."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Static GRN reconstruction, TFs+1000, cell-type-specific ChIP-seq reference",
+      "dataset": "Six BEELINE scRNA-seq datasets",
+      "size": 6,
+      "size_unit": "datasets",
+      "split": "strict zero-shot setting",
+      "primary_metric": "Early precision ratio",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark uses single-cell expression matrices from six datasets in the BEELINE framework [7]:"
+        },
+        {
+          "source": "@paper",
+          "text": "Under a strict zero-shot setting"
+        },
+        {
+          "source": "@paper",
+          "text": "Table 5: EPR Performance comparison of different methods across datasets (TF+1000)."
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    },
+    {
+      "task": "Dynamic transition probing",
+      "dataset": "BEELINE datasets excluding mDC",
+      "size": 5,
+      "size_unit": "datasets",
+      "split": "early and late cells by pseudotime quantile, q = 20%",
+      "primary_metric": "Directional accuracy on the top 30% genes",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": "2026-05-20",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Directional prediction accuracy across five datasets and six"
+        },
+        {
+          "source": "@paper",
+          "text": "We excluded the"
+        },
+        {
+          "source": "@paper",
+          "text": "mDC dataset from the aggregate comparison"
+        },
+        {
+          "source": "@paper",
+          "text": "Early cells are defined by the lowest pseudotime quantile, and late cells by"
+        },
+        {
+          "source": "@paper",
+          "text": "We use q = 20% in all experiments."
+        },
+        {
+          "source": "@paper",
+          "text": "We report directional accuracy on the top 30%"
+        },
+        {
+          "source": "@paper",
+          "text": "this version posted May 20, 2026"
+        }
+      ]
+    }
+  ],
+  "notes": "The only open copy of the paper is the bioRxiv PDF at https://www.biorxiv.org/content/10.64898/2026.05.17.725083v1.full.pdf; it is not in PMC. bioRxiv was not requested in this run. The PDF used here was copied read-only from the Rewire store archive (rewire-benchmark-data, data/omics/lit-cells-networks-20261011-ye2026grn/artifacts/ye2026-grn-fm-benchmark-v1.pdf.gz); its gunzipped SHA-256 matches the store's source record, and retrieved_at is the store's recorded retrieval time. A reviewer may prefer to refetch it. The text layer carries only the standard bioRxiv licence banner, no requester address. The paper reports TFs+500 as the main setting; the TFs+1000 tables are in Appendix E. The sizes in structured are dataset counts, not edge counts, which the paper does not print."
+}

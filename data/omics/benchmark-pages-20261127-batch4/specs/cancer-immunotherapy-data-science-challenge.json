@@ -1,0 +1,1016 @@
+{
+  "record_id": "ucc-research-benchmark-cppc",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Full text JATS XML of the Cancer Immunotherapy challenge paper, PMC13228547",
+      "description": "NCBI PMC full-text XML fetched through E-utilities. The paper is the bioRxiv preprint A community machine learning challenge to predict the effects of gene perturbations on T cell differentiation for cancer immunotherapy.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13228547",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13228547/",
+      "version": "PMC13228547.1, doi 10.64898/2026.05.21.726863",
+      "media_type": "application/xml",
+      "sha256": "ef318af0c5ba44b2e24356569c6f4430262f4292df769e37327c20571a1e26d5",
+      "retrieved_at": "2026-11-27T04:16:01Z",
+      "licence": "CC BY-NC-ND 4.0",
+      "store_bytes": false
+    },
+    {
+      "key": "readme",
+      "name": "uhlerlab/cancer_immunotherapy_data_science_challenge README.md at commit 283328a9b8afc6e882eeb503ac4710bbe9f37371",
+      "description": "Official repository README, pinned to a commit. Describes the data folders, the per-screen benchmark folders and the conda environment.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/uhlerlab/cancer_immunotherapy_data_science_challenge/283328a9b8afc6e882eeb503ac4710bbe9f37371/README.md",
+      "url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge",
+      "version": "git commit 283328a9b8afc6e882eeb503ac4710bbe9f37371",
+      "media_type": "text/markdown",
+      "sha256": "4c4cdf5c4e13502f6caa73f38b2be191a7cd2b3d601aef72a81a6d1223681f66",
+      "retrieved_at": "2026-11-27T04:16:12Z",
+      "store_bytes": false
+    },
+    {
+      "key": "run-script",
+      "name": "methods_run_screen1/0_baselines/run_exp.py at commit 283328a9b8afc6e882eeb503ac4710bbe9f37371",
+      "description": "Official baseline benchmarking script, pinned to a commit. Read to see which splits and predictors it loops over and what it prints.",
+      "file": "artifacts/run_exp.py",
+      "artifact_url": "https://raw.githubusercontent.com/uhlerlab/cancer_immunotherapy_data_science_challenge/283328a9b8afc6e882eeb503ac4710bbe9f37371/methods_run_screen1/0_baselines/run_exp.py",
+      "url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge/blob/main/methods_run_screen1/0_baselines/run_exp.py",
+      "version": "git commit 283328a9b8afc6e882eeb503ac4710bbe9f37371",
+      "media_type": "text/x-python",
+      "sha256": "ab7cba136c173359fcc769d6aa8bfa26efc081c8fbeba9e4c494441407ef52c7",
+      "retrieved_at": "2026-11-27T04:17:07Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "This was a public competition, hosted with Topcoder, on predicting what happens to mouse CD8 T cells in a tumour when a single gene is knocked out. The organisers generated an in vivo Perturb-seq data set of 73 gene knockouts in T cells transferred into a melanoma model, annotated each cell as one of five states, and asked teams to predict the five cell state proportions for held-out knockouts, to rank all expressed genes by two therapy-motivated objective functions, and to propose a new objective function. The top-ranked nominations were then knocked out in a second experiment, so submissions were scored against a prospective screen as well as held-out data. The record is useful to anyone comparing methods that predict perturbation effects on cell state composition rather than full expression profiles.",
+    "summary_source_ids": [
+      "@paper",
+      "@readme"
+    ],
+    "summary_source_locator": "Paper: Abstract, Machine learning competition section, Methods (Challenge setup and results); README.md: Code for Paper, Contents of this Repository",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We launched a world-wide computational challenge to predict the effects of gene perturbations and to devise objective functions for prioritizing gene perturbations that lead to desired T-cell state distributions."
+      },
+      {
+        "source": "@paper",
+        "text": "We supported the challenge by generating a single-cell Perturb-seq dataset profiling the effect of knocking out 73 individual expert-defined genes in T cells transferred into a mouse melanoma model."
+      },
+      {
+        "source": "@paper",
+        "text": "More than 1,000 participants from 87 countries, with backgrounds in mathematics, computer science, biology, and related fields, registered for the competition."
+      },
+      {
+        "source": "@paper",
+        "text": "We annotated four T cell populations as progenitor, effector, terminal exhausted, and cycling"
+      },
+      {
+        "source": "@paper",
+        "text": "we selected the highest-ranked gene perturbations from the winning methods in Challenge 1 for experimental evaluation in Challenge 2. The experimental results were used to evaluate and rank all Challenge 2 submissions."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The biological question is which gene knockout shifts tumour-infiltrating CD8 T cells away from terminal exhaustion and towards progenitor and other useful states, which matters for checkpoint blockade and CAR T therapies. The challenge turns that into three tasks. Challenge 1 measures accuracy: predict the five-dimensional vector of cell state proportions for knockouts that were measured but withheld. Challenge 2 measures usefulness for picking targets: predict proportions for every expressed gene, rank the untested genes by two objective functions, and be scored against a new experiment that knocked out the nominated genes. Challenge 3 measures the objective function itself: propose a score that ranks perturbations by how close they bring the cell state distribution to a desired one. The organisers point out that most existing benchmarks look like Challenge 1 alone, and that Challenge 2 tests the methods for biological efficacy.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Machine learning competition section; Methods (Challenge setup and results)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "were held out. Participants were asked to predict the corresponding five-dimensional vectors of cell state proportions."
+          },
+          {
+            "source": "@paper",
+            "text": "In Challenge 2, participants were asked to predict the resulting five-dimensional vector of cell state proportions for all 15,077 expressed genes measured in Screen 1 that were not among the targets already tested."
+          },
+          {
+            "source": "@paper",
+            "text": "In Challenge 3, participants were asked to propose scoring functions that rank perturbations according to their ability to shift cells toward a desired state."
+          },
+          {
+            "source": "@paper",
+            "text": "Most existing ML benchmarks are similar to the setup of Challenge 1, where evaluations are based on a held-out set of perturbations"
+          },
+          {
+            "source": "@paper",
+            "text": "The ICB objective prioritizes progenitor cell enrichment, whereas the CAR-T objective upweights effector and cycling states while penalizing terminal exhaustion."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The training data come from an in vivo pooled CRISPR knockout screen. Naive CD8 T cells from OT-1 TCR transgenic mice were transduced with a guide library and adoptively transferred into congenic recipient mice, which were injected subcutaneously with B16-OVA melanoma cells one day after the transfer; the tumour-infiltrating T cells were collected 14 days later and sequenced. Screen 1 targeted 73 genes; after merging lanes it held 71,393 cells, and 31,009 remained after quality control for single-guide assignment and mitochondrial content. Leiden clustering gave five populations, annotated as progenitor, effector, terminal exhausted, cycling and other, and each perturbation is summarised by the proportions of those five states. A second experiment, Screen 2, targeted 59 genes, gave 75,227 cells and 25,738 after quality control, and served as the validation screen for Challenge 2. Perturbations with very few cells were dropped, with a cutoff of 32 cells for Screen 1 and 10 for Screen 2, leaving 59 perturbations for Screen 1 and 50 for Screen 2. A published screen of 180 transcription factors in the same mouse model was reannotated with the same five states and used as a third data set, with 173 perturbations after preprocessing. That screen activated the T cells before transfer and harvested them after 7 days rather than 14, and when the five cell states were mapped onto it some clusters could not be assigned. The two example objective functions were defined on the proportion vectors, with the unperturbed Screen 1 proportions as the reference point.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: In-vivo single-cell CRISPR screens section, Methods (Data preprocessing and normalization, Cell state annotation, Challenge setup and results); README.md: Contents of this Repository",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "to knockout each of 73 genes"
+          },
+          {
+            "source": "@paper",
+            "text": "T cell repertoire using OT-1 TCR transgenic mice, in which CD8"
+          },
+          {
+            "source": "@paper",
+            "text": "The tumor-infiltrating perturbed T cells were then collected after 14 days (when exhausted T cells accumulate) and analyzed by single-cell RNA sequencing (scRNAseq)"
+          },
+          {
+            "source": "@paper",
+            "text": "After merging all sequencing lanes within each screen, we obtained 71,393 cells for Screen 1 and 75,227 cells for Screen 2."
+          },
+          {
+            "source": "@paper",
+            "text": "After filtering, 31,009 cells remained."
+          },
+          {
+            "source": "@paper",
+            "text": "After quality control, 25,738 cells remained."
+          },
+          {
+            "source": "@paper",
+            "text": "Leiden clustering of the scRNAseq data identified five populations"
+          },
+          {
+            "source": "@paper",
+            "text": "A minimum cell number cutoff was therefore applied: 32 cells for Screen 1 and 10 cells for Screen 2, reflecting the different numbers of cells passing quality control in each screen."
+          },
+          {
+            "source": "@paper",
+            "text": "The public dataset targeted 180 TFs chosen based on differential expression analysis on prior datasets."
+          },
+          {
+            "source": "@readme",
+            "text": "**`data_screen2`**: Perturb-seq from our second experiment targeting 59 genes (screen 2), and how it is split in our benchmark"
+          },
+          {
+            "source": "@paper",
+            "text": "which were then subcutaneously injected with B16-OVA melanoma cells 1 day after T cell transfer"
+          },
+          {
+            "source": "@paper",
+            "text": "T cells were activated before being injected into the mice"
+          },
+          {
+            "source": "@paper",
+            "text": "T cells were harvested 7 days as opposed to 14 days after adoptive transfer"
+          },
+          {
+            "source": "@paper",
+            "text": "certain clusters were not annotated with the five states"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "In Challenge 1 a submission is a five-number proportion vector per held-out knockout. Seven knockouts were withheld; three of them, Aqr, Bach2 and Bhlhe40, formed a validation set with up to three submissions and feedback, and the final ranking used the average absolute error over the remaining four, with one final submission. The error is the sum of absolute differences across the five states, so lower is better. In Challenge 2 the predicted proportions for all untested genes are turned into two ranked lists with the ICB and CAR T objective functions. The top-ranked genes from the Challenge 1 winners were knocked out in Screen 2, the measured genes were ranked by the same objectives, and each submission was scored by an area under the curve comparing its predicted ranking with the measured one. That score lies between 0 and 1 and a random ranking is expected to give 0.5. Scores were computed on both the filtered and the unfiltered Screen 2, averaged within each, and the final score was the smaller of the two averages. Challenge 3 submissions were written reports, ranked by single-blind peer review among participants, averaged over reviewer ranks, then reviewed by the organisers. For the follow-up benchmarking of the top 20 methods, the organisers reimplemented them and used cross-fold validation instead of the seven held-out perturbations alone: perturbations were partitioned at random into 6 folds for Screen 1 and the public screen and 5 folds for Screen 2, each fold held out in turn, and the whole procedure repeated 5 times to give a standard deviation.",
+        "source_ids": [
+          "@paper",
+          "@run-script"
+        ],
+        "source_locator": "Paper: Methods (Challenge setup and results, Benchmark on prediction error, Benchmark on ranking genes); run_exp.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In Challenge 1, seven randomly selected knockouts targeting"
+          },
+          {
+            "source": "@paper",
+            "text": "were used as the validation set, for which participants were allowed three submissions and received feedback on their averaged absolute error over the validation set. The final ranking was based on the average absolute error over the remaining four held-out knockouts, with one final submission permitted."
+          },
+          {
+            "source": "@paper",
+            "text": "For each objective, we compared the ground-truth ranking of validated genes to the predicted ranking using an area-under-the-curve (AUC) metric"
+          },
+          {
+            "source": "@paper",
+            "text": "This AUC score lies between 0 and 1 and has an expected value of 0. 5 for a random ranking, corresponding to points along the diagonal."
+          },
+          {
+            "source": "@paper",
+            "text": "The final score for each submission was defined as the minimum of these two averaged scores to ensure robustness."
+          },
+          {
+            "source": "@paper",
+            "text": "The final ranking across all submissions was obtained by averaging reviewer ranks, followed by our review of the top submissions."
+          },
+          {
+            "source": "@paper",
+            "text": "we randomly partitioned the perturbations in each experiment into"
+          },
+          {
+            "source": "@paper",
+            "text": "we set it to 6 for Screen 1 (with a total of 59 perturbations that passed preprocessing) and the public screen (with a total of 173 perturbations that passed preprocessing), and 5 for Screen 2 (with a total of 50 perturbations that passed preprocessing)."
+          },
+          {
+            "source": "@paper",
+            "text": "where we repeat this procedure 5 times to evaluate the standard deviation of the accuracy."
+          },
+          {
+            "source": "@run-script",
+            "text": "for split_num in tqdm(range(6)):"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The repository holds the organisers' own benchmarking code, not a submission server. Create the conda environment from environment.yml, get the split data files, and run the per-method scripts in the folder for the screen you want. The baseline script for Screen 1 loads a single AnnData file holding the internal splits, loops over six splits and five repeats for three predictors, nearest neighbour, kernel regression and bagged kernel regression, and prints the mean and standard deviation of the average error. Some data files are not in the repository and have to be downloaded from a Google Drive folder the README links.",
+        "source_ids": [
+          "@readme",
+          "@run-script"
+        ],
+        "source_locator": "README.md: Environment setup, Contents of this Repository, Notes; run_exp.py",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda env create -f environment.yml"
+          },
+          {
+            "source": "@readme",
+            "text": "**`methods_run_screen1`**: Benchmarking top methods on screen 1"
+          },
+          {
+            "source": "@readme",
+            "text": "Some of the data files are stored on this Google Drive"
+          },
+          {
+            "source": "@run-script",
+            "text": "adata_all = sc.read_h5ad(\"../../data/split/sc_all_internal_splits.h5ad\")"
+          },
+          {
+            "source": "@run-script",
+            "text": "for method in ['knn', 'kernel', 'bagging_kernel']:"
+          },
+          {
+            "source": "@run-script",
+            "text": "print('{:.5f}, {:.5f}'.format(np.mean(mae), np.std(mae)))"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Three Perturb-seq data sets of CD8 T cells. Screen 1, the training and Challenge 1 data, 73 targeted genes, 71,393 cells merged and 31,009 after quality control, 59 perturbations passing preprocessing. Screen 2, the validation screen for Challenge 2, 59 targeted genes, 75,227 cells and 25,738 after quality control, 50 perturbations passing preprocessing. A published screen of 180 transcription factors in the same mouse model, with T cells activated before transfer and harvested after 7 days, reannotated with the same cell states except for some clusters that could not be assigned, 173 perturbations passing preprocessing. Challenge 2 also required predictions for the expressed genes measured in Screen 1 that were not among the targets already tested, out of 15,077 measured genes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods (Data preprocessing and normalization, Benchmark on prediction error, Challenge setup and results); Prediction on a public T cell perturbation dataset; README.md: Contents of this Repository",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "After merging all sequencing lanes within each screen, we obtained 71,393 cells for Screen 1 and 75,227 cells for Screen 2."
+          },
+          {
+            "source": "@paper",
+            "text": "After filtering, 31,009 cells remained."
+          },
+          {
+            "source": "@paper",
+            "text": "After quality control, 25,738 cells remained."
+          },
+          {
+            "source": "@paper",
+            "text": "we set it to 6 for Screen 1 (with a total of 59 perturbations that passed preprocessing) and the public screen (with a total of 173 perturbations that passed preprocessing), and 5 for Screen 2 (with a total of 50 perturbations that passed preprocessing)."
+          },
+          {
+            "source": "@paper",
+            "text": "In Challenge 2, participants were asked to predict the resulting five-dimensional vector of cell state proportions for all 15,077 expressed genes measured in Screen 1 that were not among the targets already tested."
+          },
+          {
+            "source": "@readme",
+            "text": "**`data_screen1`**: Perturb-seq from our first experiment targeting 73 genes (screen 1), and how it is split in our benchmark"
+          },
+          {
+            "source": "@paper",
+            "text": "T cells were activated before being injected into the mice"
+          },
+          {
+            "source": "@paper",
+            "text": "T cells were harvested 7 days as opposed to 14 days after adoptive transfer"
+          },
+          {
+            "source": "@paper",
+            "text": "certain clusters were not annotated with the five states"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Held-out perturbations, and a second experiment. Challenge 1 withheld seven randomly selected knockouts, of which three were a feedback validation set and the final ranking used the other four. Challenge 2 was scored on genes that had never been tested when the submissions were made, knocked out afterwards in Screen 2. The organisers' later benchmark instead used random cross-fold splits over perturbations, 6 folds for Screen 1 and the public screen and 5 for Screen 2, with every perturbation held out once, and for the Screen 1 to Screen 2 transfer they trained on all Screen 1 perturbations and predicted the Screen 2 ones.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Challenge setup and results, Benchmark on prediction error, Benchmark on ranking genes)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In Challenge 1, seven randomly selected knockouts targeting"
+          },
+          {
+            "source": "@paper",
+            "text": "were used as the validation set, for which participants were allowed three submissions and received feedback on their averaged absolute error over the validation set. The final ranking was based on the average absolute error over the remaining four held-out knockouts, with one final submission permitted."
+          },
+          {
+            "source": "@paper",
+            "text": "folds, and then ran each method by holding out each of the"
+          },
+          {
+            "source": "@paper",
+            "text": "we used all perturbations in Screen 1 as training data to predict the cell state proportion for the perturbations tested in Screen 2."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Challenge 1: the average absolute error, the sum of absolute differences between predicted and measured proportions across the five cell states, averaged over the held-out knockouts, lower is better. Challenge 2: an area under the curve comparing the predicted ranking of the validated genes with their measured ranking, between 0 and 1 with 0.5 expected at random, higher is better, taken as the minimum of the averaged filtered and unfiltered Screen 2 scores. Challenge 3: averaged reviewer rank from single-blind peer review, lower is better. The follow-up benchmark also reports the absolute error on key states such as progenitor and cycling.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Challenge setup and results); Benchmarking top participating methods section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The performance of the methods was evaluated based on the averaged absolute distance between the predicted cell state proportions and the available ground truth data."
+          },
+          {
+            "source": "@paper",
+            "text": "This AUC score lies between 0 and 1 and has an expected value of 0. 5 for a random ranking, corresponding to points along the diagonal."
+          },
+          {
+            "source": "@paper",
+            "text": "The final score for each submission was defined as the minimum of these two averaged scores to ensure robustness."
+          },
+          {
+            "source": "@paper",
+            "text": "The final ranking across all submissions was obtained by averaging reviewer ranks, followed by our review of the top submissions."
+          },
+          {
+            "source": "@paper",
+            "text": "(1) average absolute loss (i.e., L1 error) across all T-cell states, and (2) absolute loss on key states such as progenitor and cycling"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Two simple baselines in the organisers' benchmark: predict the cell state proportions of the non-targeting control cells, and predict the average proportions over all training perturbations. The paper reports that no other prediction method was significantly better than the averaged perturbation baseline on Screen 1. The 246 team submissions themselves, and the 20 top methods reimplemented by the organisers with nearest neighbour, kernel regression and bagging predictors, are the other reference points.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@run-script"
+        ],
+        "source_locator": "Paper: Benchmarking top participating methods section; Machine learning competition section; run_exp.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We included two baselines, one that simply predicts the proportion of T cell states in the non-targeting control cells, and one that predicts the averaged proportions of T cell states across all training perturbations"
+          },
+          {
+            "source": "@paper",
+            "text": "no other prediction method is significantly better than the averaged perturbation baseline"
+          },
+          {
+            "source": "@paper",
+            "text": "Out of the 246 total team submissions, we awarded prizes to the top 10 teams from Challenges 1 and 2, and the top 9 teams from Challenge 3"
+          },
+          {
+            "source": "@run-script",
+            "text": "for method in ['knn', 'kernel', 'bagging_kernel']:"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "The held-out knockouts were withheld from the data given to participants, and Challenge 2 was judged against genes that had not been measured anywhere when the submissions were made, so a prediction could not be copied from the ground truth. The organisers do not describe any control on the external data a team may use for gene features, and the winning methods did draw on public databases and other genome-wide Perturb-seq data sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Machine learning competition section; Methods (Challenge setup and results)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "seven randomly selected genes that were tested in our experiment but held out from the provided training datasets"
+          },
+          {
+            "source": "@paper",
+            "text": "we selected the highest-ranked gene perturbations from the winning methods in Challenge 1 for experimental evaluation in Challenge 2. The experimental results were used to evaluate and rank all Challenge 2 submissions."
+          },
+          {
+            "source": "@paper",
+            "text": "Overall, the winning methods of Challenges 1 and 2 used data from our Perturb-seq dataset, as well as various public databases, including STRING, NCBI, gene ontology, and other genome-wide Perturb-seq datasets for the training."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "In the competition itself, one final submission was scored per team, with no replicates. In the organisers' later benchmark each cross-fold procedure was repeated 5 times to get a standard deviation of the accuracy, and each method was run 5 times for the ranking score. The winning Challenge 3 objective function adds a lower confidence bound term derived from the Hoeffding inequality that accounts for how few cells a perturbation has.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Benchmark on prediction error, Benchmark on ranking genes, Challenge setup and results)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "where we repeat this procedure 5 times to evaluate the standard deviation of the accuracy."
+          },
+          {
+            "source": "@paper",
+            "text": "Each method was run 5 times to evaluate the standard deviation of the AUC score."
+          },
+          {
+            "source": "@paper",
+            "text": "The second term provides a lower confidence bound correcting for finite-sample uncertainty, derived from the Hoeffding inequality"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A single-gene knockout. Each example is one perturbed gene, summarised by a five-dimensional vector of cell state proportions over progenitor, effector, terminally exhausted, cycling and other cells, computed from the single cells carrying a guide for that gene.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Challenge setup and results, Implementation of top methods)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "proportions correspond to (progenitor, effector, terminally exhausted, cycling, other) cell states"
+          },
+          {
+            "source": "@paper",
+            "text": "representing the proportions of the five cell states amongst the cells where gene"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Mouse. The screens used naive CD8 T cells from OT-1 TCR transgenic mice transferred into congenic mice that were then injected with B16-OVA melanoma cells, and the public screen used the same mouse model.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: In-vivo single-cell CRISPR screens section; Prediction on a public T cell perturbation dataset",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "T cell repertoire using OT-1 TCR transgenic mice, in which CD8"
+          },
+          {
+            "source": "@paper",
+            "text": "B16-OVA melanoma cells that express ovalbumin"
+          },
+          {
+            "source": "@paper",
+            "text": "This dataset was collected using the same mouse model and a similar procedure"
+          },
+          {
+            "source": "@paper",
+            "text": "which were then subcutaneously injected with B16-OVA melanoma cells 1 day after T cell transfer"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "In vivo pooled CRISPR knockout screens with single-cell RNA sequencing. Guides were delivered by lentivirus to naive CD8 T cells, the cells were transferred into congenic mice that were injected with B16-OVA melanoma cells one day later, tumour-infiltrating T cells were collected after 14 days, and the reads were processed with Cell Ranger. Cell states come from Leiden clustering of the normalised data annotated with known T cell markers, with Screen 2 and the public screen annotated by transfer from Screen 1 after Harmony batch correction.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: In-vivo single-cell CRISPR screens section; Methods (Data preprocessing and normalization, Cell state annotation)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "CRISPR screens were processed with Cell Ranger"
+          },
+          {
+            "source": "@paper",
+            "text": "The tumor-infiltrating perturbed T cells were then collected after 14 days (when exhausted T cells accumulate) and analyzed by single-cell RNA sequencing (scRNAseq)"
+          },
+          {
+            "source": "@paper",
+            "text": "Leiden clustering was applied with a resolution of 0.4, and each cluster was annotated by comparing its differentially expressed genes to known T cell state markers from the literature"
+          },
+          {
+            "source": "@paper",
+            "text": "each cluster was assigned to a cell state based on the majority vote of cells previously annotated in Screen 1"
+          },
+          {
+            "source": "@paper",
+            "text": "which were then subcutaneously injected with B16-OVA melanoma cells 1 day after T cell transfer"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Anything, including outside data. A method has to map a gene identity to a proportion vector, and the organisers describe the top methods as first building a gene feature representation from the provided Perturb-seq data, from public databases such as STRING, NCBI and gene ontology, or from other genome-wide Perturb-seq data sets, then fitting a map from those features to proportions.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Benchmarking top participating methods section; Methods (Implementation of top methods)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Overall, the winning methods of Challenges 1 and 2 used data from our Perturb-seq dataset, as well as various public databases, including STRING, NCBI, gene ontology, and other genome-wide Perturb-seq datasets for the training."
+          },
+          {
+            "source": "@paper",
+            "text": "the methods first learn gene feature representations of both tested and untested genes, then learn a map from gene features to cell proportions from the available data"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Fitting on the provided screen. A model is trained on the measured perturbations of Screen 1 and applied to genes it has not seen, with hyper-parameters chosen by cross validation on the training set. The organisers' reimplementations pair each of 15 gene feature sets with a predictor, nearest neighbour, kernel regression or bagging, so the feature source and the predictor can be varied separately.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@run-script"
+        ],
+        "source_locator": "Paper: Benchmarking top participating methods section; Methods (Implementation of top methods); run_exp.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each split, we trained each predictor and selected its hyperparameters using a cross-validation scheme on the training set, and we then evaluated it on the perturbations in the test set"
+          },
+          {
+            "source": "@paper",
+            "text": "Each predictor was evaluated in combination with all 15 gene feature sets."
+          },
+          {
+            "source": "@run-script",
+            "text": "mae.append(get_avg_mae(test_dict))"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Submissions were tested prospectively. The genes the methods nominated were knocked out in a second experiment and the measured ranking was used to score every Challenge 2 submission, which is more than a held-out split can show.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Machine learning competition section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we selected the highest-ranked gene perturbations from the winning methods in Challenge 1 for experimental evaluation in Challenge 2. The experimental results were used to evaluate and rank all Challenge 2 submissions."
+          },
+          {
+            "source": "@paper",
+            "text": "Most existing ML benchmarks are similar to the setup of Challenge 1, where evaluations are based on a held-out set of perturbations"
+          }
+        ]
+      },
+      {
+        "text": "The top 20 methods were reimplemented by the organisers in a common two-step form, so the contribution of the gene features can be separated from the contribution of the predictor, and the same predictor can be compared across 15 feature sets.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Implementation of top methods); Benchmarking top participating methods section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This two-step mapping allows us to combine gene features proposed by different teams with predictors proposed by other teams, and to disentangle the contributions of the gene feature choice in the first step from the predictor used in the second step."
+          },
+          {
+            "source": "@paper",
+            "text": "Each predictor was evaluated in combination with all 15 gene feature sets."
+          }
+        ]
+      },
+      {
+        "text": "The comparison includes two baselines that are easy to beat by accident, the non-targeting control proportions and the average over training perturbations, and the organisers report that on Screen 1 no other method was significantly better than the averaged perturbation baseline.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Benchmarking top participating methods section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We included two baselines, one that simply predicts the proportion of T cell states in the non-targeting control cells, and one that predicts the averaged proportions of T cell states across all training perturbations"
+          },
+          {
+            "source": "@paper",
+            "text": "no other prediction method is significantly better than the averaged perturbation baseline"
+          }
+        ]
+      },
+      {
+        "text": "The same methods were also run on an independent published screen in the same mouse model, reannotated with the same cell states, and the organisers report that the ranking of the feature sets was largely preserved.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Prediction on a public T cell perturbation dataset",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To further confirm the comparative results, we ran these methods on a public dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "we see that the ranks are mostly preserved if we use the kernel regression predictor"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The competition scored very few test perturbations. The final Challenge 1 ranking rested on four held-out knockouts, which is why the organisers moved to repeated cross-fold splits for their own analysis.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Challenge setup and results, Benchmark on prediction error)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The final ranking was based on the average absolute error over the remaining four held-out knockouts, with one final submission permitted."
+          },
+          {
+            "source": "@paper",
+            "text": "we chose a cross-fold validation setup instead of relying solely on the seven held-out perturbations in Challenge 1"
+          }
+        ]
+      },
+      {
+        "text": "The signal the metric can show is limited. The organisers report that the gap between the best and worst performing feature sets was 7.5%, and that the error per gene tracks how far that perturbation sits from the average training perturbation, so a method can look good mainly by predicting the mean effect.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Benchmarking top participating methods section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "While the gap between the best and worst performing features is small (7.5%)"
+          },
+          {
+            "source": "@paper",
+            "text": "We observed that the L1 error per gene is highly correlated with the L1 distance between the perturbed T cell distribution and the mean effect of the training set perturbations"
+          }
+        ]
+      },
+      {
+        "text": "It is one mouse model, one tumour and one cell type, with a restricted T cell receptor repertoire, and the cell state labels are clusters the organisers defined and then transferred to the other screens, so both the task and the labels are specific to this study.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: In-vivo single-cell CRISPR screens section; Methods (Cell state annotation)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "T cell repertoire using OT-1 TCR transgenic mice, in which CD8"
+          },
+          {
+            "source": "@paper",
+            "text": "each cluster was assigned to a cell state based on the majority vote of cells previously annotated in Screen 1"
+          }
+        ]
+      },
+      {
+        "text": "Reuse is awkward. The paper is under a Creative Commons licence that forbids commercial use and derivatives, no licence is stated for the code, some data files are only on a Google Drive folder rather than in the repository, and the competition is closed, so there is no live leaderboard to submit to.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: licence statement in the PMC record; README.md: Notes (no licence section in the README)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International License"
+          },
+          {
+            "source": "@readme",
+            "text": "Some of the data files are stored on this Google Drive"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Cancer Immunotherapy Data Science Challenge workflow",
+      "steps": [
+        "in vivo CRISPR screen of 73 gene knockouts in mouse CD8 T cells",
+        "five cell states per cell, one proportion vector per knockout",
+        "Challenge 1: predict proportions for held-out knockouts, scored by absolute error",
+        "Challenge 3: propose an objective function, ranked by peer review",
+        "Challenge 2: rank all untested genes by the objectives",
+        "Screen 2 knocks out the top nominations",
+        "submissions scored by area under the ranking curve against Screen 2"
+      ],
+      "caption": "Challenge 2 is scored against an experiment run after the submissions closed.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Machine learning competition section; Methods (Challenge setup and results)",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We supported the challenge by generating a single-cell Perturb-seq dataset profiling the effect of knocking out 73 individual expert-defined genes in T cells transferred into a mouse melanoma model."
+        },
+        {
+          "source": "@paper",
+          "text": "were held out. Participants were asked to predict the corresponding five-dimensional vectors of cell state proportions."
+        },
+        {
+          "source": "@paper",
+          "text": "In Challenge 3, participants were asked to propose scoring functions that rank perturbations according to their ability to shift cells toward a desired state."
+        },
+        {
+          "source": "@paper",
+          "text": "For each objective, we compared the ground-truth ranking of validated genes to the predicted ranking using an area-under-the-curve (AUC) metric"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The per-team scores and the identities of the winning methods are in Supplementary Table S2, which was not fetched for this page, so no submission's score is given here.",
+      "No licence is stated in the repository README for the code or the processed data.",
+      "The nominated gene count differs between sources read here: the abstract says the top 61 genes were validated, while Screen 2 is described as targeting 59 genes with 50 perturbations passing preprocessing. No saved file explains the difference, so no single number is given as the Challenge 2 test set size.",
+      "The number of participants who submitted, as opposed to the 246 team submissions and more than 1,000 registrations, is not stated."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the NCBI PMC full-text XML of PMC13228547, and README.md and methods_run_screen1/0_baselines/run_exp.py of uhlerlab/cancer_immunotherapy_data_science_challenge at commit 283328a9b8afc6e882eeb503ac4710bbe9f37371. Supplementary tables were not fetched. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Recreate the organisers' conda environment and run their baseline benchmark over the Screen 1 splits.",
+    "prerequisites": [
+      "Conda, and the environment the repository exports as environment.yml. The README says creating it typically takes 10 to 60 minutes.",
+      "The split data file the scripts load. Some data files are not in the repository and have to be taken from the Google Drive folder the README links.",
+      "The raw and processed screen data are deposited under the GEO accession the README gives."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge\ncd cancer_immunotherapy_data_science_challenge\ngit checkout --detach 283328a9b8afc6e882eeb503ac4710bbe9f37371",
+        "explanation": "The paper's data and code availability statement gives this repository as the deposit for the original code. The clone and the detach at the commit read for this page were added here.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Data and code availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All original code is publicly available and has been deposited at:"
+          }
+        ]
+      },
+      {
+        "title": "Create the environment",
+        "shell": "conda env create -f environment.yml\nconda activate sca",
+        "explanation": "The two commands the README gives for the environment, run from the repository root.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Environment setup",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda env create -f environment.yml"
+          },
+          {
+            "source": "@readme",
+            "text": "conda activate sca"
+          }
+        ]
+      },
+      {
+        "title": "Run the Screen 1 baseline benchmark",
+        "shell": "cd methods_run_screen1/0_baselines\npython run_exp.py",
+        "explanation": "The script reads the AnnData file with the internal splits, loops over the six Screen 1 splits for each of nearest neighbour, kernel and bagged kernel predictors, repeats this five times, writes a prediction dictionary per repeat and prints the mean and standard deviation of the average error. It expects the split file at ../../data/split/sc_all_internal_splits.h5ad, a path that does not exist in the repository listing read for this page, and it writes into ./results_exp, so both have to be in place first. The cd and the python call were added here; the script's own path and behaviour are from the file.",
+        "source_ids": [
+          "@run-script",
+          "@readme"
+        ],
+        "source_locator": "run_exp.py; README.md: Contents of this Repository",
+        "quotes": [
+          {
+            "source": "@run-script",
+            "text": "adata_all = sc.read_h5ad(\"../../data/split/sc_all_internal_splits.h5ad\")"
+          },
+          {
+            "source": "@run-script",
+            "text": "for method in ['knn', 'kernel', 'bagging_kernel']:"
+          },
+          {
+            "source": "@run-script",
+            "text": "for split_num in tqdm(range(6)):"
+          },
+          {
+            "source": "@run-script",
+            "text": "with open(f'./results_exp/random_{method}_pred_dict_{r}.pkl', 'wb') as f:"
+          },
+          {
+            "source": "@readme",
+            "text": "**`methods_run_screen1`**: Benchmarking top methods on screen 1"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "For each of the three predictors, a pickled prediction dictionary per repeat under results_exp, and a printed mean and standard deviation of the average absolute error over the five repeats."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The script's input path does not match the data folders listed in the repository, and some data files are only on Google Drive, so the data have to be assembled by hand.",
+      "This runs the baseline predictors on Screen 1 only. The folders for Screen 2, the public screen and the individual methods were not read for this page."
+    ],
+    "source_ids": [
+      "@readme",
+      "@run-script",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Challenge 1, predict cell state proportions for held-out knockouts",
+      "dataset": "Screen 1",
+      "size": 4,
+      "size_unit": "held-out knockouts used for the final ranking, out of seven held out",
+      "split": "seven randomly selected knockouts held out, three used for feedback",
+      "primary_metric": "average absolute error over the five cell state proportions",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge",
+      "data_url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "In Challenge 1, seven randomly selected knockouts targeting"
+        },
+        {
+          "source": "@paper",
+          "text": "were used as the validation set, for which participants were allowed three submissions and received feedback on their averaged absolute error over the validation set. The final ranking was based on the average absolute error over the remaining four held-out knockouts, with one final submission permitted."
+        },
+        {
+          "source": "@paper",
+          "text": "All original code is publicly available and has been deposited at:"
+        },
+        {
+          "source": "@readme",
+          "text": "Available at [GSE327731](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731)."
+        }
+      ]
+    },
+    {
+      "task": "Challenge 2, rank untested genes by an objective function",
+      "dataset": "Screen 2 validation screen",
+      "size": null,
+      "size_unit": "genes ranked in the validation screen",
+      "split": "prospective: the top-ranked nominated genes were knocked out after submissions closed",
+      "primary_metric": "area under the ranking agreement curve",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge",
+      "data_url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "We experimentally tested the top-ranked genes from the top submissions of Challenge 1 for both objectives"
+        },
+        {
+          "source": "@paper",
+          "text": "For each objective, we compared the ground-truth ranking of validated genes to the predicted ranking using an area-under-the-curve (AUC) metric"
+        },
+        {
+          "source": "@paper",
+          "text": "This AUC score lies between 0 and 1 and has an expected value of 0. 5 for a random ranking, corresponding to points along the diagonal."
+        },
+        {
+          "source": "@readme",
+          "text": "Available at [GSE327731](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731)."
+        }
+      ]
+    },
+    {
+      "task": "Challenge 3, propose an objective function",
+      "dataset": "written reports",
+      "size": null,
+      "size_unit": null,
+      "split": "no data split: submissions are reports",
+      "primary_metric": "averaged reviewer rank from single-blind peer review",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "In Challenge 3, participants were asked to propose scoring functions that rank perturbations according to their ability to shift cells toward a desired state."
+        },
+        {
+          "source": "@paper",
+          "text": "The final ranking across all submissions was obtained by averaging reviewer ranks, followed by our review of the top submissions."
+        }
+      ]
+    },
+    {
+      "task": "Cross-fold benchmark of prediction error, Screen 1",
+      "dataset": "Screen 1",
+      "size": 59,
+      "size_unit": "perturbations passing preprocessing, each held out once",
+      "split": "6 random folds, repeated 5 times",
+      "primary_metric": "average absolute error over the five cell state proportions",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge",
+      "data_url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we set it to 6 for Screen 1 (with a total of 59 perturbations that passed preprocessing) and the public screen (with a total of 173 perturbations that passed preprocessing), and 5 for Screen 2 (with a total of 50 perturbations that passed preprocessing)."
+        },
+        {
+          "source": "@paper",
+          "text": "where we repeat this procedure 5 times to evaluate the standard deviation of the accuracy."
+        },
+        {
+          "source": "@readme",
+          "text": "Available at [GSE327731](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731)."
+        }
+      ]
+    },
+    {
+      "task": "Cross-fold benchmark of prediction error, Screen 2",
+      "dataset": "Screen 2",
+      "size": 50,
+      "size_unit": "perturbations passing preprocessing, each held out once",
+      "split": "5 random folds, repeated 5 times",
+      "primary_metric": "average absolute error over the five cell state proportions",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge",
+      "data_url": "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we set it to 6 for Screen 1 (with a total of 59 perturbations that passed preprocessing) and the public screen (with a total of 173 perturbations that passed preprocessing), and 5 for Screen 2 (with a total of 50 perturbations that passed preprocessing)."
+        },
+        {
+          "source": "@paper",
+          "text": "where we repeat this procedure 5 times to evaluate the standard deviation of the accuracy."
+        },
+        {
+          "source": "@readme",
+          "text": "Available at [GSE327731](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE327731)."
+        }
+      ]
+    },
+    {
+      "task": "Cross-fold benchmark of prediction error, public screen",
+      "dataset": "public T cell perturbation screen, reannotated",
+      "size": 173,
+      "size_unit": "perturbations passing preprocessing, each held out once",
+      "split": "6 random folds, repeated 5 times",
+      "primary_metric": "average absolute error over the five cell state proportions",
+      "metric_direction": "lower",
+      "results_url": null,
+      "code_url": "https://github.com/uhlerlab/cancer_immunotherapy_data_science_challenge",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "we set it to 6 for Screen 1 (with a total of 59 perturbations that passed preprocessing) and the public screen (with a total of 173 perturbations that passed preprocessing), and 5 for Screen 2 (with a total of 50 perturbations that passed preprocessing)."
+        },
+        {
+          "source": "@paper",
+          "text": "The public dataset targeted 180 TFs chosen based on differential expression analysis on prior datasets."
+        }
+      ]
+    }
+  ],
+  "notes": "The paper was fetched from NCBI PMC rather than Europe PMC, since this run was told Europe PMC full text has been failing; it is the same PMC identifier as the record's existing source. Supplementary Table S2, which holds the per-submission scores and the method names, was not fetched, so no result for any team is on this page. The abstract says the top 61 nominated genes were validated while the Methods describe Screen 2 as targeting 59 genes with 50 perturbations passing preprocessing; both figures are given where they belong and the Challenge 2 size is left null. The repository prints no licence and the GitHub API reported none; the paper is CC BY-NC-ND 4.0. The record in the store groups five CPPC protocols, including a reimplemented best-model Challenge 2 score; the per-protocol numbers come from the supplementary table and are not reproduced here."
+}

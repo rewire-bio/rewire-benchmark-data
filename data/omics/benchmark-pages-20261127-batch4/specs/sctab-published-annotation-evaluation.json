@@ -1,0 +1,951 @@
+{
+  "record_id": "ucc-research-benchmark-sctab",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Full text JATS XML of the scTab paper, PMC11298532",
+      "description": "NCBI PMC full-text XML fetched through E-utilities. This is the published scTab paper, Nature Communications 15, which defines the data corpus, the splits, the ontology-corrected metric and the reported comparison.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11298532",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11298532/",
+      "version": "PMC11298532.1, doi 10.1038/s41467-024-51059-5",
+      "media_type": "application/xml",
+      "sha256": "cba586ee84681b9fe998d1d9d860cb146bc53b1494aeecada6ae25a59077328c",
+      "retrieved_at": "2026-11-27T04:43:43Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "supp",
+      "name": "Text of the scTab supplementary information, cleaned of formatting control characters",
+      "description": "Text extracted with pdftotext -layout from the publisher's supplementary PDF, then stripped of the Unicode bidirectional formatting characters the PDF embeds in every line, which would otherwise sit inside any quoted passage. The PDF is kept beside it as artifacts/supplementary.pdf and the raw text layer as artifacts/supplementary.txt.",
+      "file": "artifacts/supplementary-text.txt",
+      "artifact_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-024-51059-5/MediaObjects/41467_2024_51059_MOESM1_ESM.pdf",
+      "url": "https://www.nature.com/articles/s41467-024-51059-5#Sec30",
+      "version": "Supplementary Information of doi 10.1038/s41467-024-51059-5",
+      "media_type": "text/plain",
+      "sha256": "d4f0899c3cd87046ebf3223efa1382eab9593da7ae61de7e9a3005aa28abac85",
+      "retrieved_at": "2026-11-27T04:44:28Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "readme",
+      "name": "theislab/scTab README.md at commit 5ede7f2ba1f9618b86924f2ff587931de18f4ada",
+      "description": "Official repository README, pinned to a commit. Holds the data and checkpoint download addresses, the repository layout, the installation routes and the hardware requirements.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/theislab/scTab/5ede7f2ba1f9618b86924f2ff587931de18f4ada/README.md",
+      "url": "https://github.com/theislab/scTab",
+      "version": "git commit 5ede7f2ba1f9618b86924f2ff587931de18f4ada, branch devel",
+      "media_type": "text/markdown",
+      "sha256": "b9208a3232ffbcf835c2b3854bda2d1cb8d68f202638c4421d38e45485cde2ba",
+      "retrieved_at": "2026-11-27T04:44:08Z",
+      "licence": "MIT",
+      "store_bytes": true
+    },
+    {
+      "key": "licence",
+      "name": "theislab/scTab LICENSE at commit 5ede7f2ba1f9618b86924f2ff587931de18f4ada",
+      "description": "The repository licence file.",
+      "file": "artifacts/licence.txt",
+      "artifact_url": "https://raw.githubusercontent.com/theislab/scTab/5ede7f2ba1f9618b86924f2ff587931de18f4ada/LICENSE",
+      "url": "https://github.com/theislab/scTab/blob/devel/LICENSE",
+      "version": "git commit 5ede7f2ba1f9618b86924f2ff587931de18f4ada",
+      "media_type": "text/plain",
+      "sha256": "c10a30764345fa3311b341f72159417aa558bbf64b58db2046a6df8d282cf180",
+      "retrieved_at": "2026-11-27T04:44:12Z",
+      "licence": "MIT",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "This is the cell type annotation evaluation published with scTab. A classifier is trained on a corpus built from the CELLxGENE census release 2023-05-15, 22.2 million human cells from 5,052 donors, 56 tissues and 164 cell type labels, and is scored on cells from donors it has never seen. The score is the macro-averaged F1, with a correction from the Cell Ontology so that predicting a finer label than the author annotated is not punished, while predicting a coarser one is. The paper reports this for linear, tree-based and deep models and for three single-cell transformer models, several of them refitted by the authors, and it publishes the processed data with fixed splits and tuned reference models so that others can reuse the same comparison.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Results, A dataset and evaluation metric section; Methods, Dataset preparation and Ontology-corrected cell type classification",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "The dataset spans 22.2 million cells, 5,052 donors, 249 datasets, 164 cell types, and 56 different tissues."
+      },
+      {
+        "source": "@paper",
+        "text": "census version 2023-05-15"
+      },
+      {
+        "source": "@paper",
+        "text": "As a benchmarking metric, we chose the macro-averaged F1-score (macro F1-score) (Methods) to account for class imbalances and to give each cell type an equal weight in the overall score."
+      },
+      {
+        "source": "@paper",
+        "text": "We defined test holdouts based on donor annotation, which we see as a sensible compromise between an entirely random split and a split based on holdout studies."
+      },
+      {
+        "source": "@paper",
+        "text": "our processed benchmark dataset with predefined train, validation, and test splits and the accompanying data loading infrastructure is available to download (Methods)."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Whether a classifier can name the cell type of a single cell across the whole human body, not within one tissue, and whether it still does so for donors it has not seen. The authors frame the difficulty as a labelling problem: public corpora annotate at different levels of detail, so an evaluation that treats 164 ontology labels as mutually exclusive rewards a model for copying each study's annotation granularity rather than for telling cell types apart. Their fix is to judge a prediction against the Cell Ontology, which turns the task into predicting a label at least as specific as the author's. A second question the evaluation covers is whether a model knows when it is wrong: uncertainty scores from a deep ensemble are tested for separating correct predictions from incorrect ones, and from cells whose type was never in training.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, A dataset and evaluation metric section; Methods, Ontology-corrected cell type classification and Uncertainty quantification",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "penalizing a model that predicts CD4-positive, alpha-beta T cell for a cell that is labeled as a T cell results in an evaluation that is biased towards the model being able to mimic the annotation granularity of the data instead of its ability to distinguish cell types"
+          },
+          {
+            "source": "@paper",
+            "text": "To account for differences in annotation granularity across datasets, we adjusted predictions based on the Cell Ontology to not incur penalties if a model predicts a more fine-grained label than the original author annotation (Methods)."
+          },
+          {
+            "source": "@paper",
+            "text": "the separation between Group 1 and Group 3 (correct vs absent) gives an estimate of how well the uncertainty scores can be used to detect new/unseen cell types"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The corpus starts from the CELLxGENE census release 2023-05-15, restricted to human data on the 19,331 human protein-coding genes. Five filters follow: only primary data, so that the same cell in an atlas metastudy cannot appear on both sides of the split; only 10x-based assays; the label must be a subtype of the native cell term; each cell type needs at least 5,000 cells and at least 30 donors; and each cell type needs at least seven parent nodes in the ontology, a heuristic to drop very broad labels, which the authors note does not remove all coarse labels. Counts are normalised to 10,000 per cell and log transformed. The result is 22,189,056 cells, 164 cell types, 5,052 donors and 56 tissues, split by donor 70, 15 and 15 per cent into 15,240,192 training, 3,500,032 validation and 3,448,832 test cells. Subsampled training sets are also defined for the scaling experiments, both random and donor-based, from 15 to 100 per cent. The processed corpus is published as a 164 GB download in Merlin dataloader format, with a 0.5 GB minimal subset and the trained checkpoints.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation and Subsampled datasets; Results; README.md: Model checkpoints and training data",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "census version 2023-05-15"
+          },
+          {
+            "source": "@paper",
+            "text": "We subsetted to human datasets and used the human protein-coding genes (19,331) as a feature space."
+          },
+          {
+            "source": "@paper",
+            "text": "The census data is subset to primary data only (is_primary_data == True) to prevent label leakage between the train, validation, and test set."
+          },
+          {
+            "source": "@paper",
+            "text": "Only sequencing data from 10x-based sequencing protocols is used."
+          },
+          {
+            "source": "@paper",
+            "text": "For each cell type, there have to be at least 5000 unique cells. Otherwise, the whole cell type is dropped from the dataset."
+          },
+          {
+            "source": "@paper",
+            "text": "Each cell type has to be observed across at least 30 donors to reliably quantify whether the trained classifier can generalize to new unseen donors for each cell type."
+          },
+          {
+            "source": "@paper",
+            "text": "we removed cells with broad cell type labels, using a heuristic that removes each cell type with less than seven parent nodes in the Cell Ontology"
+          },
+          {
+            "source": "@paper",
+            "text": "The data is size factor normalized to 10,000 counts per cell and log1p-transformed."
+          },
+          {
+            "source": "@paper",
+            "text": "The selection described above results in 22,189,056 cells being selected which span 164 unique cell types, 5052 unique donors, and 56 different tissues. Of the 22.2 million cells 15,240,192 cells are assigned to the training set, 3,500,032 are assigned to the validation set and 3,448,832 cells are assigned to the test set."
+          },
+          {
+            "source": "@readme",
+            "text": "Training data (compatible with Merlin Dataloader infrastructure): https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p.tar.gz (164GB)"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A model outputs one label per cell from the 164, and the score is the macro average of the per-class F1 on the held-out donors, so every cell type counts equally regardless of how many cells it has. The ontology correction decides right from wrong: the same label as the author is right, a subtype of the author's label is also right, a parent of the author's label is wrong, and anything else is wrong, with child relations looked up in the Cell Ontology. The paper reports each model as a mean and standard deviation over several fits with different random initialisations, and the supplementary information gives a second version of the same table with bootstrapping across test donors added, which widens the intervals by about an order of magnitude, for example scTab 0.8295 plus or minus 0.0007 over seeds against 0.8300 plus or minus 0.0069 with donor bootstrapping. A separate evaluation aggregates the fine-grained predictions to 31 coarse labels without retraining. Uncertainty is scored by averaging the predicted probabilities of 5 independently trained models, taking one minus the maximum probability as the uncertainty, then measuring the ROC-AUC for separating correct predictions from incorrect ones and from cells of types absent from training, where 1.0 is perfect separation and 0.5 is none. Training and inference cost are reported too, on named hardware.",
+        "source_ids": [
+          "@paper",
+          "@supp"
+        ],
+        "source_locator": "Paper: Methods, Ontology-corrected cell type classification, Performance evaluation on coarse cell type labels, Uncertainty quantification; Supplementary Tables 1 and 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The classification performance of the trained models in this paper is evaluated based on the macro average of the F1-scores for each individual cell type."
+          },
+          {
+            "source": "@paper",
+            "text": "A prediction is considered as right, either if the classifier predicts the same label as supplied by the original dataset, or if the classifier predicts a subtype of the label provided by the original dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "a prediction is considered wrong if the classifier predicts a parent cell type of the true label"
+          },
+          {
+            "source": "@paper",
+            "text": "Data are presented as mean values ± SD."
+          },
+          {
+            "source": "@supp",
+            "text": "additionally including bootstrapping across donors in the test data:"
+          },
+          {
+            "source": "@supp",
+            "text": "scTab (deep learning) 0.8300 ±0.0069"
+          },
+          {
+            "source": "@paper",
+            "text": "Evaluated on the 31 coarse cell type labels, scTab achieves a macro F1-Score of 0.897 compared to 0.830 on the fine-grained annotations."
+          },
+          {
+            "source": "@paper",
+            "text": "In our case, we averaged the predictions across 5 models."
+          },
+          {
+            "source": "@paper",
+            "text": "A ROC-AUC score of 1.0 means that the groups can be perfectly separated and a score of 0.5 means that there is no separation between the groups based on the uncertainty scores"
+          },
+          {
+            "source": "@supp",
+            "text": "Supp. Table 2: Training time and inference time comparison of the models used in this paper"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "Download the processed corpus, or the 0.5 GB minimal subset for a first try, and the checkpoints. Install the cellnet package from the repository, either inside the Merlin PyTorch container the authors used or with pip plus the GPU requirements file. The repository holds the data loading code, training scripts, and notebooks for training, for creating the data store and for all the evaluation in the paper, with tutorial notebooks for loading data and for running a trained model. A modern GPU is needed; the authors state that on a desktop without GPU acceleration the runtime will probably exceed several days.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Model checkpoints and training data, Project structure, Installation, Hardware requirements",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Minimal subset of the training, validation and test data: https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p_minimal.tar.gz (0.5GB)"
+          },
+          {
+            "source": "@readme",
+            "text": "pip install -e ."
+          },
+          {
+            "source": "@readme",
+            "text": "``model_evaluation``: Notebooks containing all evaluation code from this paper"
+          },
+          {
+            "source": "@readme",
+            "text": "``model_inference.ipynb``: Example notebook how to use trained models for inference"
+          },
+          {
+            "source": "@readme",
+            "text": "Due to high computational demands, a modern GPU (e.g. Nvidia A100 or V100 GPU with at least 16GB of VRAM) is needed to"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "One corpus, built from the CELLxGENE census release 2023-05-15: 22,189,056 human cells, 164 cell types, 5,052 donors, 56 tissues and 249 datasets, on 19,331 protein-coding genes. The test set is 3,448,832 cells, the validation set 3,500,032 and the training set 15,240,192. Subsampled training sets at 15, 30, 50, 70 and 100 per cent, by cells and by donors, are defined for the scaling experiments.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation and Subsampled datasets; Figure 1 caption",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The selection described above results in 22,189,056 cells being selected which span 164 unique cell types, 5052 unique donors, and 56 different tissues. Of the 22.2 million cells 15,240,192 cells are assigned to the training set, 3,500,032 are assigned to the validation set and 3,448,832 cells are assigned to the test set."
+          },
+          {
+            "source": "@paper",
+            "text": "The dataset spans 22.2 million cells, 5,052 donors, 249 datasets, 164 cell types, and 56 different tissues."
+          },
+          {
+            "source": "@paper",
+            "text": "We subsetted to human datasets and used the human protein-coding genes (19,331) as a feature space."
+          },
+          {
+            "source": "@paper",
+            "text": "Random subsampling: 15% subsampling (2.3 million cells), 30% subsampling (4.6 million cells), 50% subsampling (7.6 million cells), 70% subsampling (10.7 million cells), 100% subsampling (15.2 million cells)"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "By donor, fixed and published. 70 per cent of donors go to training and 15 per cent each to validation and test, so a donor appears in exactly one split. The authors chose this over a random cell split, which leaks similar cells, and over a study-based split, which leaves cell types missing from one side. Because every cell type is present in at least 30 donors, each type has 4 to 5 donors in the validation and test sets.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation; Results, A dataset and evaluation metric section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "In the end, the data is split such that 70% of the donors are assigned to the training set and 15% of the donors are assigned to the validation and test set respectively."
+          },
+          {
+            "source": "@paper",
+            "text": "Meaning, each donor is exclusively found either in the training, validation, or test set."
+          },
+          {
+            "source": "@paper",
+            "text": "With the used 70-15-15 train, validation, and test split this means that each cell type is represented with at least 4-5 donors in the validation and test set, respectively."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Macro-averaged F1 over the 164 cell types, higher is better, computed after the ontology correction. For the uncertainty evaluation, the ROC-AUC for separating the uncertainty scores of two groups of cells, higher is better, with 0.5 meaning no separation. The coarse-label evaluation uses the same macro F1 over 31 aggregated labels.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Ontology-corrected cell type classification, Uncertainty quantification, Performance evaluation on coarse cell type labels",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "As a benchmarking metric, we chose the macro-averaged F1-score (macro F1-score) (Methods) to account for class imbalances and to give each cell type an equal weight in the overall score."
+          },
+          {
+            "source": "@paper",
+            "text": "A ROC-AUC score of 1.0 means that the groups can be perfectly separated and a score of 0.5 means that there is no separation between the groups based on the uncertainty scores"
+          },
+          {
+            "source": "@paper",
+            "text": "Evaluated on the 31 coarse cell type labels, scTab achieves a macro F1-Score of 0.897 compared to 0.830 on the fine-grained annotations."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Nine reported models, all refitted or run by the authors on this corpus. Macro F1 over seeded fits: scTab 0.8295 plus or minus 0.0007, XGBoost 0.8127 plus or minus 0.0005, MLP 0.7971 plus or minus 0.0012, an optimised linear model 0.7848 plus or minus 0.0001, CellTypist retrained on a 1.5 million cell subsample 0.7304 plus or minus 0.0015, scGPT zero-shot 0.7301 plus or minus 0.0035, UCE zero-shot 0.7611 plus or minus 0.0018, scGPT fine-tuned 0.749 from a single run, and CIForm on a 750,000 cell subsample 0.766 from a single run. Tuning matters: with default hyper-parameters XGBoost scores 0.5855 plus or minus 0.0112 and CellTypist 0.6258 plus or minus 0.0036.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@supp"
+        ],
+        "source_locator": "Paper: Results, Cross-tissue cell type classification requires nonlinear models and Robust benchmarks section; Supplementary Tables 1 and 6",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The nonlinear models outperformed the linear model (0.8295 ± 0.0007 macro F1-score for scTab (fitted with data augmentation), 0.8127 ± 0.0005 for XGBoost, 0.7971 ± 0.0012 for MLP (fitted with data augmentation))"
+          },
+          {
+            "source": "@paper",
+            "text": "achieved a macro F1-score of 0.7848 ± 0.0001"
+          },
+          {
+            "source": "@paper",
+            "text": "This re-trained reference model achieved a macro F1-score of 0.7304 ± 0.0015"
+          },
+          {
+            "source": "@paper",
+            "text": "which achieved a significantly lower macro F1-score of 0.7301 ± 0.0035"
+          },
+          {
+            "source": "@supp",
+            "text": "UCE (zero-shot setting) 0.7611±0.0018"
+          },
+          {
+            "source": "@paper",
+            "text": "we fine-tuned a scGPT model to our training data; the fine-tuned model achieved a macro F1-score of 0.749"
+          },
+          {
+            "source": "@paper",
+            "text": "The CIForm model achieved a macro F1-score of 0.766 (due to the large memory requirements of CIForm we had to subsample the training data to 750,000 cells)."
+          },
+          {
+            "source": "@paper",
+            "text": "could be increased from 0.5855 ± 0.0112 to 0.8127 ± 0.0005 for the XGBoost model and from 0.6258 ± 0.0036 to 0.7304 ± 0.0015 for the CellTypist model respectively"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Three. Only primary data are used, so a cell duplicated into an atlas metastudy cannot appear in both training and test. The split is by donor, not by cell, so no cell from a test donor is seen in training. The ontology correction stops a model from being rewarded for mimicking one study's annotation granularity. The authors give no sequence or expression similarity cut-off beyond this, and note their broad-label filter is only a heuristic, leaving some coarse labels in the corpus.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, A dataset and evaluation metric section; Methods, Dataset preparation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We only considered instances of cells in primary datasets to avoid data leakage through duplicate cells."
+          },
+          {
+            "source": "@paper",
+            "text": "The census data is subset to primary data only (is_primary_data == True) to prevent label leakage between the train, validation, and test set."
+          },
+          {
+            "source": "@paper",
+            "text": "Meaning, each donor is exclusively found either in the training, validation, or test set."
+          },
+          {
+            "source": "@paper",
+            "text": "there are still coarse cell type labels present in the scTab data corpus even after our filtering heuristic"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Repeated fits with different random initialisations, 4 or 5 runs per model, reported as mean and standard deviation, and a second version of the table that also bootstraps across test donors, which gives much wider intervals, for example scTab 0.8300 plus or minus 0.0069 against 0.8295 plus or minus 0.0007 over seeds alone. The two single-run entries, fine-tuned scGPT and CIForm, carry no interval. Model uncertainty itself is estimated with a deep ensemble of 5 networks.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@supp"
+        ],
+        "source_locator": "Paper: Methods, Uncertainty quantification and Statistics and reproducibility; Supplementary Table 1",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "(a)Confidence intervals calculated over differentlyseeded random model initializations:"
+          },
+          {
+            "source": "@supp",
+            "text": "additionally including bootstrapping across donors in the test data:"
+          },
+          {
+            "source": "@supp",
+            "text": "scTab (deep learning) 0.8300 ±0.0069"
+          },
+          {
+            "source": "@paper",
+            "text": "The uncertainty quantification for scTab is based on deep ensembles"
+          },
+          {
+            "source": "@paper",
+            "text": "In our case, we averaged the predictions across 5 models."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A single cell. One example is one cell's expression vector over 19,331 protein-coding genes, labelled with the author-provided Cell Ontology term, and the prediction is one of the 164 labels.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation; Results, A dataset and evaluation metric section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We subsetted to human datasets and used the human protein-coding genes (19,331) as a feature space."
+          },
+          {
+            "source": "@paper",
+            "text": "we used the most fine-grained labels given by the author associated with the CL term as specified by the CELLxGENE schema"
+          },
+          {
+            "source": "@paper",
+            "text": "we considered models with a softmax-constrained output across all observed cell type labels"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human only. The corpus is the human part of the CELLxGENE census, across 56 tissues.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We subsetted to human datasets and used the human protein-coding genes (19,331) as a feature space."
+          },
+          {
+            "source": "@paper",
+            "text": "across a data corpus of all human tissues, using a release of the cell census by CELLxGENE as a root dataset"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell RNA sequencing, restricted to the 10x Genomics family of assays, which the authors list as 10x 5 prime v2 and v1, 10x 3 prime v3, v2 and v1, and the two 10x transcription profiling terms. The labels are the cell type annotations supplied by the original authors and mapped to Cell Ontology terms by the CELLxGENE schema.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation; Results",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Only sequencing data from 10x-based sequencing protocols is used."
+          },
+          {
+            "source": "@paper",
+            "text": "we restricted to cells measured with the most common group of 10X Genomics technology-related assays, to reduce the strength of confounding sources of variation in the dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "we used the most fine-grained labels given by the author associated with the CL term as specified by the CELLxGENE schema"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The expression vector alone. Models take the normalised, log transformed counts over the 19,331 protein-coding genes; no tissue, donor or assay metadata is described as an input. The published corpus is distributed in the Merlin dataloader format for exactly this input.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Dataset preparation and Data loading infrastructure; README.md: Model checkpoints and training data",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The data is size factor normalized to 10,000 counts per cell and log1p-transformed."
+          },
+          {
+            "source": "@paper",
+            "text": "We subsetted to human datasets and used the human protein-coding genes (19,331) as a feature space."
+          },
+          {
+            "source": "@readme",
+            "text": "Training data (compatible with Merlin Dataloader infrastructure): https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p.tar.gz (164GB)"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "All three settings appear. Most models are trained from scratch on the training split, including scTab, XGBoost, the MLP and the optimised linear model. CellTypist and CIForm were retrained on subsamples because of memory limits. The transformer models were used both zero-shot, by fitting a logistic regression on frozen embeddings, and fine-tuned, in the case of scGPT on 150,000 cells.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@supp"
+        ],
+        "source_locator": "Paper: Results, Cross-tissue cell type classification requires nonlinear models; Methods, Model details; Supplementary Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "i.e. training a logistic regression model on the scGPT embeddings"
+          },
+          {
+            "source": "@supp",
+            "text": "scGPT (fine-tuned on 150,000 cells) 0.749"
+          },
+          {
+            "source": "@paper",
+            "text": "The current CellTypist implementation necessitated the full training data to be subsampled for model training"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The split is by donor and the data are deduplicated to primary records, which removes the two easiest ways to flatter a cell type classifier.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, A dataset and evaluation metric section; Methods, Dataset preparation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We only considered instances of cells in primary datasets to avoid data leakage through duplicate cells."
+          },
+          {
+            "source": "@paper",
+            "text": "The donor-wise split improves the coverage of labels in both training and test sets compared to a split based on studies, and reduces leakage of similar observations between training and test data compared to a random split of cells"
+          }
+        ]
+      },
+      {
+        "text": "The metric handles the annotation granularity problem explicitly. A finer prediction than the author's label counts as correct and a coarser one as wrong, with the relations taken from the Cell Ontology, so the score is less a test of copying one study's labelling habits.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Ontology-corrected cell type classification",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A prediction is considered as right, either if the classifier predicts the same label as supplied by the original dataset, or if the classifier predicts a subtype of the label provided by the original dataset"
+          },
+          {
+            "source": "@paper",
+            "text": "a prediction is considered wrong if the classifier predicts a parent cell type of the true label"
+          }
+        ]
+      },
+      {
+        "text": "It is published as a reusable benchmark, not only as a result: the processed corpus with fixed splits, a small subset, the trained checkpoints and the data loading code are all downloadable, and the paper argues that tuned reference models matter by showing XGBoost rising from 0.5855 to 0.8127 with tuning.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Results, Robust benchmarks section; README.md: Model checkpoints and training data",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "our processed benchmark dataset with predefined train, validation, and test splits and the accompanying data loading infrastructure is available to download (Methods)."
+          },
+          {
+            "source": "@paper",
+            "text": "could be increased from 0.5855 ± 0.0112 to 0.8127 ± 0.0005 for the XGBoost model and from 0.6258 ± 0.0036 to 0.7304 ± 0.0015 for the CellTypist model respectively"
+          },
+          {
+            "source": "@readme",
+            "text": "Minimal subset of the training, validation and test data: https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p_minimal.tar.gz (0.5GB)"
+          }
+        ]
+      },
+      {
+        "text": "The supplementary information reports the same comparison twice, over seeds alone and with bootstrapping across test donors, which shows how much of the apparent precision comes from fixing the test donors.",
+        "source_ids": [
+          "@supp"
+        ],
+        "source_locator": "Supplementary Table 1, parts a and b",
+        "quotes": [
+          {
+            "source": "@supp",
+            "text": "(a)Confidence intervals calculated over differentlyseeded random model initializations:"
+          },
+          {
+            "source": "@supp",
+            "text": "additionally including bootstrapping across donors in the test data:"
+          },
+          {
+            "source": "@supp",
+            "text": "scTab (deep learning) 0.8300 ±0.0069"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The label set is a filtered slice of the ontology, chosen by thresholds the authors describe as data dependent: at least 5,000 cells and 30 donors per type, and at least seven parent nodes. Rare cell types are therefore absent by construction, and the authors say coarse labels remain despite the heuristic.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, A dataset and evaluation metric section; Methods, Dataset preparation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "we removed cells from rare cell types with less than 5000 instances or those present in less than 30 donors to accurately assess how the trained classifiers generalize to unseen donors (Methods) (Note: these thresholds are dataset dependent and should be adjusted accordingly for smaller datasets)"
+          },
+          {
+            "source": "@paper",
+            "text": "there are still coarse cell type labels present in the scTab data corpus even after our filtering heuristic"
+          }
+        ]
+      },
+      {
+        "text": "Every comparison number was produced by the scTab authors, and several competitors were handicapped by memory limits: CellTypist was retrained on 1.5 million cells, CIForm on 750,000, and the fine-tuned scGPT on 150,000, with those two reported from a single run and no interval.",
+        "source_ids": [
+          "@paper",
+          "@supp"
+        ],
+        "source_locator": "Paper: Results, Cross-tissue cell type classification requires nonlinear models; Supplementary Table 1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The current CellTypist implementation necessitated the full training data to be subsampled for model training"
+          },
+          {
+            "source": "@paper",
+            "text": "The CIForm model achieved a macro F1-score of 0.766 (due to the large memory requirements of CIForm we had to subsample the training data to 750,000 cells)."
+          },
+          {
+            "source": "@supp",
+            "text": "scGPT (fine-tuned on 150,000 cells) 0.749"
+          }
+        ]
+      },
+      {
+        "text": "Scores depend on how fine the labels are, so they are not comparable across label sets. The same scTab predictions give 0.897 on 31 coarse labels against 0.830 on the fine-grained ones, and the authors tie the model's advantage to parts of the ontology, mainly immune cells, that happen to be finely resolved.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Cross-tissue cell type classification requires nonlinear models",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Evaluated on the 31 coarse cell type labels, scTab achieves a macro F1-Score of 0.897 compared to 0.830 on the fine-grained annotations."
+          },
+          {
+            "source": "@paper",
+            "text": "Cell types related to the brain are the most notable exception here, which we hypothesize is probably influenced by the relative lack of resolution of the Cell Ontology for brain-related cell types."
+          }
+        ]
+      },
+      {
+        "text": "Reproducing it is expensive and tied to specific infrastructure. The processed corpus is a 164 GB download, the repository states a modern GPU is required and that a desktop run would probably exceed several days, and training times in the supplementary table run from about 10 to 33 hours on A100 class hardware.",
+        "source_ids": [
+          "@readme",
+          "@supp"
+        ],
+        "source_locator": "README.md: Model checkpoints and training data, Hardware requirements; Supplementary Table 2",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Due to high computational demands, a modern GPU (e.g. Nvidia A100 or V100 GPU with at least 16GB of VRAM) is needed to"
+          },
+          {
+            "source": "@readme",
+            "text": "On a normal desktop computer without GPU acceleration runtime will probably exceed several days."
+          },
+          {
+            "source": "@supp",
+            "text": "scTab ~33h (1x Nvidia A100 40GB) ~10800 (1x Nvidia V100 16GB)"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "scTab annotation evaluation workflow",
+      "steps": [
+        "CELLxGENE census 2023-05-15, human, primary data only",
+        "filters: 10x assays, 5,000 cells and 30 donors per type, seven ontology parents",
+        "22.2 million cells, 164 labels, split 70 15 15 by donor",
+        "train a classifier on the training donors",
+        "predict one of 164 labels per held-out cell",
+        "ontology correction: finer than the author label counts as right",
+        "macro F1 over cell types, repeated over seeds and donor bootstraps"
+      ],
+      "caption": "The corpus, the splits and the tuned reference models are published for reuse.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Methods, Dataset preparation and Ontology-corrected cell type classification; Results",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The census data is subset to primary data only (is_primary_data == True) to prevent label leakage between the train, validation, and test set."
+        },
+        {
+          "source": "@paper",
+          "text": "In the end, the data is split such that 70% of the donors are assigned to the training set and 15% of the donors are assigned to the validation and test set respectively."
+        },
+        {
+          "source": "@paper",
+          "text": "A prediction is considered as right, either if the classifier predicts the same label as supplied by the original dataset, or if the classifier predicts a subtype of the label provided by the original dataset"
+        },
+        {
+          "source": "@paper",
+          "text": "As a benchmarking metric, we chose the macro-averaged F1-score (macro F1-score) (Methods) to account for class imbalances and to give each cell type an equal weight in the overall score."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The ROC-AUC values for the uncertainty evaluation are in a supplementary figure, which is an image, so the page states how that metric is defined but not the numbers.",
+      "The repository's docs/data.md and docs/classification-evaluation-metrics.md, which the paper points to for the exact data preparation and metric code, were not fetched, and no script in the repository was read.",
+      "No licence is stated for the processed 164 GB data download itself. The repository code is MIT and the paper is CC BY 4.0; the underlying cells come from CELLxGENE, whose terms are not printed in any saved file.",
+      "The per-organ and per-cell-type F1 values, and the scaling curves, are in figures and in a source data file that were not fetched."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the NCBI PMC full-text XML of PMC11298532, the publisher's supplementary PDF through its pdftotext -layout text layer and a copy of that text with Unicode formatting characters removed, and README.md and LICENSE of theislab/scTab at commit 5ede7f2ba1f9618b86924f2ff587931de18f4ada. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Get the published corpus and checkpoints, install the cellnet package, and run the paper's evaluation notebooks.",
+    "prerequisites": [
+      "A modern GPU, which the repository gives as an Nvidia A100 or V100 with at least 16 GB of VRAM, and Ubuntu with Python 3.8 or 3.10.",
+      "Disk space for the 164 GB processed corpus, or the 0.5 GB minimal subset, plus 8.1 GB of checkpoints.",
+      "The code is MIT licensed. No licence is stated for the processed data download in the files read here."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/theislab/scTab\ncd scTab\ngit checkout --detach 5ede7f2ba1f9618b86924f2ff587931de18f4ada",
+        "explanation": "The paper's code availability statement names this repository. The clone and the detach at the commit read for this page were added here.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Code availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "https://github.com/theislab/scTab/tree/devel"
+          }
+        ]
+      },
+      {
+        "title": "Install the package",
+        "shell": "pip install -r requirements-gpu.txt --extra-index-url https://pypi.nvidia.com/\npip install -e .",
+        "explanation": "The README's pip route: install the GPU dependencies first with the Nvidia index, then the cellnet package from the project folder. The authors recommend instead using the Merlin PyTorch container or the Enroot image they publish, which has the packages preinstalled.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Installation",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "pip install -e ."
+          },
+          {
+            "source": "@readme",
+            "text": "To install GPU dependencies install the dependencies from the ``requirements-gpu.txt`` file first."
+          },
+          {
+            "source": "@readme",
+            "text": "A base docker image with most packages preinstalled can be pulled from here:"
+          }
+        ]
+      },
+      {
+        "title": "Download the data and the checkpoints",
+        "shell": "curl -O https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p_minimal.tar.gz\ncurl -O https://pklab.med.harvard.edu/felix/data/scTab-checkpoints.tar.gz",
+        "explanation": "The README gives these addresses. The minimal subset is used here because the full corpus is 164 GB; the curl commands were added, the addresses and sizes are the README's.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Model checkpoints and training data",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Minimal subset of the training, validation and test data: https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p_minimal.tar.gz (0.5GB)"
+          },
+          {
+            "source": "@readme",
+            "text": "Model checkpoints: https://pklab.med.harvard.edu/felix/data/scTab-checkpoints.tar.gz (8.1GB)"
+          }
+        ]
+      },
+      {
+        "title": "Run a trained model and the evaluation",
+        "shell": "jupyter notebook notebooks-tutorials/model_inference.ipynb",
+        "explanation": "The repository's tutorial notebook for using a trained model on data; the notebooks under notebooks/model_evaluation hold the evaluation code from the paper, and notebooks/training the training runs. The jupyter command was added here; the notebook paths are the README's.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Project structure",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "``model_inference.ipynb``: Example notebook how to use trained models for inference"
+          },
+          {
+            "source": "@readme",
+            "text": "``model_evaluation``: Notebooks containing all evaluation code from this paper"
+          },
+          {
+            "source": "@readme",
+            "text": "``training``: Notebooks to train models"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "Predicted cell type labels for the held-out cells, and the macro F1 and per-cell-type F1 values the paper's evaluation notebooks compute."
+    ],
+    "limitations": [
+      "These commands were read from the repository's README and the paper and have not been executed by Rewire. No notebook or script was opened.",
+      "The minimal data subset is enough to exercise the loader, not to reproduce the published numbers, which need the full 164 GB corpus.",
+      "The authors ran everything inside a specific Nvidia Merlin container image, so a plain pip install may not reproduce their environment."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "General cell type classification, ontology-corrected",
+      "dataset": "scTab corpus from CELLxGENE census 2023-05-15",
+      "size": 3448832,
+      "size_unit": "test cells from held-out donors",
+      "split": "70, 15 and 15 per cent of donors, by donor",
+      "primary_metric": "macro-averaged F1 over 164 cell types",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11298532/",
+      "code_url": "https://github.com/theislab/scTab",
+      "data_url": "https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p.tar.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The selection described above results in 22,189,056 cells being selected which span 164 unique cell types, 5052 unique donors, and 56 different tissues. Of the 22.2 million cells 15,240,192 cells are assigned to the training set, 3,500,032 are assigned to the validation set and 3,448,832 cells are assigned to the test set."
+        },
+        {
+          "source": "@paper",
+          "text": "In the end, the data is split such that 70% of the donors are assigned to the training set and 15% of the donors are assigned to the validation and test set respectively."
+        },
+        {
+          "source": "@paper",
+          "text": "As a benchmarking metric, we chose the macro-averaged F1-score (macro F1-score) (Methods) to account for class imbalances and to give each cell type an equal weight in the overall score."
+        },
+        {
+          "source": "@paper",
+          "text": "https://github.com/theislab/scTab/tree/devel"
+        },
+        {
+          "source": "@readme",
+          "text": "Training data (compatible with Merlin Dataloader infrastructure): https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p.tar.gz (164GB)"
+        },
+        {
+          "source": "@readme",
+          "text": "MIT license"
+        }
+      ]
+    },
+    {
+      "task": "Coarse cell type classification",
+      "dataset": "scTab corpus, labels aggregated to 31 coarse terms",
+      "size": 3448832,
+      "size_unit": "test cells from held-out donors",
+      "split": "same donor-based split, predictions aggregated without retraining",
+      "primary_metric": "macro-averaged F1 over 31 coarse cell type labels",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11298532/",
+      "code_url": "https://github.com/theislab/scTab",
+      "data_url": "https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p.tar.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Evaluated on the 31 coarse cell type labels, scTab achieves a macro F1-Score of 0.897 compared to 0.830 on the fine-grained annotations."
+        },
+        {
+          "source": "@paper",
+          "text": "we did not retrain the model from scratch for the evaluation on the coarse cell type labels"
+        },
+        {
+          "source": "@paper",
+          "text": "The selection described above results in 22,189,056 cells being selected which span 164 unique cell types, 5052 unique donors, and 56 different tissues. Of the 22.2 million cells 15,240,192 cells are assigned to the training set, 3,500,032 are assigned to the validation set and 3,448,832 cells are assigned to the test set."
+        }
+      ]
+    },
+    {
+      "task": "Deep-ensemble uncertainty, correct against incorrect and against absent cell types",
+      "dataset": "scTab test cells plus cells of types excluded from training",
+      "size": null,
+      "size_unit": "cells per group, not stated",
+      "split": "three groups: correct predictions, incorrect predictions, types absent from training",
+      "primary_metric": "ROC-AUC for separating uncertainty scores from the reference group",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11298532/",
+      "code_url": "https://github.com/theislab/scTab",
+      "data_url": "https://pklab.med.harvard.edu/felix/data/merlin_cxg_2023_05_15_sf-log1p.tar.gz",
+      "data_licence": null,
+      "code_licence": "MIT",
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Cell types that are present in the training data but which the model predicted wrongly to assess how well wrong predictions can be distinguished from right predictions based on the uncertainty scores."
+        },
+        {
+          "source": "@paper",
+          "text": "Cell types that are not present in the training data to assess how well unknown cell types can be identified based on the uncertainty scores provided by scTab."
+        },
+        {
+          "source": "@paper",
+          "text": "A ROC-AUC score of 1.0 means that the groups can be perfectly separated and a score of 0.5 means that there is no separation between the groups based on the uncertainty scores"
+        },
+        {
+          "source": "@paper",
+          "text": "In our case, we averaged the predictions across 5 models."
+        }
+      ]
+    }
+  ],
+  "notes": "The record groups the protocols that come from Supplementary Tables 1, 2 and 6 and the uncertainty evaluation; all of those tables were fetched for this page except the uncertainty ROC-AUC values, which appear only in a supplementary figure image. Supplementary quotes come from a copy of the PDF text layer with Unicode bidirectional formatting characters removed, because the publisher's PDF embeds them in every line; the PDF and the raw text layer are both kept in artifacts. Numbers from the seeded-fit table and the donor-bootstrap table are kept apart: 0.8295 plus or minus 0.0007 is over seeds, 0.8300 plus or minus 0.0069 adds bootstrapping across test donors. The 1.5 million, 750,000 and 150,000 cell figures are the subsampled training sets for CellTypist, CIForm and the fine-tuned scGPT, not test sets. No licence is stated for the processed data download; MIT applies to the code and CC BY 4.0 to the paper and its supplementary information. The scTab README carries the author's email address, which is not reproduced here."
+}

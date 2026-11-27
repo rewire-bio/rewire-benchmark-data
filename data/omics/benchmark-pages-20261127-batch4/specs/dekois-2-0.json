@@ -1,0 +1,568 @@
+{
+  "record_id": "hitdisc-20261022-benchmark-dekois2",
+  "sources": [
+    {
+      "key": "dekois",
+      "name": "Text of the DEKOIS official download page, dekois.com (University of Tuebingen)",
+      "description": "Plain text extracted with a short Python script from the page that http://www.dekois.com redirects to, which carries the dataset downloads and the list of targets. The served HTML is kept beside it as artifacts/dekois-page.html.",
+      "file": "artifacts/dekois-page.txt",
+      "artifact_url": "http://www.dekois.com/",
+      "url": "https://uni-tuebingen.de/fakultaeten/mathematisch-naturwissenschaftliche-fakultaet/fachbereiche/pharmaziebiochemie/teilbereich-pharmazie-pharmazeutisches-institut/pharmazeutische-chemie/prof-dr-f-boeckler/dekois/",
+      "version": "text of the page as served on 2026-11-27",
+      "media_type": "text/plain",
+      "sha256": "71c43e9cc327915445cb49e75ebd0e194375b172597bdfe049f4c6819f4ff18c",
+      "retrieved_at": "2026-11-27T04:19:17Z",
+      "store_bytes": false
+    },
+    {
+      "key": "shen",
+      "name": "Text of Shen et al., Unlocking the application potential of AlphaFold3-like approaches in virtual screening, Chemical Science, from the PMC full-text XML",
+      "description": "Plain text extracted from the PMC full-text JATS XML (PMC12704515) by stripping tags with a short Python script; the XML is kept beside it as artifacts/shen2025-pmc.xml. This paper scores co-folding methods on DEKOIS2.0 and states the benchmark's composition.",
+      "file": "artifacts/shen2025.txt",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12704515&rettype=xml",
+      "url": "https://doi.org/10.1039/d5sc06481c",
+      "media_type": "text/plain",
+      "version": "text of PMC12704515 full text",
+      "sha256": "f9d1e5644130453a4044313042fddfd3bf63e72a8007ce46acf44c2e6d38dde8",
+      "retrieved_at": "2026-11-27T04:18:23Z",
+      "store_bytes": false
+    },
+    {
+      "key": "zenodo-source-data",
+      "name": "Zenodo record 17568813, source data for the Shen et al. virtual screening paper (API response)",
+      "description": "Zenodo REST API record for the source data of the paper that scores methods on DEKOIS2.0, giving the licence, date and file list.",
+      "file": "artifacts/zenodo-17568813.json",
+      "artifact_url": "https://zenodo.org/api/records/17568813",
+      "url": "https://zenodo.org/records/17568813",
+      "version": "API response of 2026-11-27",
+      "media_type": "application/json",
+      "sha256": "bcbab4a4b76b55fab4dce42d201f2c4da42bb91e6393d7ae3b62d816a900ebe3",
+      "retrieved_at": "2026-11-27T04:19:48Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "DEKOIS 2.0 is a virtual screening benchmark: for each target it asks how well a method ranks experimentally validated active compounds above property-matched decoys. The official page offers 81 target sets for download; Shen et al. describe each set as 40 actives from BindingDB and 1200 decoys selected from ZINC. It is used by developers of docking, scoring and co-folding methods to compare enrichment of actives.",
+    "summary_source_ids": [
+      "@dekois",
+      "@shen"
+    ],
+    "summary_source_locator": "dekois.com page: list of targets; Shen et al.: Methods 'Datasets'",
+    "summary_quotes": [
+      {
+        "source": "@shen",
+        "text": "The dataset originally consists of a total of 81 structurally diverse targets, each containing 40 experimentally-validated active compounds from BindingDB and 1200 property-matched decoys selected from ZINC."
+      },
+      {
+        "source": "@dekois",
+        "text": "Temporary website for the datasets on dekois.com"
+      },
+      {
+        "source": "@dekois",
+        "text": "List of targets"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The benchmark measures early recognition in structure-based virtual screening: given a protein target and a library of 40 known actives mixed with 1200 decoys, can a method place the actives near the top of its ranking. Because the decoys are chosen to match the actives' physicochemical properties, a method cannot succeed simply by preferring, for example, heavier or more lipophilic molecules. Shen et al. use it as their primary reference set for comparing AlphaFold3-like co-folding methods with conventional docking programs.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Introduction; Results 'Evaluation of AF3's built-in confidence scores on DEKOIS2.0 dataset'; Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "1200 property-matched decoys selected from ZINC"
+          },
+          {
+            "source": "@shen",
+            "text": "a well-established benchmark that had been widely employed to evaluate the VS performance of both physics-based and AI-powered docking tools"
+          },
+          {
+            "source": "@shen",
+            "text": "served as our primary reference"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Each target set pairs actives taken from BindingDB with decoys selected from ZINC and matched on molecular properties, giving an actives-to-decoys ratio of 1 to 30. The official page lists 81 targets, spread across kinases, proteases, nuclear receptors, GPCRs and other enzyme families, and offers the target sets in three download parts plus a ligands download. The page does not print a version string, a licence or a construction protocol; the construction details on this page come from Shen et al.'s description. Shen et al. also used the protein templates and initial ligand conformers that come with the dataset rather than preparing their own.",
+        "source_ids": [
+          "@dekois",
+          "@shen"
+        ],
+        "source_locator": "dekois.com page: downloads and list of targets; Shen et al.: Methods 'Datasets' and 'Complex structure prediction'",
+        "quotes": [
+          {
+            "source": "@dekois",
+            "text": "Dekois part 1 - Download (1 - G) Dekois part 2 - Download (H - P) Dekois part 3 - Download (Q - V)"
+          },
+          {
+            "source": "@dekois",
+            "text": "Ligands - Download"
+          },
+          {
+            "source": "@shen",
+            "text": "40 experimentally-validated active compounds from BindingDB"
+          },
+          {
+            "source": "@shen",
+            "text": "For the DEKOIS2.0 dataset, we used the provided well-established protein templates and initial ligand conformers"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A submission is a ranking of each target's library. Shen et al. score rankings with the area under the receiver operating characteristic curve (AUROC), BEDROC with alpha = 80.5, which weights the top 2% of the ranking to 80% of the score, and enrichment factors at 0.5%, 1% and 5%. Per-target values are then summarised across targets, with the mean marked in their box plots. Their comparison runs on 79 of the 81 targets, because two targets (pygl-in and pygl-out) were dropped as too costly to model; values for one tool, SurfDock, were taken over from earlier work and cover all 81 targets. There is no central leaderboard: each paper publishes its own numbers.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Evaluation metrics'; Methods 'Datasets'; Fig. 1 caption",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "including the area under the receiver operating characteristic curve (AUROC), Boltzmann enhanced discrimination of receiver operating characteristic (BEDROC, a = 80.5), and enrichment factors (EFs)"
+          },
+          {
+            "source": "@shen",
+            "text": "we set α = 80.5, meaning that the top 2% of ranked molecules contributed to 80% of the BEDROC score"
+          },
+          {
+            "source": "@shen",
+            "text": "two targets (pygl-in and pygl-out) were excluded in this study"
+          },
+          {
+            "source": "@shen",
+            "text": "thus resulting in a final set of 79 targets for evaluation"
+          },
+          {
+            "source": "@shen",
+            "text": "the indicators for SurfDock were calculated based on all 81 targets due to the unavailability of the label for each target"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "81 target sets on the official download page, each described by Shen et al. as 40 actives and 1200 decoys. Shen et al.'s own comparison uses 79 of them.",
+        "status": "source_checked",
+        "source_ids": [
+          "@dekois",
+          "@shen"
+        ],
+        "source_locator": "dekois.com page: list of targets; Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "The dataset originally consists of a total of 81 structurally diverse targets, each containing 40 experimentally-validated active compounds from BindingDB and 1200 property-matched decoys selected from ZINC."
+          },
+          {
+            "source": "@shen",
+            "text": "thus resulting in a final set of 79 targets for evaluation"
+          },
+          {
+            "source": "@dekois",
+            "text": "11-beta-Hydroxysteroid Dehydrogenase 1"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None. The benchmark is a screening set only: every compound of a target is ranked and scored, with no train, validation or test division.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets' and 'Evaluation metrics'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "EFx%, defined as the ratio of true positives found in the top x% of ranked compounds relative to random selection"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "AUROC, BEDROC (alpha = 80.5) and enrichment factors at 0.5%, 1% and 5%, as used by Shen et al.; higher is better for all of them. AUROC runs from 0 for complete failure through 0.5 for random to 1 for perfect classification.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Evaluation metrics'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "The corresponding AUROC value ranges from 0 (complete failure) to 0.5 (random prediction) to 1 (perfect classification)."
+          },
+          {
+            "source": "@shen",
+            "text": "We evaluated EF at 0.5%, 1%, and 5% thresholds to capture performance across different screening depths."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "As reported by Shen et al.: five docking programs (Glide SP, AutoDock Vina, GOLD CHEMPLP, Surflex-Dock, LeDock) and five machine-learning docking tools (Gnina, TankBind, KarmaDock, CarsiDock, SurfDock), with the values for all but AF3, Protenix, Boltz-2 and Gnina taken over from earlier studies.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Results 'Evaluation of AF3's built-in confidence scores on DEKOIS2.0 dataset'; Fig. 1 caption",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "we compared these approaches with five popular traditional docking programs (Glide SP, AutoDock Vina, GOLD CHEMPLP, Surflex-Dock, and LeDock) and five emerging AI-powered docking tools (Gnina, TankBind, KarmaDock, CarsiDock and SurfDock)"
+          },
+          {
+            "source": "@shen",
+            "text": "The results for approaches except AF3, Protenix, Boltz-2 and Gnina were directly retrieved from previous studies"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "None in the benchmark itself, and Shen et al. warn that it is a problem here: the set was released over ten years before their study and its template structures may overlap AlphaFold3's training data, so they built the separate GPCRrecent set. They also say Boltz-2's affinity numbers on DEKOIS2.0 are likely over-estimated, because Boltz-2 took affinity data from the same public databases that DEKOIS 2.0 draws on. In place of a split control they computed, for each active compound, its minimum Tanimoto similarity (ECFP4) to any PDB ligand, as the paper words it, and re-calculated the metrics at varying similarity thresholds.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'; Results 'Performance on GPCRrecent dataset'; Results on ligand similarity",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "DEKOIS2.0 had been released over ten years and its template protein structures might exhibit a significant overlap with AF3's training data"
+          },
+          {
+            "source": "@shen",
+            "text": "its reported performance metrics are likely significantly over-estimated due to this data overlap"
+          },
+          {
+            "source": "@shen",
+            "text": "We then performed identical fingerprint calculations for each active compound in DEKOIS2.0 and thus determined their minimum Tanimoto similarity to any PDB ligand."
+          },
+          {
+            "source": "@shen",
+            "text": "For varying similarity thresholds, we re-calculated the performance metrics for each screening tool."
+          },
+          {
+            "source": "@shen",
+            "text": "Our analysis began by retrieving all PDB ligands used in Protenix training and calculating their ECFP4 fingerprints"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "No replicates or intervals are asked for. Shen et al. report the spread across targets with box plots and mark the mean; the co-folding predictions were run with one fixed random seed (seed = 1).",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Fig. 1 caption; Methods 'Complex structure prediction'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "White squares in box plots indicate mean values for each metric."
+          },
+          {
+            "source": "@shen",
+            "text": "five predictions were generated using a fixed random seed (seed = 1)"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A compound in a target's screening library, labelled active or decoy; one score is produced per target.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "40 experimentally-validated active compounds from BindingDB and 1200 property-matched decoys selected from ZINC"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Not stated in the files read. The official page lists protein targets by name, including human proteins and pathogen proteins such as HIV-1 protease and the SARS coronavirus 3C-like protease, but no species column is printed.",
+        "status": "unreported",
+        "source_ids": [
+          "@dekois"
+        ],
+        "source_locator": "dekois.com page: list of targets"
+      },
+      {
+        "label": "Assays",
+        "value": "The actives carry measured binding or inhibition data from BindingDB. The decoys are not assayed: they are library compounds matched on properties, which Shen et al. call artificially generated decoys.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'; Results 'Performance on a subset of LIT-PCBA dataset'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "40 experimentally-validated active compounds from BindingDB"
+          },
+          {
+            "source": "@shen",
+            "text": "the negative samples in both the DEKOIS2.0 and GPCRrecent datasets are artificially-generated decoys, which might introduce potential bias"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Not fixed by the benchmark. The dataset ships protein templates and initial ligand conformers, so methods may use the 3D structure; Shen et al. note that co-folding methods take only one-dimensional protein and ligand sequences, while some baselines need 3D structural information.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "While AF3-like approaches feed only one-dimensional sequences for both proteins and ligands as inputs, some structure-based baseline methods employed in this study require 3D structural information."
+          },
+          {
+            "source": "@shen",
+            "text": "we used the provided well-established protein templates and initial ligand conformers"
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot screening in practice: in Shen et al. the methods are run as released, with default or recommended settings, and nothing is trained on the benchmark.",
+        "status": "source_checked",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Complex structure prediction'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "All other parameters remained at their default or recommended values."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The actives are experimentally validated measurements from BindingDB, and the decoys are matched on physicochemical properties, so simple property bias does not by itself produce enrichment.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "40 experimentally-validated active compounds from BindingDB and 1200 property-matched decoys selected from ZINC"
+          }
+        ]
+      },
+      {
+        "text": "81 target sets spanning many protein families are downloadable from the official page, with the protein templates and ligand conformers included, so methods that need a prepared structure can be run without extra preparation.",
+        "source_ids": [
+          "@dekois",
+          "@shen"
+        ],
+        "source_locator": "dekois.com page: downloads; Shen et al.: Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@dekois",
+            "text": "Dekois part 1 - Download (1 - G) Dekois part 2 - Download (H - P) Dekois part 3 - Download (Q - V)"
+          },
+          {
+            "source": "@shen",
+            "text": "we used the provided well-established protein templates and initial ligand conformers"
+          }
+        ]
+      },
+      {
+        "text": "Shen et al. describe it as widely used for both physics-based and machine-learning docking tools, which is why results from different papers can be put side by side; they take ten tools' values from earlier work.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'; Fig. 1 caption",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "a well-established benchmark dataset widely used for evaluating both physics-based and AI-powered docking tools"
+          },
+          {
+            "source": "@shen",
+            "text": "The results for approaches except AF3, Protenix, Boltz-2 and Gnina were directly retrieved from previous studies"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The negatives are property-matched library compounds, not assayed inactives. Shen et al. report that a reviewer raised this as a possible bias, which is why they added a LIT-PCBA subset where actives and inactives are both measured.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Results 'Performance on a subset of LIT-PCBA dataset'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "One reviewer noted that the negative samples in both the DEKOIS2.0 and GPCRrecent datasets are artificially-generated decoys, which might introduce potential bias."
+          }
+        ]
+      },
+      {
+        "text": "Age makes training overlap likely for recent models: Shen et al. state the set was released over ten years earlier and that its template protein structures may overlap AlphaFold3's training data, and they treat Boltz-2's affinity numbers on it as a reference only.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Methods 'Datasets'; Results on DEKOIS2.0",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "DEKOIS2.0 had been released over ten years and its template protein structures might exhibit a significant overlap with AF3's training data"
+          },
+          {
+            "source": "@shen",
+            "text": "the results presented here should be treated as a reference only and may not reflect its true predictive performance"
+          }
+        ]
+      },
+      {
+        "text": "The official site is a temporary download page: it carries no version string, no licence, no per-target composition table and no leaderboard, so terms of use and the exact file contents cannot be read from it.",
+        "source_ids": [
+          "@dekois"
+        ],
+        "source_locator": "dekois.com page: whole page",
+        "quotes": [
+          {
+            "source": "@dekois",
+            "text": "Temporary website for the datasets on dekois.com"
+          }
+        ]
+      },
+      {
+        "text": "Published figures may be on different target counts: Shen et al. score 79 targets, but the SurfDock values they carry over were computed on all 81, so numbers from different papers are not automatically on the same set.",
+        "source_ids": [
+          "@shen"
+        ],
+        "source_locator": "Shen et al.: Fig. 1 caption; Methods 'Datasets'",
+        "quotes": [
+          {
+            "source": "@shen",
+            "text": "the indicators for SurfDock were calculated based on all 81 targets due to the unavailability of the label for each target"
+          },
+          {
+            "source": "@shen",
+            "text": "thus resulting in a final set of 79 targets for evaluation"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "DEKOIS 2.0 screening evaluation",
+      "steps": [
+        "Target set: 40 actives plus 1200 property-matched decoys",
+        "Method ranks the library",
+        "AUROC, BEDROC and enrichment factors per target",
+        "Summary across targets"
+      ],
+      "caption": "Each target's library is ranked by the method under test and scored for how early the actives appear; per-target scores are then summarised across targets.",
+      "source_ids": [
+        "@shen"
+      ],
+      "source_locator": "Shen et al.: Methods 'Datasets' and 'Evaluation metrics'; Fig. 1 caption",
+      "quotes": [
+        {
+          "source": "@shen",
+          "text": "each containing 40 experimentally-validated active compounds from BindingDB and 1200 property-matched decoys selected from ZINC"
+        },
+        {
+          "source": "@shen",
+          "text": "White squares in box plots indicate mean values for each metric."
+        }
+      ]
+    },
+    "coverage": "limited",
+    "gaps": [
+      "The DEKOIS 2.0 primary paper (doi 10.1021/ci400115b) is not in PMC and was not retrieved, so the benchmark's own account of decoy selection, the latent-actives check and any version history was not read. The composition recorded here is as Shen et al. state it.",
+      "The official page prints no licence or terms of use for the data, and no per-target composition table.",
+      "Shen et al.'s per-target table for DEKOIS2.0 is in their supplementary information, which was not retrieved."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the dekois.com download page as served on 2026-11-27, the PMC full text of Shen et al. (PMC12704515) and the Zenodo API record 17568813, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": null,
+  "no_run_guide_reason": "The official page offers only dataset downloads with no evaluation or scoring code, and the sources give no commands for scoring a ranking on this benchmark.",
+  "structured": [
+    {
+      "task": "Virtual screening on DEKOIS2.0, as scored by Shen et al.",
+      "dataset": "DEKOIS2.0",
+      "size": 79,
+      "size_unit": "targets",
+      "split": "no split; whole screening library ranked per target",
+      "primary_metric": "BEDROC (alpha = 80.5)",
+      "metric_direction": "higher",
+      "results_url": "https://zenodo.org/records/17568813",
+      "code_url": null,
+      "data_url": "http://www.dekois.com/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@shen",
+          "text": "thus resulting in a final set of 79 targets for evaluation"
+        },
+        {
+          "source": "@shen",
+          "text": "Boltzmann enhanced discrimination of receiver operating characteristic (BEDROC, a = 80.5)"
+        },
+        {
+          "source": "@shen",
+          "text": "The source data generated and analyzed in this study at https://zenodo.org/records/17568813"
+        },
+        {
+          "source": "@shen",
+          "text": "available at http://www.dekois.com"
+        }
+      ]
+    },
+    {
+      "task": "DEKOIS2.0 full target set as published",
+      "dataset": "DEKOIS2.0",
+      "size": 81,
+      "size_unit": "targets",
+      "split": "no split; whole screening library ranked per target",
+      "primary_metric": null,
+      "metric_direction": null,
+      "results_url": null,
+      "code_url": null,
+      "data_url": "http://www.dekois.com/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@shen",
+          "text": "The dataset originally consists of a total of 81 structurally diverse targets"
+        },
+        {
+          "source": "@dekois",
+          "text": "List of targets"
+        },
+        {
+          "source": "@shen",
+          "text": "available at http://www.dekois.com"
+        }
+      ]
+    }
+  ],
+  "notes": "This page is written from the official download page and from Shen et al.'s description, because the DEKOIS 2.0 primary paper is closed access and not in PMC. Shen et al.'s article is licensed CC BY-NC 3.0, which is not one of the short identifiers this format allows, so the source carries no licence field and its bytes are not stored. Two sizes are recorded separately: 81 targets on the official page and 79 in Shen et al.'s comparison. Per-target active and decoy counts beyond the 40 and 1200 figures were not read. Records 12 (GPCRrecent) and 13 (LIT-PCBA) share the Shen et al. source with this one; the shared facts are written from the same passages."
+}

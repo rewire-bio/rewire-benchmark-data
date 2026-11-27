@@ -1,0 +1,954 @@
+{
+  "record_id": "gfm-guides-20261014-kendiukhov2026-benchmark-perturbation-target-prediction",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text of the Kendiukhov 2026 BMC Genomics paper, from PMC13390336",
+      "description": "Plain text derived from the NCBI PMC full-text XML: tags were stripped and the LaTeX preamble blocks that PMC wraps around each formula were removed, leaving the mathematics as dollar-delimited fragments. The original XML is kept beside it as artifacts/paper-pmc.xml and is registered as its own source.",
+      "file": "artifacts/paper-text.txt",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13390336",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "version": "PMC13390336.1, BMC Genomics 27:634, doi 10.1186/s12864-026-12965-8",
+      "media_type": "text/plain",
+      "sha256": "dccd60f814ea9d270ad56d9d6d725659a3e0fe0e558db30e95182f73c4f017af",
+      "retrieved_at": "2026-11-27T04:38:03Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "paper-xml",
+      "name": "Full text JATS XML of the Kendiukhov 2026 paper, PMC13390336",
+      "description": "NCBI PMC full-text XML fetched through E-utilities, kept as the unmodified source of the text file above.",
+      "file": "artifacts/paper-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=13390336",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "version": "PMC13390336.1",
+      "media_type": "application/xml",
+      "sha256": "bccb0fcc6001129e2c3c17edaa21d4b333e6feba84072ab8a57fbda53e33e9b2",
+      "retrieved_at": "2026-11-27T04:38:03Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "readme",
+      "name": "Biodyn-AI/biomechinterp-framework README.md at commit 40e6da0ae21a768dbbcb2bfa62539845f0ef7c88",
+      "description": "README of the analysis code repository the paper names, pinned to a commit. Holds the data set table, the environment setup, the per-module layout and the licence statement.",
+      "file": "artifacts/readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/Biodyn-AI/biomechinterp-framework/40e6da0ae21a768dbbcb2bfa62539845f0ef7c88/README.md",
+      "url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "version": "git commit 40e6da0ae21a768dbbcb2bfa62539845f0ef7c88",
+      "media_type": "text/markdown",
+      "sha256": "115b5ac6a84cca2948803ea419b23e9c03c04750806b3463ab8848c67d7484bc",
+      "retrieved_at": "2026-11-27T04:38:54Z",
+      "store_bytes": false
+    },
+    {
+      "key": "zenodo",
+      "name": "Zenodo record 18701417 metadata",
+      "description": "Zenodo API response for the archived release of the analysis code that the paper's data availability statement cites.",
+      "file": "artifacts/zenodo.json",
+      "artifact_url": "https://zenodo.org/api/records/18701417",
+      "url": "https://doi.org/10.5281/zenodo.18701417",
+      "version": "record 18701417, published 2026-02-19",
+      "media_type": "application/json",
+      "sha256": "2e5083d83db4b279b1dd4510ecb0d5ef5af22aa04785c19b577844b5afafcdc8",
+      "retrieved_at": "2026-11-27T04:38:45Z",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "This is one paper's evaluation, not a released suite. For each gene knocked down or activated in a CRISPR screen, every other gene is scored by its link to the perturbed gene, either an attention weight taken from a single-cell foundation model or a Spearman correlation, and the score is used to classify which genes turn out to be differentially expressed. Performance is the per-perturbation area under the ROC curve. The same test is run for three univariate gene-level features, variance, mean expression and dropout rate, and then a conditional test asks whether adding a pairwise edge score to those gene-level features improves prediction. The answer the paper reports is no: gene-level features reach 0.81 to 0.88 against about 0.70 for either edge type, and adding edges changes the area under the curve by about nothing. The evaluation is useful as a sanity check that anyone claiming regulatory signal in attention has to pass.",
+    "summary_source_ids": [
+      "@paper"
+    ],
+    "summary_source_locator": "Paper: Results, Perturbation-first validation and No incremental pairwise value sections; Methods, Perturbation-first validation and Confound decomposition",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "For each CRISPRi perturbation, we computed edge scores between the perturbed gene and all other genes, then evaluated AUROC for classifying differentially expressed targets."
+      },
+      {
+        "source": "@paper",
+        "text": "Critically, trivial gene-level baselines—variance, mean expression, and dropout rate—all outperform both attention and correlation edges on Objective B (AUROC 0.81–0.88 vs. 0.70; all $$p &lt; 10^{-12}$$ ; Fig. 3)."
+      },
+      {
+        "source": "@paper",
+        "text": "Gene-level features alone achieve AUROC $$= 0.895$$ [bootstrap 95% CI: 0.884, 0.905]; adding attention yields $$\\Delta$$ AUROC $$= -0.0004$$"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The paper calls this Objective B, and keeps it apart from Objective A, which is recovery of curated regulatory interactions. Objective B asks whether a pairwise score between a perturbed gene and another gene predicts that the other gene will be differentially expressed after the perturbation. The author stresses that this is an effect-magnitude question, mixing direct regulation, indirect propagation and how detectable a gene is at all, so the two objectives can disagree: a true direct edge may produce little differential expression, and a non-regulatory feature can score well if it proxies target susceptibility. The evaluation therefore sets a floor rather than a ceiling, that any claimed pairwise regulatory signal must first beat features computed from single genes.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Evaluation framework section; Results, Perturbation-first validation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Objective B (perturbation-response prediction). Do attention-derived edge scores predict which genes will show differential expression after a CRISPRi or CRISPRa perturbation of a source gene? This is an effect- magnitude task that integrates direct regulation, indirect propagation, and target susceptibility."
+          },
+          {
+            "source": "@paper",
+            "text": "an edge can be a genuine direct regulatory link yet contribute little to Objective B"
+          },
+          {
+            "source": "@paper",
+            "text": "any claimed pairwise regulatory signal must first exceed gene-level features on this task"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The expression data are published CRISPR screens, taken through the scperturb package according to the code repository: the Replogle genome-scale CRISPRi screens in K562, described in the paper as more than 640,000 K562 cells and 2,024 perturbed genes, and in RPE1, Adamson CRISPRa in K562 with 77 perturbations, Tian iPSC neurons with 7, and Shifrut primary T cells with 7. Tabula Sapiens tissues and a brain data set are used for the other objective. Preprocessing is standard Scanpy quality control, genes in at least 3 cells, cells with at least 200 genes, normalisation to 10,000 counts and a log transform, with highly variable gene selection. Labels come from the screens themselves: for each perturbation, a Mann-Whitney test with Benjamini-Hochberg correction and a log fold change threshold marks which genes are differentially expressed. The pairwise scores being tested are attention weights from Geneformer V2-316M, averaged over heads within a layer and then over cells, and Spearman correlation edges computed from the same control cells, with absolute value taken because the sign is not comparable. The evaluation universe is 2,000 highly variable genes for K562 and 3,309 for RPE1, where the perturbed genes are forced into the set.",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Models and data, Attention extraction, Perturbation-first validation; README.md: Perturbation Datasets, External Data",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Datasets include Tabula Sapiens atlas tissues [29] (immune, kidney, lung), DLPFC brain scRNA-seq [30], Replogle genome-scale CRISPRi [22] (K562 and RPE1), Adamson CRISPRa [25], Shifrut T-cell CRISPRi [26], and Tian iPSC neurons."
+          },
+          {
+            "source": "@paper",
+            "text": "We evaluated whether edge scores predict perturbation outcomes using the Replogle genome-scale CRISPRi dataset [22] (&gt;640,000 K562 cells, 2,024 perturbed genes)."
+          },
+          {
+            "source": "@paper",
+            "text": "Preprocessing follows standard Scanpy quality control [31]: gene filtering ( $$\\ge 3$$ cells expressing), cell filtering ( $$\\ge 200$$ genes detected), normalisation to $$10^4$$ counts per cell"
+          },
+          {
+            "source": "@paper",
+            "text": "Per-cell attention is averaged across heads within each layer, then averaged across cells to produce per-(layer, source-gene, target-gene) edge scores."
+          },
+          {
+            "source": "@paper",
+            "text": "Spearman correlation edge scores (used as a baseline alternative to attention) are computed from the same control cells used for attention extraction by ranking each gene’s expression across cells and computing pairwise rank-rank covariance."
+          },
+          {
+            "source": "@paper",
+            "text": "We use $$N_\\text {ctrl} = 2{,}000$$ control cells, HVG $$= 2{,}000$$ (K562) or 3, 309 (RPE1, with perturbation genes forced in)."
+          },
+          {
+            "source": "@readme",
+            "text": "| Replogle et al. 2022 | K562 | CRISPRi | 2,024 genes | scPerturb |"
+          },
+          {
+            "source": "@readme",
+            "text": "| Adamson et al. 2016 | K562 | CRISPRa | 77 genes | scPerturb |"
+          },
+          {
+            "source": "@readme",
+            "text": "| Tian et al. 2021 | iPSC neurons | CRISPRi | 7 genes | scPerturb |"
+          },
+          {
+            "source": "@readme",
+            "text": "| Shifrut et al. 2018 | T cells | CRISPRi | 7 genes | scPerturb |"
+          },
+          {
+            "source": "@readme",
+            "text": "Perturbation datasets are downloaded via the `scperturb` package."
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "Two layers of test. The first is per-perturbation area under the ROC curve: rank all candidate genes for one perturbation by the score under test and ask how well that ranking separates the differentially expressed genes, then compare score types across perturbations with paired tests. On K562 CRISPRi, correlation edges reach 0.696 under the primary settings with 151 perturbations, and all 27 sensitivity conditions give 0.62 to 0.76; Geneformer attention at layer 13 reaches 0.704 on 280 evaluable perturbations, indistinguishable from correlation at 0.703. Variance alone reaches 0.881. The second test is conditional: a data set of 280 by 1,999 perturbation and gene observations, 559,720 pairs with a 2.8 per cent positive rate, five logistic regression models under 5-fold GroupKFold cross validation grouped by perturbation. Gene-level features alone reach 0.895, adding attention changes the area under the curve by minus 0.0004 and adding correlation by minus 0.002. Harder splits were also tried, GroupKFold by target gene and joint gene by perturbation splits, with gradient boosted trees as well as logistic regression and with AUPRC and top-k recall as well as AUROC. Propensity matching, five differential-expression-negative targets matched to each positive one on mean, variance and dropout rate, gives 59,153 matched pairs in which attention retains 0.609 raw discriminability but zero incremental value. All tests use Benjamini-Hochberg correction at 0.05, and bootstrap intervals resample at the perturbation level. A synthetic positive control with a planted network shows the same pipeline detects a real pairwise signal, reporting a change in area under the curve of plus 0.518 in the cleanest variant.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation, No incremental pairwise value and Positive control sections; Methods, Perturbation-first validation, Confound decomposition and Statistical framework",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each perturbation g, we compute attention-derived or correlation-based edge scores between g and all other genes, then evaluate AUROC for classifying differentially expressed targets (Mann-Whitney U test, Benjamini-Hochberg correction, LFC threshold). We use $$N_\\text {ctrl} = 2{,}000$$ control cells, HVG $$= 2{,}000$$ (K562) or 3, 309 (RPE1, with perturbation genes forced in)."
+          },
+          {
+            "source": "@paper",
+            "text": "Direct evaluation of Geneformer V2-316M attention-derived edges under the same parameterisation yields AUROC $$= 0.704$$ at L13 ( $$n = 280$$ evaluable perturbations), statistically indistinguishable from correlation (0.703; Wilcoxon $$p = 0.73$$"
+          },
+          {
+            "source": "@paper",
+            "text": "Variance alone achieves AUROC $$= 0.881$$"
+          },
+          {
+            "source": "@paper",
+            "text": "We constructed a dataset of $$280 \\times 1{,}999$$ perturbation–gene observations (559,720 pairs, 2.8% positive rate) and compared five logistic-regression models under 5-fold GroupKFold cross-validation: gene-level features only (mean expression, variance, dropout rate), attention edge only, correlation edge only, gene-level plus attention, and gene-level plus correlation."
+          },
+          {
+            "source": "@paper",
+            "text": "we tested progressively harder generalisation protocols—cross-gene splits (GroupKFold by target gene, preventing gene-level propensity leakage), joint cross-gene $$\\times$$ cross-perturbation splits—and both linear (logistic regression) and nonlinear (GBDT) models across AUROC, AUPRC, and top- k recall."
+          },
+          {
+            "source": "@paper",
+            "text": "after matching each DE-positive target to $$k = 5$$ DE-negative targets with similar expression mean, variance, and dropout rate via propensity-score nearest-neighbour matching ( $$n_\\text {matched} = 59{,}153$$ pairs; positive rate $$26.5\\%$$ vs. $$2.8\\%$$ before matching), attention edges retain modest raw discriminability (AUROC $$= 0.609$$ ) but add zero incremental value over gene-level features"
+          },
+          {
+            "source": "@paper",
+            "text": "All analyses apply Benjamini-Hochberg false discovery rate (FDR) correction [32] at $$\\alpha = 0.05$$ ."
+          },
+          {
+            "source": "@paper",
+            "text": "Under planted ground truth, the full incremental-value pipeline detects pairwise signal cleanly: $$\\Delta$$ AUROC of $$+0.518$$"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The analysis code is published as a repository, archived on Zenodo. Create the conda environment from the file in src, let the scperturb package download the perturbation data, and run the module scripts: one for the perturbation-first validation and the trivial baselines, another for the RPE1 confound battery. The repository says each module is self-contained, loads data from external sources or precomputed checkpoints in results, and writes outputs back into results, with resume support. Geneformer weights come from Hugging Face. The licence statement asks anyone wanting to reuse the repository to contact the author first.",
+        "source_ids": [
+          "@readme",
+          "@paper"
+        ],
+        "source_locator": "README.md: Environment Setup, External Data, Reproducing Analyses, License; Paper: Data availability",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda env create -f src/environment.yml"
+          },
+          {
+            "source": "@readme",
+            "text": "Perturbation datasets are downloaded via the `scperturb` package."
+          },
+          {
+            "source": "@readme",
+            "text": "cd src/03_perturbation_validation"
+          },
+          {
+            "source": "@readme",
+            "text": "python perturbation_first_validation.py"
+          },
+          {
+            "source": "@readme",
+            "text": "This repository accompanies a manuscript under review. Please contact the author before reuse."
+          },
+          {
+            "source": "@paper",
+            "text": "Complete analysis code, figure generation scripts, CSSI implementation, and computational environment specifications are available at https://github.com/Biodyn-AI/biomechinterp-framework and archived at Zenodo."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Published CRISPR perturbation screens, obtained through scperturb: Replogle K562 CRISPRi, described as more than 640,000 cells and 2,024 perturbed genes, with 280 perturbations evaluable in the attention comparison and 151 under the primary correlation parameterisation; Replogle RPE1 CRISPRi, 1,251 evaluable perturbations and 1,167 in the confound battery, 3,838,263 gene-pair observations; Adamson K562 CRISPRa, 77 perturbations; Tian iPSC neurons, 7; Shifrut primary T cells, 7. The K562 incremental-value table has 280 by 1,999 perturbation and gene observations, 559,720 pairs.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation, No incremental pairwise value, Cross-context and RPE1 sections; README.md: Perturbation Datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluated whether edge scores predict perturbation outcomes using the Replogle genome-scale CRISPRi dataset [22] (&gt;640,000 K562 cells, 2,024 perturbed genes)."
+          },
+          {
+            "source": "@paper",
+            "text": "We constructed a dataset of $$280 \\times 1{,}999$$ perturbation–gene observations (559,720 pairs, 2.8% positive rate)"
+          },
+          {
+            "source": "@paper",
+            "text": "we applied the full K562 confound-decomposition battery to the RPE1 dataset ( $$n = 1{,}167$$ evaluated perturbations, 3, 838, 263 gene-pair observations; Fig. 7)"
+          },
+          {
+            "source": "@paper",
+            "text": "On K562 CRISPRa [25] ( $$n = 77$$ ), attention significantly underperforms correlation (AUROC 0.55 vs. 0.65; $$p &lt; 10^{-6}$$ ), with correlation outperforming attention in 55–63 of 77 perturbations."
+          },
+          {
+            "source": "@readme",
+            "text": "| Tian et al. 2021 | iPSC neurons | CRISPRi | 7 genes | scPerturb |"
+          },
+          {
+            "source": "@readme",
+            "text": "| Shifrut et al. 2018 | T cells | CRISPRi | 7 genes | scPerturb |"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "Cross validation over perturbations, not a fixed train and test release. The main incremental-value test uses 5-fold GroupKFold grouped by perturbation, so a perturbation's pairs sit entirely in one fold. Harder protocols group by target gene, to stop a gene's own propensity leaking between folds, and combine both into a joint cross-gene by cross-perturbation split. A nested cross-validation protocol is used when choosing the best Geneformer layer out of 18. The primary evaluation layer, layer 13, was fixed in advance from a separate brain data set before any K562 perturbation data were examined.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Confound decomposition; Results, Perturbation-first validation and No incremental pairwise value",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Gene-level features (mean expression, variance, dropout rate) and pairwise edge scores are used in logistic regression under 5-fold GroupKFold cross-validation (grouped by perturbation)."
+          },
+          {
+            "source": "@paper",
+            "text": "we tested progressively harder generalisation protocols—cross-gene splits (GroupKFold by target gene, preventing gene-level propensity leakage), joint cross-gene $$\\times$$ cross-perturbation splits—and both linear (logistic regression) and nonlinear (GBDT) models across AUROC, AUPRC, and top- k recall."
+          },
+          {
+            "source": "@paper",
+            "text": "The primary attention layer (L13) was pre-specified based on independent DLPFC brain data"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Per-perturbation AUROC for classifying differentially expressed genes, higher is better, is the primary measure. The conditional test reports the change in AUROC from adding an edge score to the gene-level model, with bootstrap confidence intervals, and the harder protocols also report AUPRC and top-k recall. Paired comparisons use Wilcoxon tests and Cohen's d.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Evaluation framework and No incremental pairwise value; Methods, Statistical framework",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Evaluation uses per-perturbation AUROC for classifying DE hits, supplemented by incremental-value testing that asks whether edges add information beyond univariate gene-level features."
+          },
+          {
+            "source": "@paper",
+            "text": "Effect sizes are reported as Cohen’s d for paired comparisons"
+          },
+          {
+            "source": "@paper",
+            "text": "we tested progressively harder generalisation protocols—cross-gene splits (GroupKFold by target gene, preventing gene-level propensity leakage), joint cross-gene $$\\times$$ cross-perturbation splits—and both linear (logistic regression) and nonlinear (GBDT) models across AUROC, AUPRC, and top- k recall."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Three univariate gene-level features, expression variance, mean expression and dropout rate, plus Spearman correlation edges computed from the same control cells. On K562, the gene-level features reach 0.81 to 0.88 against about 0.70 for attention and correlation, with variance alone at 0.881, and the gene-level logistic model reaches 0.895. On RPE1 the figures are variance 0.866, mean expression 0.851, dropout 0.797, attention 0.747, correlation 0.658, with the gene-level model at 0.942.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation and Cross-cell-type generalisation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Critically, trivial gene-level baselines—variance, mean expression, and dropout rate—all outperform both attention and correlation edges on Objective B (AUROC 0.81–0.88 vs. 0.70; all $$p &lt; 10^{-12}$$ ; Fig. 3)."
+          },
+          {
+            "source": "@paper",
+            "text": "Variance alone achieves AUROC $$= 0.881$$"
+          },
+          {
+            "source": "@paper",
+            "text": "Gene-level features alone achieve AUROC $$= 0.895$$ [bootstrap 95% CI: 0.884, 0.905]; adding attention yields $$\\Delta$$ AUROC $$= -0.0004$$"
+          },
+          {
+            "source": "@paper",
+            "text": "(i) Trivial baselines outperform both edge types (variance AUROC $$= 0.866$$ , mean expression $$= 0.851$$ , dropout $$= 0.797$$ vs. attention $$= 0.747$$ and correlation $$= 0.658$$ ; all paired $$p &lt; 10^{-38}$$ )."
+          },
+          {
+            "source": "@paper",
+            "text": "(ii) Gene-level features alone achieve AUROC $$= 0.942$$ under 5-fold GroupKFold CV; adding attention yields $$\\Delta$$ AUROC $$= +0.0001$$"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Several, and they are the point of the design. Cross validation is grouped by perturbation, and in the harder protocols by target gene, so a gene's own susceptibility cannot leak across folds. Propensity matching pairs each differentially expressed target with five non-targets of similar mean, variance and dropout rate, which removes the gene-level advantage before the edge score is judged. Cross-fitted residualisation removes expression covariates from the edge scores. The primary layer was chosen on an independent data set before the perturbation data were seen. There is no control for the perturbation data having been in the foundation models' pretraining corpora.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Confound decomposition; Results, No incremental pairwise value",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Hard-generalisation protocols use GroupKFold by target gene and joint cross-gene $$\\times$$ cross-perturbation splits. Cross-fitted residualisation removes expression-covariate contributions from edge scores using 5-fold OLS and GBDT"
+          },
+          {
+            "source": "@paper",
+            "text": "Propensity-score matching uses logistic regression on gene-level features to match each DE-positive target to $$k = 5$$ DE-negative targets with similar covariate profiles"
+          },
+          {
+            "source": "@paper",
+            "text": "The primary attention layer (L13) was pre-specified based on independent DLPFC brain data"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "Bootstrap confidence intervals with 200 iterations, resampled at the perturbation level unless stated otherwise, reported for the changes in AUROC. Paired p-values with Benjamini-Hochberg correction at 0.05 across a declared family of 95 confirmatory tests out of 153 in all. A power statement is given for the main null: 559,720 observations give more than 99 per cent power to detect a change in AUROC of 0.005.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Statistical framework; Results, No incremental pairwise value",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Bootstrap confidence intervals use 200 iterations with perturbation-level resampling unless otherwise noted."
+          },
+          {
+            "source": "@paper",
+            "text": "The framework comprises 153 distinct statistical tests across 37 analyses: 95 are classified as confirmatory"
+          },
+          {
+            "source": "@paper",
+            "text": "Neither pairwise edge type provides incremental value on Objective B, and this is not a power issue: 559,720 observations provide &gt;99% power to detect $$\\Delta$$ AUROC $$= 0.005$$ ."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A perturbation and gene pair. One example is one candidate gene considered for one perturbed gene, labelled by whether that gene is differentially expressed after the perturbation. The per-perturbation metric then averages over perturbations, each of which contributes a ranking of all other genes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation and No incremental pairwise value",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each CRISPRi perturbation, we computed edge scores between the perturbed gene and all other genes, then evaluated AUROC for classifying differentially expressed targets."
+          },
+          {
+            "source": "@paper",
+            "text": "We constructed a dataset of $$280 \\times 1{,}999$$ perturbation–gene observations (559,720 pairs, 2.8% positive rate)"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human. The cells are human lines and primary human cells: K562, RPE1 retinal epithelial cells, induced pluripotent stem cell derived neurons and primary T cells, with human tissue atlases used for the other objective.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Results, Cross-context replication; README.md: Perturbation Datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "on RPE1 retinal epithelial cells [22] ( $$n = 1{,}251$$ evaluable perturbations; minimum detectable $$d = 0.079$$ ), attention significantly outperforms correlation at all layers (L15: 0.748 vs. 0.658, $$d = 0.47$$ , $$p &lt; 10^{-10}$$ ; L6: 0.776, $$d = 0.74$$ ; Fig. 6)"
+          },
+          {
+            "source": "@paper",
+            "text": "iPSC-derived neurons ( $$n = 7$$ ) trend in the same direction ( $$d = 0.80$$ , $$p = 0.078$$ ), while primary T cells [26] ( $$n = 7$$ ) show no difference ( $$p = 0.81$$"
+          },
+          {
+            "source": "@readme",
+            "text": "| Shifrut et al. 2018 | T cells | CRISPRi | 7 genes | scPerturb |"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Pooled CRISPR screens read out by single-cell RNA sequencing: CRISPRi knockdown in K562, RPE1, neurons and T cells, and CRISPRa activation in K562. The labels are differential expression calls made from those screens with a Mann-Whitney test, Benjamini-Hochberg correction and a log fold change threshold.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@readme"
+        ],
+        "source_locator": "Paper: Methods, Perturbation-first validation; README.md: Perturbation Datasets",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "then evaluate AUROC for classifying differentially expressed targets (Mann-Whitney U test, Benjamini-Hochberg correction, LFC threshold)"
+          },
+          {
+            "source": "@readme",
+            "text": "| Replogle et al. 2022 | K562 | CRISPRi | 2,024 genes | scPerturb |"
+          },
+          {
+            "source": "@readme",
+            "text": "| Adamson et al. 2016 | K562 | CRISPRa | 77 genes | scPerturb |"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Control cell expression, and a model's internals. The attention scores are extracted from unperturbed cells by forward hooks on each self-attention module, averaged over heads and cells; the correlation scores come from the same control cells; the gene-level features are statistics of the same expression matrix. The perturbed cells are used only to make the labels.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Attention extraction and edge score computation, Perturbation-first validation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Hooks capture the post-softmax attention weights of shape"
+          },
+          {
+            "source": "@paper",
+            "text": "Spearman correlation edge scores (used as a baseline alternative to attention) are computed from the same control cells used for attention extraction by ranking each gene’s expression across cells and computing pairwise rank-rank covariance."
+          },
+          {
+            "source": "@paper",
+            "text": "We use $$N_\\text {ctrl} = 2{,}000$$ control cells, HVG $$= 2{,}000$$ (K562) or 3, 309 (RPE1, with perturbation genes forced in)."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot for the foundation models, with a small supervised classifier on top of the features. The published checkpoints are read as they are, Geneformer V2-316M and V1-10M and the scGPT whole-human checkpoint, with no fine-tuning; what is fitted is the logistic regression or gradient boosted model that combines gene-level features and edge scores under cross validation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Models and data, Confound decomposition",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We use Geneformer V1-10M (6 layers, 4 heads) for multi-model comparison and Geneformer V2-316M (18 layers, 18 heads) as the primary model for all layer-level mechanistic analyses"
+          },
+          {
+            "source": "@paper",
+            "text": "Gene-level features (mean expression, variance, dropout rate) and pairwise edge scores are used in logistic regression under 5-fold GroupKFold cross-validation (grouped by perturbation)."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "It makes the baseline do the work. Three features computable from the expression matrix alone, variance, mean and dropout rate, are run through the same pipeline, and they beat both edge types, which turns a vague claim about attention into a measurable comparison.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Critically, trivial gene-level baselines—variance, mean expression, and dropout rate—all outperform both attention and correlation edges on Objective B (AUROC 0.81–0.88 vs. 0.70; all $$p &lt; 10^{-12}$$ ; Fig. 3)."
+          },
+          {
+            "source": "@paper",
+            "text": "any claimed pairwise regulatory signal must first exceed gene-level features on this task"
+          }
+        ]
+      },
+      {
+        "text": "The null result is backed by a sensitivity check of the pipeline itself. On synthetic data with a planted network, and with expression z-scored so univariate variance carries no information about the truth, the same incremental-value test finds a change in AUROC of plus 0.518, and a shuffled control gives nearly zero.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Positive control section",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Under planted ground truth, the full incremental-value pipeline detects pairwise signal cleanly: $$\\Delta$$ AUROC of $$+0.518$$"
+          },
+          {
+            "source": "@paper",
+            "text": "Per-gene expression was z-scored post-hoc so univariate variance is uninformative about ground-truth target status, isolating pairwise signal from univariate baselines."
+          }
+        ]
+      },
+      {
+        "text": "The confounds are attacked from more than one side: grouped cross validation, harder cross-gene and joint splits, linear and nonlinear models, three metrics, residualisation of expression covariates and propensity matching, and the conclusion is the same each time.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, No incremental pairwise value; Methods, Confound decomposition",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Under all tested combinations, the null persists: even the largest observed $$\\Delta$$ AUPRC ( $$+0.009$$ under joint splits with GBDT) represents less than 4% relative improvement"
+          },
+          {
+            "source": "@paper",
+            "text": "Propensity-score matching uses logistic regression on gene-level features to match each DE-positive target to $$k = 5$$ DE-negative targets with similar covariate profiles"
+          }
+        ]
+      },
+      {
+        "text": "The choice that could most easily have been fitted to the result was fixed in advance: layer 13 was pre-specified from an independent brain data set before any K562 perturbation data were examined, and the 18-layer profile is reported as a planned secondary analysis.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation; Methods, Perturbation-first validation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The primary attention layer (L13) was pre-specified based on independent DLPFC brain data"
+          },
+          {
+            "source": "@paper",
+            "text": "full 18-layer profiling and nested cross-validation (Additional file 1: Fig. S5) were planned secondary analyses"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Two of the five contexts are too small to say anything. The iPSC neuron and T cell sets have 7 perturbations each, and the paper reports only a trend and a null for them, so the cross-context claim rests on K562 and RPE1.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Cross-context replication; Discussion, Cross-context pattern",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "iPSC-derived neurons ( $$n = 7$$ ) trend in the same direction ( $$d = 0.80$$ , $$p = 0.078$$ ), while primary T cells [26] ( $$n = 7$$ ) show no difference ( $$p = 0.81$$"
+          },
+          {
+            "source": "@paper",
+            "text": "T cells and iPSC neurons (trending but underpowered)"
+          }
+        ]
+      },
+      {
+        "text": "The numbers depend on choices that change them, and the gene universes differ between data sets. K562 uses 2,000 highly variable genes and RPE1 3,309 with the perturbed genes forced in, and the paper shows that restricting RPE1 to 2,000 genes changes the attention advantage by plus 0.168, so scores are not comparable across these settings.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Perturbation-first validation; Results, Cross-context replication",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We use $$N_\\text {ctrl} = 2{,}000$$ control cells, HVG $$= 2{,}000$$ (K562) or 3, 309 (RPE1, with perturbation genes forced in)."
+          },
+          {
+            "source": "@paper",
+            "text": "restricting RPE1 to the top 2,000 HVGs (matching K562 protocol) increases the attention advantage ( $$\\Delta = +0.168$$ , $$n = 418$$ ; $$p &lt; 10^{-46}$$ ), as correlation degrades more than attention when the evaluation universe shrinks."
+          }
+        ]
+      },
+      {
+        "text": "The endpoint is not regulation. The author states that this task is dominated by which genes are easy to detect as differentially expressed, and that the same attention edges do recover curated regulatory targets on the other objective, so a poor score here is not evidence that a model has learned nothing about regulation.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Perturbation-first validation and Positive control; Discussion, Endpoint-object mismatch",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Objective B is dominated by which genes are easily detectable as DE (high-variance, high-expression genes) rather than by which edges are regulatory"
+          },
+          {
+            "source": "@paper",
+            "text": "The same attention edges that score zero incremental value on Objective B (perturbation-target prediction) recover direct regulatory targets on Objective A."
+          }
+        ]
+      },
+      {
+        "text": "It is one author's evaluation of two models, with restrictive terms on the code. Only scGPT and Geneformer were tested, with newer single-cell models left for future work, and the repository's licence section asks that anyone wanting to reuse it contacts the author, although the Zenodo archive of the same release records a CC BY 4.0 licence.",
+        "source_ids": [
+          "@paper",
+          "@readme",
+          "@zenodo"
+        ],
+        "source_locator": "Paper: Discussion, Limitations; README.md: License; Zenodo record 18701417 metadata",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "additional tissues, species, and architectures (scFoundation [4], UCE, CellPLM) remain untested"
+          },
+          {
+            "source": "@readme",
+            "text": "This repository accompanies a manuscript under review. Please contact the author before reuse."
+          },
+          {
+            "source": "@zenodo",
+            "text": "\"id\": \"cc-by-4.0\""
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Objective B evaluation workflow",
+      "steps": [
+        "control cells from a CRISPR screen",
+        "edge scores: model attention, or Spearman correlation",
+        "gene-level features: variance, mean, dropout rate",
+        "differential expression labels per perturbation",
+        "per-perturbation AUROC for each score type",
+        "grouped cross validation of gene-level features with and without edges",
+        "change in AUROC, with propensity matching and harder splits as checks"
+      ],
+      "caption": "The test is conditional: an edge score counts only if it adds to what single-gene statistics already give.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Results, Evaluation framework, Perturbation-first validation and No incremental pairwise value",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "For each CRISPRi perturbation, we computed edge scores between the perturbed gene and all other genes, then evaluated AUROC for classifying differentially expressed targets."
+        },
+        {
+          "source": "@paper",
+          "text": "Gene-level features (mean expression, variance, dropout rate) and pairwise edge scores are used in logistic regression under 5-fold GroupKFold cross-validation (grouped by perturbation)."
+        },
+        {
+          "source": "@paper",
+          "text": "Gene-level features alone achieve AUROC $$= 0.895$$ [bootstrap 95% CI: 0.884, 0.905]; adding attention yields $$\\Delta$$ AUROC $$= -0.0004$$"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The supplementary file, which holds the 16 supplementary notes, the figures behind the sensitivity analyses and the statistical test registry, was not fetched, so numbers that appear only there are not on this page.",
+      "The repository was read only at its README: no script was opened, so what each module computes is described as the README and the paper describe it.",
+      "The licence position is unclear. The README asks for contact before reuse while the Zenodo record for the same release states CC BY 4.0, and no saved file explains the difference.",
+      "The number of cells per perturbation, and the differential expression thresholds for each of the 27 sensitivity conditions, are not given in the main text."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the NCBI PMC full-text XML of PMC13390336 and the plain text derived from it, README.md of Biodyn-AI/biomechinterp-framework at commit 40e6da0ae21a768dbbcb2bfa62539845f0ef7c88, and the Zenodo API response for record 18701417. The supplementary file was not fetched. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Recreate the author's environment and rerun the perturbation-first validation and the RPE1 confound battery.",
+    "prerequisites": [
+      "Python 3.8 to 3.10 with PyTorch, Transformers, scanpy, anndata, scikit-learn and statsmodels, as the README lists, with CUDA for GPU acceleration.",
+      "The perturbation data, which the scperturb package downloads, and the Geneformer weights from Hugging Face.",
+      "The README's licence section asks that anyone wanting to reuse the repository contacts the author first. The Zenodo archive of the same release records CC BY 4.0."
+    ],
+    "steps": [
+      {
+        "title": "Get the code",
+        "shell": "git clone https://github.com/Biodyn-AI/biomechinterp-framework\ncd biomechinterp-framework\ngit checkout --detach 40e6da0ae21a768dbbcb2bfa62539845f0ef7c88",
+        "explanation": "The paper's data availability statement names this repository for the analysis code. The clone and the detach at the commit read for this page were added here.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Data availability",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Complete analysis code, figure generation scripts, CSSI implementation, and computational environment specifications are available at https://github.com/Biodyn-AI/biomechinterp-framework and archived at Zenodo."
+          }
+        ]
+      },
+      {
+        "title": "Create the environment",
+        "shell": "conda env create -f src/environment.yml\nconda activate nmi-mechanistic-interpretability",
+        "explanation": "The README's recommended setup. A pip route from src/requirements.txt is also given.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Environment Setup",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "conda env create -f src/environment.yml\nconda activate nmi-mechanistic-interpretability"
+          },
+          {
+            "source": "@readme",
+            "text": "pip install -r src/requirements.txt"
+          }
+        ]
+      },
+      {
+        "title": "Run the perturbation-first validation",
+        "shell": "cd src/03_perturbation_validation\npython perturbation_first_validation.py",
+        "explanation": "The README's own example for this module, which it maps to the perturbation-first validation and trivial baselines in the paper. The data come from the scperturb package or from precomputed checkpoints under results.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Reproducing Analyses, src module table, External Data",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "cd src/03_perturbation_validation"
+          },
+          {
+            "source": "@readme",
+            "text": "python perturbation_first_validation.py"
+          },
+          {
+            "source": "@readme",
+            "text": "Perturbation datasets are downloaded via the `scperturb` package."
+          }
+        ]
+      },
+      {
+        "title": "Run the RPE1 confound battery",
+        "shell": "cd src/06_cross_context\npython round14_rpe1_confound_battery.py",
+        "explanation": "The README's second example, for the cross-cell-type replication module that produced the RPE1 figures.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Reproducing Analyses",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "cd src/06_cross_context"
+          },
+          {
+            "source": "@readme",
+            "text": "python round14_rpe1_confound_battery.py"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "JSON summaries, CSV tables and NPY arrays written into the matching subdirectory of results, which the README says are checkpointed after each major computation block so a run can resume."
+    ],
+    "limitations": [
+      "These commands were read from the repository's README and have not been executed by Rewire. No script in the repository was opened.",
+      "The README asks for contact with the author before reuse, so rerunning this may need permission.",
+      "The README documents a tree rooted at biodyn-nmi-paper/ with paper, results and docs directories; no listing of the repository was read for this page, so these paths were not confirmed."
+    ],
+    "source_ids": [
+      "@readme",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Perturbation-target prediction, K562 CRISPRi",
+      "dataset": "Replogle K562 CRISPRi",
+      "size": 280,
+      "size_unit": "evaluable perturbations, each ranking 1,999 candidate genes",
+      "split": "5-fold GroupKFold grouped by perturbation",
+      "primary_metric": "per-perturbation AUROC for classifying differentially expressed genes",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "code_url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "Direct evaluation of Geneformer V2-316M attention-derived edges under the same parameterisation yields AUROC $$= 0.704$$ at L13 ( $$n = 280$$ evaluable perturbations), statistically indistinguishable from correlation (0.703; Wilcoxon $$p = 0.73$$"
+        },
+        {
+          "source": "@paper",
+          "text": "We constructed a dataset of $$280 \\times 1{,}999$$ perturbation–gene observations (559,720 pairs, 2.8% positive rate)"
+        },
+        {
+          "source": "@paper",
+          "text": "Gene-level features (mean expression, variance, dropout rate) and pairwise edge scores are used in logistic regression under 5-fold GroupKFold cross-validation (grouped by perturbation)."
+        },
+        {
+          "source": "@paper",
+          "text": "Complete analysis code, figure generation scripts, CSSI implementation, and computational environment specifications are available at https://github.com/Biodyn-AI/biomechinterp-framework and archived at Zenodo."
+        }
+      ]
+    },
+    {
+      "task": "Perturbation-target prediction, RPE1 CRISPRi",
+      "dataset": "Replogle RPE1 CRISPRi",
+      "size": 1251,
+      "size_unit": "evaluable perturbations; 1,167 in the confound battery",
+      "split": "5-fold GroupKFold grouped by perturbation",
+      "primary_metric": "per-perturbation AUROC for classifying differentially expressed genes",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "code_url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "on RPE1 retinal epithelial cells [22] ( $$n = 1{,}251$$ evaluable perturbations; minimum detectable $$d = 0.079$$ ), attention significantly outperforms correlation at all layers (L15: 0.748 vs. 0.658, $$d = 0.47$$ , $$p &lt; 10^{-10}$$ ; L6: 0.776, $$d = 0.74$$ ; Fig. 6)"
+        },
+        {
+          "source": "@paper",
+          "text": "we applied the full K562 confound-decomposition battery to the RPE1 dataset ( $$n = 1{,}167$$ evaluated perturbations, 3, 838, 263 gene-pair observations; Fig. 7)"
+        },
+        {
+          "source": "@paper",
+          "text": "(ii) Gene-level features alone achieve AUROC $$= 0.942$$ under 5-fold GroupKFold CV; adding attention yields $$\\Delta$$ AUROC $$= +0.0001$$"
+        }
+      ]
+    },
+    {
+      "task": "Perturbation-target prediction, K562 CRISPRa",
+      "dataset": "Adamson K562 CRISPRa",
+      "size": 77,
+      "size_unit": "perturbations",
+      "split": "per-perturbation paired comparison, no cross validation reported",
+      "primary_metric": "per-perturbation AUROC for classifying differentially expressed genes",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "code_url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "On K562 CRISPRa [25] ( $$n = 77$$ ), attention significantly underperforms correlation (AUROC 0.55 vs. 0.65; $$p &lt; 10^{-6}$$ ), with correlation outperforming attention in 55–63 of 77 perturbations."
+        },
+        {
+          "source": "@readme",
+          "text": "| Adamson et al. 2016 | K562 | CRISPRa | 77 genes | scPerturb |"
+        }
+      ]
+    },
+    {
+      "task": "Perturbation-target prediction, iPSC neurons",
+      "dataset": "Tian iPSC neuron CRISPRi",
+      "size": 7,
+      "size_unit": "perturbations",
+      "split": "per-perturbation paired comparison",
+      "primary_metric": "per-perturbation AUROC for classifying differentially expressed genes",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "code_url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "iPSC-derived neurons ( $$n = 7$$ ) trend in the same direction ( $$d = 0.80$$ , $$p = 0.078$$ ), while primary T cells [26] ( $$n = 7$$ ) show no difference ( $$p = 0.81$$"
+        },
+        {
+          "source": "@readme",
+          "text": "| Tian et al. 2021 | iPSC neurons | CRISPRi | 7 genes | scPerturb |"
+        }
+      ]
+    },
+    {
+      "task": "Perturbation-target prediction, primary T cells",
+      "dataset": "Shifrut primary T cell CRISPRi",
+      "size": 7,
+      "size_unit": "perturbations",
+      "split": "per-perturbation paired comparison",
+      "primary_metric": "per-perturbation AUROC for classifying differentially expressed genes",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "code_url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "while primary T cells [26] ( $$n = 7$$ ) show no difference ( $$p = 0.81$$"
+        },
+        {
+          "source": "@readme",
+          "text": "| Shifrut et al. 2018 | T cells | CRISPRi | 7 genes | scPerturb |"
+        }
+      ]
+    },
+    {
+      "task": "Propensity-matched incremental value, K562",
+      "dataset": "Replogle K562 CRISPRi, propensity-matched subset",
+      "size": 59153,
+      "size_unit": "matched perturbation and gene pairs",
+      "split": "each DE-positive target matched to five DE-negative targets on gene-level features",
+      "primary_metric": "change in AUROC from adding an edge score to gene-level features",
+      "metric_direction": "higher",
+      "results_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13390336/",
+      "code_url": "https://github.com/Biodyn-AI/biomechinterp-framework",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "after matching each DE-positive target to $$k = 5$$ DE-negative targets with similar expression mean, variance, and dropout rate via propensity-score nearest-neighbour matching ( $$n_\\text {matched} = 59{,}153$$ pairs; positive rate $$26.5\\%$$ vs. $$2.8\\%$$ before matching), attention edges retain modest raw discriminability (AUROC $$= 0.609$$ ) but add zero incremental value over gene-level features"
+        }
+      ]
+    }
+  ],
+  "notes": "This record is one paper's evaluation of its Objective B, not a released benchmark suite, and the paper's own conclusion is a null result. The paper is CC BY 4.0 in PMC. Quotes come from a plain text file derived from the PMC XML by stripping tags and the LaTeX preamble blocks that PMC wraps around each formula, so mathematics appears as dollar-delimited fragments; the unmodified XML is kept and registered beside it. The code repository's README asks for contact before reuse while the Zenodo record for the same release states CC BY 4.0: both are recorded and neither is given as the licence of the other. The 2,024 perturbed genes figure is the size of the Replogle K562 screen, not the evaluated set: 280 perturbations were evaluable for the attention comparison and 151 under the primary correlation parameterisation. The supplementary file holding the 16 supplementary notes was not fetched. The six protocols in the store correspond to the per-cell-type AUROC comparisons, the gene-level logistic regression under GroupKFold and the propensity-matched test."
+}

@@ -1,0 +1,843 @@
+{
+  "record_id": "perturbpfn-20261115-benchmark-sciplex-highest-dose",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Text layer of the PerturbPFN paper, arXiv 2607.23447v1",
+      "description": "Text extracted with pdftotext -layout from the arXiv PDF. The PDF is kept beside it as artifacts/perturbpfn.pdf. This paper reports the Sci-Plex highest-dosage holdout evaluation recorded here, in Section 4.2, Table 2 and Appendix D.",
+      "file": "artifacts/perturbpfn.txt",
+      "artifact_url": "https://arxiv.org/pdf/2607.23447v1",
+      "url": "https://arxiv.org/abs/2607.23447v1",
+      "version": "arXiv 2607.23447v1, 26 Jul 2026",
+      "media_type": "text/plain",
+      "sha256": "28b341ce3c893e7d734d05de5e522973152a3b0936bf0e6dd16565112eb9c0bb",
+      "retrieved_at": "2026-11-27T04:26:47Z",
+      "store_bytes": false
+    },
+    {
+      "key": "gim-paper",
+      "name": "Text layer of the Generative Intervention Models paper, arXiv 2411.14003v2",
+      "description": "Text extracted with pdftotext -layout from the arXiv PDF, kept beside it as artifacts/gim.pdf. This is the paper that defined the highest-dosage holdout protocol and the Sci-Plex preprocessing that PerturbPFN follows. The main text is in two columns, so only single-line or appendix passages are quoted from it.",
+      "file": "artifacts/gim.txt",
+      "artifact_url": "https://arxiv.org/pdf/2411.14003v2",
+      "url": "https://arxiv.org/abs/2411.14003",
+      "version": "arXiv 2411.14003v2",
+      "media_type": "text/plain",
+      "sha256": "6811fe298fa762f56dd1e794edff269a24298945863d64810ab2d9e1e57b79c8",
+      "retrieved_at": "2026-11-27T04:27:30Z",
+      "store_bytes": false
+    },
+    {
+      "key": "gim-readme",
+      "name": "NoraSchneider/gim README.md at commit 4a5f9372a874d4bc8899f90b1bb554cf7a562076",
+      "description": "README of the GIM repository, the codebase the protocol comes from, pinned to a commit.",
+      "file": "artifacts/gim-readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/NoraSchneider/gim/4a5f9372a874d4bc8899f90b1bb554cf7a562076/README.md",
+      "url": "https://github.com/NoraSchneider/gim",
+      "version": "git commit 4a5f9372a874d4bc8899f90b1bb554cf7a562076",
+      "media_type": "text/markdown",
+      "sha256": "10fcdb018835f6bafa371c11b9ab5d60a82e3fa2ee73a2ee35aabab29dd231b6",
+      "retrieved_at": "2026-11-27T04:27:52Z",
+      "store_bytes": false
+    },
+    {
+      "key": "gim-preprocess",
+      "name": "NoraSchneider/gim preprocess_sciplex_data.py at commit 4a5f9372a874d4bc8899f90b1bb554cf7a562076",
+      "description": "The GIM script that builds the twelve train and test data sets from the raw Sci-Plex data. Read to see the drug list, the dose list, the held-out dose and how the marker genes are chosen.",
+      "file": "artifacts/gim-preprocess_sciplex_data.py",
+      "artifact_url": "https://raw.githubusercontent.com/NoraSchneider/gim/4a5f9372a874d4bc8899f90b1bb554cf7a562076/preprocess_sciplex_data.py",
+      "url": "https://github.com/NoraSchneider/gim/blob/main/preprocess_sciplex_data.py",
+      "version": "git commit 4a5f9372a874d4bc8899f90b1bb554cf7a562076",
+      "media_type": "text/x-python",
+      "sha256": "9ea5715253044bcc89aae7547360950fd75949a1bc425115c006df9271899d81",
+      "retrieved_at": "2026-11-27T04:27:56Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "This is a dose extrapolation test on the Sci-Plex chemical transcriptomics data. For each of twelve cell line and drug pairs, three cancer cell lines crossed with four HDAC inhibitors, the cells treated at the drug's highest dose are held out, and a model must predict the single-cell expression distribution at that dose from control cells, the lower doses of the same drug and all doses of the other drugs in the same cell line. Expression is reduced to 50 marker genes chosen from the training conditions only. The protocol and the preprocessing come from the Generative Intervention Models paper and its codebase; the record holds the version reported by the PerturbPFN paper, which scores predictions by mean distance, gene-wise Pearson correlation and a 2-Wasserstein distance between the predicted and observed cell distributions.",
+    "summary_source_ids": [
+      "@paper",
+      "@gim-paper"
+    ],
+    "summary_source_locator": "PerturbPFN: Section 4.2 and Appendix D.1 to D.3; GIM: Appendix D.2",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "We evaluate perturbation-response prediction on the Sci-Plex single-cell drug perturbation dataset [20], using the highest-dosage holdout protocol of Schneider et al. [4]."
+      },
+      {
+        "source": "@paper",
+        "text": "The benchmark contains three cell lines, A549, K562, and MCF7, and four small-molecule perturbations, belinostat, dacinostat, givinostat, and quisinostat 2HCl, giving 3 × 4 = 12 held-out protocols."
+      },
+      {
+        "source": "@paper",
+        "text": "For each protocol, the highest-dose response is held out, while the model receives lower doses of the same drug and all observed doses of the remaining drugs. It must predict the held-out cell distribution without observing drug targets or updating model parameters."
+      },
+      {
+        "source": "@paper",
+        "text": "Cells are normalized to the median count of control cells, filtered, log-transformed, and restricted to a protocol-specific set of 50 marker genes selected using only the training conditions."
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The question is whether a model can predict what a drug does to cells at a dose it has not seen, without being told the drug's target. Each test case gives the model the control cells, the same drug at lower doses and the other drugs at all doses, then asks for the distribution of expression vectors at the highest dose. The PerturbPFN authors describe this as dose extrapolation under unknown perturbation targets, and point out that the held-out drug is not wholly unseen because its lower doses are in the context. Because the prediction is a distribution over cells rather than a mean, the scoring can catch a model that gets the direction of the response right but the magnitude wrong.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2, Appendix D.2 and D.3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This protocol tests dose extrapolation under unknown perturbation targets. The held-out drug is not completely unseen, since lower-dose responses are available, but the target and mechanism at the highest dose are not provided to the model."
+          },
+          {
+            "source": "@paper",
+            "text": "The context set contains control cells, lower doses of the held-out drug, and all available doses of the remaining drugs in the same cell line."
+          },
+          {
+            "source": "@paper",
+            "text": "This is particularly important for perturbation modelling, where a model may obtain reasonable correlation while substantially under- or over-"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "The data are the Sci-Plex single-cell drug perturbation data of Srivatsan et al., restricted by the GIM authors to four drugs of the epigenetic regulation pathway in three human cancer cell lines, A549, K562 and MCF7, which gives twelve cell line and drug settings. The GIM preprocessing script lists the four drugs as dacinostat, givinostat, belinostat and quisinostat 2HCl and the doses as 0, 10, 100, 1000 and 10000, with 10000 as the held-out dose. Cells are normalised to the median count of the unperturbed cells, cells with fewer than 200 counts and genes expressed in fewer than 20 cells are dropped, counts are log transformed, then the top 1000 highly variable genes are taken and reduced to 50 marker genes. The script computes both of those steps on the training data only, scoring every gene against control for each drug with a Wilcoxon test ranked by absolute score, then keeping the 50 genes with the largest sum of absolute scores across the drugs, using the training cells only, so the gene set is specific to each held-out protocol. A code comment says it selects the genes most often among the top 50 marker genes, but the code sums the absolute scores and does not use that count. Perturbation features are one-hot drug and dose codes plus a rescaled dose value, and control cells form the observational regime. The GIM paper states that holding out the highest dose leaves 16 perturbations for training in each setting.",
+        "source_ids": [
+          "@paper",
+          "@gim-paper",
+          "@gim-preprocess"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1 and D.2; GIM: Appendix D.2; preprocess_sciplex_data.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The benchmark contains three cell lines, A549, K562, and MCF7, and four small-molecule perturbations, belinostat, dacinostat, givinostat, and quisinostat 2HCl, giving 3 × 4 = 12 held-out protocols."
+          },
+          {
+            "source": "@paper",
+            "text": "We use the same preprocessing convention as the GIM benchmark."
+          },
+          {
+            "source": "@paper",
+            "text": "Perturbation descriptors encode drug identity and dose information. Control cells are included as the observational regime."
+          },
+          {
+            "source": "@gim-paper",
+            "text": "we normalize the data such that each cell has the same total count, equal to the median count of the unperturbed data. We then filter cells to retain only"
+          },
+          {
+            "source": "@gim-paper",
+            "text": "those with at least 200 counts, and genes to keep only those expressed in at least 20 cells."
+          },
+          {
+            "source": "@gim-paper",
+            "text": "we first identify the top 1000 highly variable genes, and subsequently reduce this set to the top 50 marker genes."
+          },
+          {
+            "source": "@gim-paper",
+            "text": "In total, we consider 12 different experimental settings, corresponding to three cell types and four drugs. Specifically, in each setting, we hold out one drug at its highest dosage (10µM ) as a test dataset to evaluate generalization. The remaining perturbations are used for training, resulting in a training dataset of 4 × 3 + 3 + 1 = 16 perturbations."
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "drugs=[\"dacinostat\", \"givinostat\", \"belinostat\", \"quisinostat_2hcl\"],"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "dosages=[0, 10, 100, 1000, 10000],"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "ho_dosage=10000):"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "n_marker_genes = 50"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "sc.pp.highly_variable_genes(training_data, inplace=True, n_top_genes=1000)"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "# select hvg and marker based on trainnig dataset only"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "sc.tl.rank_genes_groups(training_data, 'drug', reference=\"control\", method='wilcoxon', rankby_abs=True)"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "selected_genes = scoredf.abs().sum( axis=1).sort_values( ascending=False)[ : n_marker_genes].index"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "# determine highest ranked genes (Select the genes that are most often under top 50 marker genes)"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A method predicts a set of cells for the held-out condition. Three metrics are computed per protocol. Mean distance is the Euclidean distance between the predicted and true mean response, lower is better. Pearson correlation measures gene-wise agreement between those mean responses, higher is better. The 2-Wasserstein distance compares the whole predicted and observed cell distributions, approximated by a debiased entropic Sinkhorn cost with squared Euclidean ground cost, epsilon 0.1, at most 200 iterations and tolerance 10 to the minus 6, computed on equally sized deterministically sampled cell sets, lower is better. For the table, each metric is oriented so that higher is better and min-max normalised across the models being compared within each protocol, then averaged over the twelve protocols, and the three columns are averaged for the overall rank. The PerturbPFN authors say plainly that these normalised scores depend on which models are in the comparison, and give the raw per-protocol distributions only as box plots in a figure. All methods are evaluated on the same held-out cells with the same metric code, and metrics for the baselines were recomputed with that code where prediction arrays were available.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2 (Metrics), Appendix D.3 and D.4, Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We report three complementary metrics. Mean distance, MD"
+          },
+          {
+            "source": "@paper",
+            "text": "where lower values indicate more accurate prediction of the average response."
+          },
+          {
+            "source": "@paper",
+            "text": "which measures gene-wise agreement between the predicted and true mean-response patterns. Higher values are better."
+          },
+          {
+            "source": "@paper",
+            "text": "compares the full predicted and observed cell distributions; we approximate it by a debiased Sinkhorn estimator."
+          },
+          {
+            "source": "@paper",
+            "text": "We use ϵ = 0.1, at most 200 iterations, and tolerance 10−6"
+          },
+          {
+            "source": "@paper",
+            "text": "Predicted and true distributions are evaluated using equally sized, deterministically sampled cell sets."
+          },
+          {
+            "source": "@paper",
+            "text": "For each protocol and metric, we orient performance so that higher is better and min–max normalize scores across models. We then average over the 12 protocols to obtain each metric column and average the three columns for the overall ranking in Table 2."
+          },
+          {
+            "source": "@paper",
+            "text": "These normalized scores depend on the included comparison set."
+          },
+          {
+            "source": "@paper",
+            "text": "All methods are evaluated on the same held-out cells and with the same metric implementation."
+          },
+          {
+            "source": "@paper",
+            "text": "All baselines are evaluated on the same held-out protocols, and all reported metrics are recomputed using the same metric code as PerturbPFN whenever prediction arrays are available."
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The protocol lives in the GIM repository. Create its conda environment, install the package and the bundled cdt source, download the raw Sci-Plex files into data/sciplex/raw, then run the preprocessing script once per cell line, which produces the twelve data sets with their train and test splits. The repository's shell scripts then run GIM and the baselines on the single-cell data, and a notebook makes the figures. The PerturbPFN paper publishes no code of its own, so its own model cannot be run from the sources read here.",
+        "source_ids": [
+          "@gim-readme"
+        ],
+        "source_locator": "GIM README.md: Getting Started, Sciplex-3 Data",
+        "quotes": [
+          {
+            "source": "@gim-readme",
+            "text": "conda env create --file environment.yaml"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "We use the Sciplex-3 dataset, which can be downloaded e.g. from"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "python preprocess_sciplex_data.py --celltype ${ct}"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "This preprocesses the raw data and creates 12 distinct dataset, with different train-test splits (as described in the paper)."
+          },
+          {
+            "source": "@gim-readme",
+            "text": "bash ./scripts/run_baselines_sc_data.sh"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "The Sci-Plex single-cell drug perturbation data of Srivatsan et al., reduced to three cell lines, A549, K562 and MCF7, and four epigenetic pathway drugs, belinostat, dacinostat, givinostat and quisinostat 2HCl, giving twelve cell line and drug protocols. Doses in the preprocessing script are 0, 10, 100, 1000 and 10000. Each protocol uses 50 marker genes chosen from its own training conditions. No saved file gives the number of cells in any protocol.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@gim-preprocess"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1; preprocess_sciplex_data.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The benchmark contains three cell lines, A549, K562, and MCF7, and four small-molecule perturbations, belinostat, dacinostat, givinostat, and quisinostat 2HCl, giving 3 × 4 = 12 held-out protocols."
+          },
+          {
+            "source": "@paper",
+            "text": "Cells are normalized to the median count of control cells, filtered, log-transformed, and restricted to a protocol-specific set of 50 marker genes selected using only the training conditions."
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "dosages=[0, 10, 100, 1000, 10000],"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "n_marker_genes = 50"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "One held-out condition per protocol: the highest dose of one drug in one cell line. The context, that is the training data, holds the control cells, the lower doses of that drug and all doses of the other drugs in the same cell line. The GIM paper states this leaves 16 perturbations for training in each of the twelve settings. The held-out dose in the code is 10000, which the GIM paper writes as 10 micromolar.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@gim-paper",
+          "@gim-preprocess"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.2; GIM: Appendix D.2; preprocess_sciplex_data.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "For each cell line–drug protocol, the highest dose of the held-out drug is removed from the context and used as the query condition."
+          },
+          {
+            "source": "@paper",
+            "text": "The context set contains control cells, lower doses of the held-out drug, and all available doses of the remaining drugs in the same cell line."
+          },
+          {
+            "source": "@gim-paper",
+            "text": "In total, we consider 12 different experimental settings, corresponding to three cell types and four drugs. Specifically, in each setting, we hold out one drug at its highest dosage (10µM ) as a test dataset to evaluate generalization. The remaining perturbations are used for training, resulting in a training dataset of 4 × 3 + 3 + 1 = 16 perturbations."
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "ho_dosage=10000):"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Three per protocol: mean distance between predicted and true mean response, lower is better; gene-wise Pearson correlation of those mean responses, higher is better; and a 2-Wasserstein distance between the predicted and observed cell distributions, approximated by a debiased Sinkhorn estimator, lower is better. For the ranking in Table 2 each metric is min-max normalised within a protocol so that higher is better, averaged over the twelve protocols, and the three columns are averaged.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2 (Metrics), Appendix D.3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We report three complementary metrics. Mean distance, MD"
+          },
+          {
+            "source": "@paper",
+            "text": "where lower values indicate more accurate prediction of the average response."
+          },
+          {
+            "source": "@paper",
+            "text": "which measures gene-wise agreement between the predicted and true mean-response patterns. Higher values are better."
+          },
+          {
+            "source": "@paper",
+            "text": "Lower values are better."
+          },
+          {
+            "source": "@paper",
+            "text": "For each protocol and metric, we orient performance so that higher is better and min–max normalize scores across models. We then average over the 12 protocols to obtain each metric column and average the three columns for the overall ranking in Table 2."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Six reference points in Table 2: GIM, CondOT, a multilayer perceptron, a random-forest X-Learner, a Naive baseline that reuses the nearest observed lower dose of the held-out drug, and an Observational baseline that predicts the control distribution. On the normalised average score the random-forest X-Learner ranks first at 0.8870, PerturbPFN second at 0.8394, CondOT third, the multilayer perceptron fourth, GIM fifth at 0.6151, Naive sixth and Observational last at 0.0233. GIM is fit separately per protocol with 100,000 optimisation steps, and the table also reports runtime per protocol.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2 (Baselines), Table 2, Appendix D.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We compare against GIM [4], CondOT [31], a multilayer perceptron (MLP) and a random-forest X-Learner (RF X-Learner) [41]. We also include a Naive baseline that uses the nearest observed lower dose of the held-out drug and an Observational baseline that predicts the control distribution."
+          },
+          {
+            "source": "@paper",
+            "text": "RF X-Learner                  1.83 ± 0.32        0.8793   0.9696   0.8122   0.8870 (#1)"
+          },
+          {
+            "source": "@paper",
+            "text": "GIM                         4495.6 ± 116.9       0.6909   0.8611   0.2934   0.6151 (#5)"
+          },
+          {
+            "source": "@paper",
+            "text": "Observational                      /             0.0000   0.0000   0.0698   0.0233 (#7)"
+          },
+          {
+            "source": "@paper",
+            "text": "The main GIM runs use 100,000 optimization steps following the original setting."
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Two. The held-out condition is removed from the context, and the gene selection is computed on the training conditions only, both the highly variable gene step and the marker gene ranking, as the preprocessing code shows. There is no control against the model having seen Sci-Plex elsewhere, and the lower doses of the held-out drug remain in the context by design.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@gim-preprocess"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1 and D.2; preprocess_sciplex_data.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Cells are normalized to the median count of control cells, filtered, log-transformed, and restricted to a protocol-specific set of 50 marker genes selected using only the training conditions."
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "# select hvg and marker based on trainnig dataset only"
+          },
+          {
+            "source": "@paper",
+            "text": "This protocol tests dose extrapolation under unknown perturbation targets. The held-out drug is not completely unseen, since lower-dose responses are available, but the target and mechanism at the highest dose are not provided to the model."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None for the scores. Table 2 prints a standard deviation for runtimes only, and no seeds, repeated runs or intervals for the normalised metric columns. The Wasserstein estimate is made deterministic by sampling equally sized cell sets in a fixed way.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Table 2 caption, Appendix D.3",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Times are mean"
+          },
+          {
+            "source": "@paper",
+            "text": "Predicted and true distributions are evaluated using equally sized, deterministically sampled cell sets."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A held-out experimental condition, one cell line and drug pair at the highest dose. The prediction is a set of single-cell expression vectors over the protocol's 50 marker genes, and the comparison is between that predicted cell distribution and the observed one.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2, Appendix D.1 and D.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each protocol is defined by one cell line–drug pair."
+          },
+          {
+            "source": "@paper",
+            "text": "The model must predict the distribution of expression vectors under the held-out highest dose."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human. The three cell lines are the human cancer lines A549, K562 and MCF7.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@gim-paper"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1; GIM: Section 5.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The benchmark contains three cell lines, A549, K562, and MCF7, and four small-molecule perturbations, belinostat, dacinostat, givinostat, and quisinostat 2HCl, giving 3 × 4 = 12 held-out protocols."
+          },
+          {
+            "source": "@gim-paper",
+            "text": "lines (A549, K562, MCF7)."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell RNA sequencing of drug-treated cells, from the Sci-Plex chemical transcriptomics experiment of Srivatsan et al., in which cells were treated with small molecules at several doses and profiled at single-cell resolution. The labels are the measured expression counts themselves after normalisation and log transformation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@gim-paper"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1 and reference list; GIM: Appendix D.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "We evaluate on the Sci-Plex single-cell drug perturbation dataset of Srivatsan et al. [20], following"
+          },
+          {
+            "source": "@paper",
+            "text": "Massively multiplex chemical transcriptomics at single-cell resolution."
+          },
+          {
+            "source": "@gim-paper",
+            "text": "we normalize the data such that each cell has the same total count, equal to the median count of the unperturbed data. We then filter cells to retain only"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The context cells and the perturbation descriptors. A model reads control cells, the lower doses of the held-out drug and the other drugs' doses in that cell line, with one-hot drug and dose codes plus a rescaled dose value as the perturbation features. Drug targets and mechanisms are not provided.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2, Appendix D.1 and D.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Perturbation descriptors encode drug identity and dose information. Control cells are included as the observational regime."
+          },
+          {
+            "source": "@paper",
+            "text": "For each protocol, the highest-dose response is held out, while the model receives lower doses of the same drug and all observed doses of the remaining drugs. It must predict the held-out cell distribution without observing drug targets or updating model parameters."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Either is allowed, and both are in the comparison. GIM is fitted from scratch for each held-out protocol by instance-specific optimisation, while PerturbPFN is applied in context with no parameter updates at test time. The protocol itself only requires that the held-out condition is not in the context.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2, Appendix D.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "It must predict the held-out cell distribution without observing drug targets or updating model parameters."
+          },
+          {
+            "source": "@paper",
+            "text": "GIM is fit separately for each held-out protocol by instance-specific optimization. We use the Sci-Plex configuration from the GIM codebase"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The whole cell distribution is scored, not only the mean. The PerturbPFN authors argue this matters because a model can correlate well with the true mean response while getting the size of the response wrong, and the Wasserstein column does separate the methods: GIM scores 0.2934 there against 0.8611 on correlation.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2 (Metrics), Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "This is particularly important for perturbation modelling, where a model may obtain reasonable correlation while substantially under- or over-"
+          },
+          {
+            "source": "@paper",
+            "text": "GIM                         4495.6 ± 116.9       0.6909   0.8611   0.2934   0.6151 (#5)"
+          }
+        ]
+      },
+      {
+        "text": "The gene selection is computed from the training conditions only, in both the highly variable gene step and the marker ranking, so the 50 genes a method is scored on are not chosen with knowledge of the held-out dose.",
+        "source_ids": [
+          "@paper",
+          "@gim-preprocess"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1; preprocess_sciplex_data.py",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "restricted to a protocol-specific set of 50 marker genes selected using only the training conditions."
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "# select hvg and marker based on trainnig dataset only"
+          }
+        ]
+      },
+      {
+        "text": "The comparison is run on the same held-out cells with one metric implementation, and the baselines' metrics were recomputed with that same code where the predictions were available, rather than copied from their papers.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.2 and D.4",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "All methods are evaluated on the same held-out cells and with the same metric implementation."
+          },
+          {
+            "source": "@paper",
+            "text": "All baselines are evaluated on the same held-out protocols, and all reported metrics are recomputed using the same metric code as PerturbPFN whenever prediction arrays are available."
+          }
+        ]
+      },
+      {
+        "text": "The protocol is reproducible from a public codebase: the GIM repository ships the preprocessing script that builds the twelve train and test splits and the scripts that run the baselines on them.",
+        "source_ids": [
+          "@gim-readme"
+        ],
+        "source_locator": "GIM README.md: Sciplex-3 Data",
+        "quotes": [
+          {
+            "source": "@gim-readme",
+            "text": "This preprocesses the raw data and creates 12 distinct dataset, with different train-test splits (as described in the paper)."
+          },
+          {
+            "source": "@gim-readme",
+            "text": "bash ./scripts/run_baselines_sc_data.sh"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "The published scores are not comparable with any other study. Table 2 prints only min-max normalised values, and the authors state that these depend on which models are in the comparison. The raw mean distance, correlation and Wasserstein values appear only as box plots in a figure, with no numbers printed.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Section 4.2, Appendix D.3, Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "These normalized scores depend on the included comparison set."
+          },
+          {
+            "source": "@paper",
+            "text": "Because min–max normalization is relative to the models being compared, Figure 2 additionally reports the raw protocol-level distributions."
+          }
+        ]
+      },
+      {
+        "text": "It is a narrow slice of Sci-Plex: four HDAC pathway drugs in three cell lines, twelve test conditions in all, and only 50 genes per condition. A result here says little about other compound classes or about genome-wide responses.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.1",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The benchmark contains three cell lines, A549, K562, and MCF7, and four small-molecule perturbations, belinostat, dacinostat, givinostat, and quisinostat 2HCl, giving 3 × 4 = 12 held-out protocols."
+          },
+          {
+            "source": "@paper",
+            "text": "restricted to a protocol-specific set of 50 marker genes selected using only the training conditions."
+          }
+        ]
+      },
+      {
+        "text": "It is dose extrapolation, not unseen drug prediction. The lower doses of the held-out drug stay in the context, which the authors say themselves.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Appendix D.2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The held-out drug is not completely unseen, since lower-dose responses are available, but the target and mechanism at the highest dose are not provided to the model."
+          }
+        ]
+      },
+      {
+        "text": "No uncertainty is reported for the scores, and the numbers come from one group running every method. Table 2 gives a standard deviation for runtimes only, and no seeds or repeats for the metric columns.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "PerturbPFN: Table 2 and Section 4.2 (Baselines)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Times are mean"
+          },
+          {
+            "source": "@paper",
+            "text": "We compare against GIM [4], CondOT [31], a multilayer perceptron (MLP) and a random-forest X-Learner (RF X-Learner) [41]."
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "Sci-Plex highest-dosage holdout workflow",
+      "steps": [
+        "Sci-Plex cells for one cell line, four drugs, four doses plus controls",
+        "preprocess and pick 50 marker genes from the training conditions",
+        "hold out the highest dose of one drug",
+        "model predicts the cell distribution at that dose from the context",
+        "mean distance, gene-wise Pearson correlation and 2-Wasserstein distance",
+        "min-max normalise per protocol and average over the twelve protocols"
+      ],
+      "caption": "Twelve protocols, one per cell line and drug pair, each with one held-out condition.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "PerturbPFN: Section 4.2, Appendix D.1 to D.3",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "For each cell line–drug protocol, the highest dose of the held-out drug is removed from the context and used as the query condition."
+        },
+        {
+          "source": "@paper",
+          "text": "Cells are normalized to the median count of control cells, filtered, log-transformed, and restricted to a protocol-specific set of 50 marker genes selected using only the training conditions."
+        },
+        {
+          "source": "@paper",
+          "text": "For each protocol and metric, we orient performance so that higher is better and min–max normalize scores across models. We then average over the 12 protocols to obtain each metric column and average the three columns for the overall ranking in Table 2."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "No saved file gives the number of cells in a protocol's held-out condition or in its context, so the test set size can only be given as twelve protocols.",
+      "The raw metric values per protocol are not printed anywhere in the sources read, only normalised averages and box plots.",
+      "The PerturbPFN paper names no code or data release of its own, so its reported numbers cannot be reproduced from a public artefact.",
+      "No licence is stated in the GIM files read for this page.",
+      "The GIM README points to a GEO query page rather than a specific accession for the raw Sci-Plex files, and the preprocessing script expects files named for a GEO sample, so the exact download has to be worked out by hand."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the text layers of arXiv 2607.23447v1 (PerturbPFN) and arXiv 2411.14003v2 (GIM), both extracted with pdftotext -layout, and README.md and preprocess_sciplex_data.py of NoraSchneider/gim at commit 4a5f9372a874d4bc8899f90b1bb554cf7a562076. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Build the twelve highest-dose holdout data sets with the GIM codebase and run the methods it ships on them.",
+    "prerequisites": [
+      "Conda, and the environment in the GIM repository's environment.yaml. Some baselines also need R dependencies, installed by a script in the repository.",
+      "The raw Sci-Plex files, placed under data/sciplex/raw. The README links a GEO query page rather than naming an accession.",
+      "No licence is stated for the GIM repository in the files read here, so check the terms before reuse."
+    ],
+    "steps": [
+      {
+        "title": "Get the code and install",
+        "shell": "git clone https://github.com/NoraSchneider/gim\ncd gim\ngit checkout --detach 4a5f9372a874d4bc8899f90b1bb554cf7a562076\nconda env create --file environment.yaml\nconda activate gim\npip install -e .\npip install -e ./cdt-source/",
+        "explanation": "The install commands are the README's. The clone and the detach at the commit read for this page were added here.",
+        "source_ids": [
+          "@gim-readme",
+          "@gim-paper"
+        ],
+        "source_locator": "GIM README.md: Getting Started; GIM paper: footnote 2",
+        "quotes": [
+          {
+            "source": "@gim-readme",
+            "text": "conda env create --file environment.yaml\nconda activate gim"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "pip install -e .\npip install -e ./cdt-source/"
+          },
+          {
+            "source": "@gim-paper",
+            "text": "Our code is available at https://github.com/"
+          }
+        ]
+      },
+      {
+        "title": "Build the twelve data sets",
+        "shell": "for ct in 'MCF7' 'A549' 'K562'; do\n    python preprocess_sciplex_data.py --celltype ${ct}\ndone",
+        "explanation": "The README's loop over the three cell lines. The script takes the four drugs and the five dose levels as defaults, holds out dose 10000, selects 1000 highly variable genes and then 50 marker genes from the training conditions, and writes one data package per protocol.",
+        "source_ids": [
+          "@gim-readme",
+          "@gim-preprocess"
+        ],
+        "source_locator": "GIM README.md: Sciplex-3 Data; preprocess_sciplex_data.py",
+        "quotes": [
+          {
+            "source": "@gim-readme",
+            "text": "python preprocess_sciplex_data.py --celltype ${ct}"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "This preprocesses the raw data and creates 12 distinct dataset, with different train-test splits (as described in the paper)."
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "ho_dosage=10000):"
+          },
+          {
+            "source": "@gim-preprocess",
+            "text": "n_marker_genes = 50"
+          }
+        ]
+      },
+      {
+        "title": "Run GIM and the baselines on the single-cell data",
+        "shell": "bash ./gim_sc_data.sh\nbash ./scripts/run_baselines_sc_data.sh",
+        "explanation": "The two commands the README gives for the Sci-Plex experiments. Hyper-parameters come from the config files in config/config_training and config/config_baseline.",
+        "source_ids": [
+          "@gim-readme"
+        ],
+        "source_locator": "GIM README.md: Sciplex-3 Data, Run GIM and Baselines",
+        "quotes": [
+          {
+            "source": "@gim-readme",
+            "text": "bash ./gim_sc_data.sh"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "bash ./scripts/run_baselines_sc_data.sh"
+          },
+          {
+            "source": "@gim-readme",
+            "text": "The hyperparameters of all baselines are specified via the respective config-files in the subfolder `config/config_baseline`."
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "One preprocessed data package per protocol, holding the context and held-out cells, the perturbation features and the selected marker gene indices.",
+      "Per-method result files for the twelve protocols, which the repository's plots.ipynb notebook turns into the paper's figures."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "The README names a GEO query page rather than an accession for the raw data, and the preprocessing script expects particular file names, so the download step is not fully specified.",
+      "This reproduces the GIM protocol and its baselines. The PerturbPFN numbers in Table 2 cannot be reproduced from any source read here, and the normalised scores would change with a different comparison set."
+    ],
+    "source_ids": [
+      "@gim-readme",
+      "@gim-preprocess",
+      "@gim-paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Highest-dosage holdout prediction of the single-cell response",
+      "dataset": "Sci-Plex, three cell lines and four epigenetic drugs",
+      "size": 12,
+      "size_unit": "held-out cell line and drug protocols, cell counts not stated",
+      "split": "the highest dose of one drug held out per protocol",
+      "primary_metric": "min-max normalised average of mean distance, Pearson r and W2",
+      "metric_direction": "higher",
+      "results_url": "https://arxiv.org/abs/2607.23447v1",
+      "code_url": "https://github.com/NoraSchneider/gim",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "The benchmark contains 12 cell line–drug protocols formed from three cell lines and four drugs."
+        },
+        {
+          "source": "@paper",
+          "text": "For each cell line–drug protocol, the highest dose of the held-out drug is removed from the context and used as the query condition."
+        },
+        {
+          "source": "@paper",
+          "text": "For each protocol and metric, we orient performance so that higher is better and min–max normalize scores across models. We then average over the 12 protocols to obtain each metric column and average the three columns for the overall ranking in Table 2."
+        },
+        {
+          "source": "@gim-paper",
+          "text": "Our code is available at https://github.com/"
+        }
+      ]
+    }
+  ],
+  "notes": "This record is one paper's evaluation, not a released suite. The protocol and the preprocessing are the GIM ones, so this page is written from the PerturbPFN paper for the evaluation as run, and from the GIM paper and its codebase for how the twelve data sets are built; the GIM codebase was retrieved for this page, which an earlier note on the record said had not been done. The drug is written quisinostat 2HCl by PerturbPFN, quisinostat_2hcl in the GIM code and Quinostat in the GIM paper's text; all three refer to the same fourth drug. Doses appear as 0, 10, 100, 1000 and 10000 in the code and as 10nM to 10 micromolar in the GIM paper. Table 2 prints normalised scores only, so no raw metric value is on this page. No licence is stated for the GIM repository and no code or data release is named by the PerturbPFN paper."
+}

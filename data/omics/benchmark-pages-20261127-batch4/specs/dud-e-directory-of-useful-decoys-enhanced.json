@@ -1,0 +1,852 @@
+{
+  "record_id": "hitdisc-20261022-benchmark-dude",
+  "sources": [
+    {
+      "key": "paper",
+      "name": "Full text JATS XML of the DUD-E paper, PMC3405771",
+      "description": "NCBI PMC full-text XML fetched through E-utilities. This is the 2012 Journal of Medicinal Chemistry paper that describes DUD-E, its construction and its docking metrics. Table cells are separate XML elements, so a quote for a table number includes the surrounding markup.",
+      "file": "artifacts/dude-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=3405771",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC3405771/",
+      "version": "PMC3405771.1, doi 10.1021/jm300687e",
+      "media_type": "application/xml",
+      "sha256": "5a4d2c3b5621b79d1ff492a88b51b7c6549b9cf7b4083427d1d904dfdf4c1d31",
+      "retrieved_at": "2026-11-27T04:52:46Z",
+      "store_bytes": false
+    },
+    {
+      "key": "chen2019",
+      "name": "Full text JATS XML of Chen et al. 2019, PMC6701836",
+      "description": "NCBI PMC full-text XML of the PLOS ONE paper that tests what convolutional network models trained on DUD-E actually learn. Published under a Creative Commons Attribution licence.",
+      "file": "artifacts/chen2019-pmc.xml",
+      "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=6701836",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6701836/",
+      "version": "PMC6701836.1, doi 10.1371/journal.pone.0220113",
+      "media_type": "application/xml",
+      "sha256": "c10d73987e512bdd1fe91eb631da31f40c862e3b153d668c9b855818127065a4",
+      "retrieved_at": "2026-11-27T04:52:50Z",
+      "licence": "CC BY 4.0",
+      "store_bytes": true
+    },
+    {
+      "key": "site",
+      "name": "DUD-E home page, dude.docking.org",
+      "description": "The benchmark's own web page, saved as HTML. Gives the headline counts, the download routes, the decoy generation service and the terms of use. The page says it needs JavaScript to show its pages, so only the text present in the saved HTML is quoted.",
+      "file": "artifacts/dude-site.html",
+      "artifact_url": "https://dude.docking.org/",
+      "url": "https://dude.docking.org/",
+      "version": "as served on 27 November 2026",
+      "media_type": "text/html",
+      "sha256": "ef20b56cc451f2ecb4cf304a642c35caf5c000a0ec89ca0b2c625b4188f1700b",
+      "retrieved_at": "2026-11-27T04:53:10Z",
+      "store_bytes": false
+    }
+  ],
+  "profile": {
+    "summary": "DUD-E is a virtual screening benchmark: for each of 102 protein targets it supplies a set of known active compounds and, for every active, 50 decoy molecules chosen to match it on physico-chemical properties while being topologically dissimilar. A docking program or scoring model ranks the pooled library for a target, and the benchmark measures how far the actives rise above the decoys, reported as an adjusted logarithmic area under the ROC curve and an enrichment factor at 1 per cent. The actives come from ChEMBL09, or the literature for AmpC beta-lactamase, with affinities of 1 micromolar or better, molecular weight under 600 and fewer than 20 rotatable bonds, clustered to 22,886 ligands, and the decoys from ZINC. It is used to compare docking programs and scoring functions, and a later study shows that machine learning models trained on it can score well without learning anything about binding.",
+    "summary_source_ids": [
+      "@paper",
+      "@site"
+    ],
+    "summary_source_locator": "Paper: Abstract, Characteristics of DUD-E, Methods (Automated Decoy Generation, Docking Metrics); DUD-E home page",
+    "summary_quotes": [
+      {
+        "source": "@paper",
+        "text": "totaling 102 proteins with 22886 clustered ligands drawn from ChEMBL, each with 50 property-matched decoys drawn from ZINC."
+      },
+      {
+        "source": "@paper",
+        "text": "A key metric to assess molecular docking remains ligand enrichment against challenging decoys."
+      },
+      {
+        "source": "@site",
+        "text": "50 decoys for each active having similar physico-chemical properties but dissimilar 2-D topology"
+      },
+      {
+        "source": "@site",
+        "text": "DUD-E is designed to help benchmark molecular docking programs by providing challenging decoys."
+      },
+      {
+        "source": "@paper",
+        "text": "molecular weights less than 600 and fewer than 20 rotatable bonds were extracted from ChEMBL09 (or the AmpC"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "Ligand enrichment: whether a method puts known binders near the top of a library that is otherwise full of molecules that look like them but are not known to bind. The decoys are the point. They are matched to each active on six physico-chemical properties, so a method cannot win by preferring heavy or greasy molecules, and they are topologically dissimilar to the actives, so the task is not fingerprint matching. The target list was chosen for diversity, adding classes such as G protein coupled receptors and ion channels that the original DUD lacked. What the benchmark does not measure, as the authors of a later study showed, is whether a model has learned protein-ligand interaction physics.",
+        "source_ids": [
+          "@paper",
+          "@chen2019",
+          "@site"
+        ],
+        "source_locator": "Paper: Abstract, Results; Chen et al. 2019: Introduction and Discussion; DUD-E home page",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "A key metric to assess molecular docking remains ligand enrichment against challenging decoys."
+          },
+          {
+            "source": "@paper",
+            "text": "Here we describe an improved benchmarking set that includes more diverse\ntargets such as GPCRs and ion channels"
+          },
+          {
+            "source": "@site",
+            "text": "50 decoys for each active having similar physico-chemical properties but dissimilar 2-D topology"
+          },
+          {
+            "source": "@chen2019",
+            "text": "We find that the high performance of CNN models trained on DUD-E is not attributable to having learned the features of protein-ligand interactions but rather to analogue and decoy bias inherent in the DUD-E dataset."
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Actives come from ChEMBL09: compounds assigned to a protein target with a confidence score of at least 4 and an affinity of 1 micromolar or better. Raw ligands also had to have a molecular weight under 600 and fewer than 20 rotatable bonds, which gives 66,695 raw ligands. For AmpC beta-lactamase the ChEMBL09 ligands are covalent, so its ligands were compiled by hand from the literature instead. Molecules with no measurable affinity at 30 micromolar or worse are kept as experimental decoys, and the in-between cases are kept separately as marginal. Each target's ligands are clustered to leave 22,886 clustered ligands for chemotype diversity. Targets are defined by UniProt gene prefix with species pooled, and each target gets one X-ray structure, chosen by an automated docking campaign over thousands of PDB entries with preference for resolution, enrichment and the human orthologue, with manual intervention where the automated preparation failed. Decoys are drawn from ZINC: for each unique set of six properties of a protonated ligand, molecular weight, estimated log P, rotatable bonds, hydrogen bond acceptors and donors and net charge, a pool of a few thousand candidates is gathered by widening or narrowing property windows in seven steps, ECFP4 fingerprints are computed, the pool is sorted by maximum Tanimoto similarity to any ligand, the most dissimilar quarter is kept, duplicates are spread evenly over the ligands, and 50 decoys are picked at random. That gives 1,411,214 computational decoys in all.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Characteristics of DUD-E; Methods (ChEMBL and RCSB PDB Data Extraction, Target Selection Docking, Target Preparation, Ligand Clustering, Automated Decoy Generation)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Ligands assigned to protein targets (ChEMBL confidence"
+          },
+          {
+            "source": "@paper",
+            "text": "score ≥4) with affinities (IC"
+          },
+          {
+            "source": "@paper",
+            "text": "we assigned experimental decoys as molecules with no measurable affinity at 30 μM or higher (greater than relation only)"
+          },
+          {
+            "source": "@paper",
+            "text": "To ensure chemotype diversity, we cluster each target’s ligands"
+          },
+          {
+            "source": "@paper",
+            "text": "DUD-E targets are defined by their"
+          },
+          {
+            "source": "@paper",
+            "text": "with data from each species being combined into a single data set."
+          },
+          {
+            "source": "@paper",
+            "text": "With targets selected, we chose a single X-ray structure to represent"
+          },
+          {
+            "source": "@paper",
+            "text": "As in the original DUD, we property-matched decoys to ligands using molecular weight, estimated water–octanol partition coefficient (miLogP), rotatable bonds, hydrogen bond acceptors, and hydrogen bond donors, plus we added net charge."
+          },
+          {
+            "source": "@paper",
+            "text": "a pool of decoys was selected from ZINC"
+          },
+          {
+            "source": "@paper",
+            "text": "using a dynamic protocol that adapted to local chemical space by narrowing or widening windows in seven steps around the six properties."
+          },
+          {
+            "source": "@paper",
+            "text": "The decoys were sorted by their maximum"
+          },
+          {
+            "source": "@paper",
+            "text": "to any ligand, and the most dissimilar 25% were retained through this dissimilarity filter."
+          },
+          {
+            "source": "@paper",
+            "text": "For each of these unique property sets, we aimed to generate 50 matched decoys."
+          },
+          {
+            "source": "@paper",
+            "text": "decoys</td><td style=\"border:none;\" align=\"char\" char=\".\" colspan=\"1\" rowspan=\"1\">1411214</td>"
+          },
+          {
+            "source": "@paper",
+            "text": "molecular weights less than 600 and fewer than 20 rotatable bonds were extracted from ChEMBL09 (or the AmpC"
+          },
+          {
+            "source": "@paper",
+            "text": "the ChEMBL09 ligands are covalent in nature. To identify noncovalent ligands, we manually compiled ligands"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "A method ranks the library for one target, actives and decoys together, and the ranking is scored. The paper's primary measure is the adjusted LogAUC at 0.001, which is the area under the ROC curve on a semi-logarithmic x-axis spanning three decades, with the random curve's 14.462 per cent subtracted so that random performance is 0 per cent and higher is better. The ROC-based enrichment factor at 1 per cent is also reported: the percentage of ligands found by the point where 1 per cent of the decoys have been found, which the authors prefer to a traditional enrichment factor. Plain ROC AUC is noted as a common alternative. The authors' own numbers come from docking with DOCK 3.6 using solvent-excluded volume ligand desolvation, with conformations from Omega, and they report per-target LogAUC and enrichment factor values in their target table. Scores are per target; the benchmark defines no single aggregate.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Docking Metrics, Docking Calculations); Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The area under the curve (AUC) of the receiver operating characteristic (ROC) is one common metric to measure docking performance."
+          },
+          {
+            "source": "@paper",
+            "text": "Formally, we use the adjusted LogAUC"
+          },
+          {
+            "source": "@paper",
+            "text": "here, which spans three decades of log space and subtracts the LogAUC of the random curve (14.462%) so that random enrichment is 0%."
+          },
+          {
+            "source": "@paper",
+            "text": "is the percent of ligands found when 1% of the decoys have been found and is preferred over traditional enrichment factors."
+          },
+          {
+            "source": "@paper",
+            "text": "Except as noted, docking calculations were performed with DOCK 3.6 and solvent-excluded volume (SEV) ligand desolvation as described previously."
+          },
+          {
+            "source": "@paper",
+            "text": "LogAUC (%)"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The data are downloaded from the benchmark's own site, either target by target, by subset such as the G protein coupled receptor or kinase groups, or as one package, and the site says the files can also be browsed directly under its db directory without JavaScript. Each target ships the chosen receptor structure and the active and decoy sets, in mol2 and SDF formats. There is no scoring server: a user docks or scores the molecules with their own program and computes the enrichment metrics themselves. The site also runs a decoy generation service, so the same protocol can be applied to a user's own ligand list for a target that is not in the set.",
+        "source_ids": [
+          "@site",
+          "@paper"
+        ],
+        "source_locator": "DUD-E home page; Paper: Online Tools for Automated Generation of Further Ligand and Decoy Sets",
+        "quotes": [
+          {
+            "source": "@site",
+            "text": "This site needs JavaScript to show its pages. Without it, you can still browse and download the data files from"
+          },
+          {
+            "source": "@site",
+            "text": "mol2 and SDF format now available in all packages for actives and decoys."
+          },
+          {
+            "source": "@site",
+            "text": "To generate decoys for your own ligands, see"
+          },
+          {
+            "source": "@paper",
+            "text": "The protocol to generate decoys for DUD-E is made available online to generate decoys for any target given only a list of ligand structures, which enables extension of DUD-E to new targets of interest by individual investigators."
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "One set, split by target: 102 proteins, 22,886 clustered ligands from ChEMBL09 and, for AmpC beta-lactamase, the literature, out of 66,695 raw ligands, an average of 224 ligands per target on the project page, 50 property-matched decoys per active, and 1,411,214 computational decoys in all. Experimental decoys, molecules measured as inactive, number 9,219. Each target also has one chosen X-ray structure.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@site"
+        ],
+        "source_locator": "Paper: Abstract and Characteristics of DUD-E table; DUD-E home page",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "totaling 102 proteins with 22886 clustered ligands drawn from ChEMBL, each with 50 property-matched decoys drawn from ZINC."
+          },
+          {
+            "source": "@paper",
+            "text": "decoys</td><td style=\"border:none;\" align=\"char\" char=\".\" colspan=\"1\" rowspan=\"1\">1411214</td>"
+          },
+          {
+            "source": "@paper",
+            "text": "decoys</td><td style=\"border:none;\" align=\"char\" char=\".\" colspan=\"1\" rowspan=\"1\">9219</td>"
+          },
+          {
+            "source": "@site",
+            "text": "22,886 active compounds and their affinities against 102 targets, an average of 224 ligands per target"
+          },
+          {
+            "source": "@paper",
+            "text": "With targets selected, we chose a single X-ray structure to represent"
+          },
+          {
+            "source": "@paper",
+            "text": "molecular weights less than 600 and fewer than 20 rotatable bonds were extracted from ChEMBL09 (or the AmpC"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "None. DUD-E is a test set, not a train and test division: each target is an independent screening problem with its own actives and decoys, and the authors say targets are independent of one another so that they can be added, deleted or replaced. Methods that train on DUD-E, as machine learning work does, have to invent their own split, and Chen et al. show that the usual choice, separating targets by sequence similarity, rests on an untested assumption about their actives.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@chen2019"
+        ],
+        "source_locator": "Paper: Online Tools section; Chen et al. 2019: Methods and Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Targets are independent of one another, both in ligands and decoys, allowing target addition, deletion, or replacement."
+          },
+          {
+            "source": "@chen2019",
+            "text": "Training and test subsets of the DUD-E dataset were constructed in several different ways."
+          },
+          {
+            "source": "@chen2019",
+            "text": "To test a model’s capacity for generalization, many groups have used sequence similarity filters to separate DUD-E targets into diverse training and testing sets. However, this is based on the untested assumption that targets in DUD-E with low sequence similarity have distinct actives."
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Adjusted LogAUC at 0.001, higher is better: the ROC area in semi-logarithmic space over three decades, with the random curve's 14.462 per cent subtracted so random is 0. Alongside it the ROC-based enrichment factor at 1 per cent, higher is better, the percentage of ligands recovered when 1 per cent of the decoys have been recovered. Plain ROC AUC is named as a common metric and is what later machine learning work reports.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@chen2019"
+        ],
+        "source_locator": "Paper: Methods, Docking Metrics; Chen et al. 2019: Introduction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Formally, we use the adjusted LogAUC"
+          },
+          {
+            "source": "@paper",
+            "text": "here, which spans three decades of log space and subtracts the LogAUC of the random curve (14.462%) so that random enrichment is 0%."
+          },
+          {
+            "source": "@paper",
+            "text": "is the percent of ligands found when 1% of the decoys have been found and is preferred over traditional enrichment factors."
+          },
+          {
+            "source": "@paper",
+            "text": "The area under the curve (AUC) of the receiver operating characteristic (ROC) is one common metric to measure docking performance."
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "The authors' own docking runs with DOCK 3.6 and solvent-excluded volume ligand desolvation, reported per target as LogAUC and enrichment factor at 1 per cent, and a comparison against the original DUD on the 37 directly comparable targets. A random background calculation is also described, seeding the DUD-E ligands into a ChEMBL subset of ZINC of 273,375 ligands.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods (Docking Calculations, Original DUD Comparison); Table 2",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Except as noted, docking calculations were performed with DOCK 3.6 and solvent-excluded volume (SEV) ligand desolvation as described previously."
+          },
+          {
+            "source": "@paper",
+            "text": "substantially increased the average enrichment over the 37 directly comparable targets from 14.8% to 19.7% LogAUC"
+          },
+          {
+            "source": "@paper",
+            "text": "The random background calculations were performed using SEV desolvation by seeding the DUD-E ligands into the entire ChEMBL12_10 subset of ZINC, which includes 273375 ligands with annotated affinities below 10 μM."
+          },
+          {
+            "source": "@paper",
+            "text": "LogAUC (%)"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "Within a target, two. Ligands are clustered by Bemis-Murcko frameworks so that near-identical analogues do not dominate, and decoys are filtered to be topologically dissimilar to the actives, keeping only the most dissimilar quarter of the candidate pool by ECFP4 Tanimoto similarity. There is no control across targets, and no control for a model trained on DUD-E: Chen et al. report that models can separate actives from decoys from the ligand alone, with no receptor, which they attribute to analogue bias among each target's actives and to the way the decoys were chosen.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@chen2019"
+        ],
+        "source_locator": "Paper: Methods (Ligand Clustering, Automated Decoy Generation); Chen et al. 2019: Results and Discussion",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "To ensure chemotype diversity, we cluster each target’s ligands"
+          },
+          {
+            "source": "@paper",
+            "text": "to any ligand, and the most dissimilar 25% were retained through this dissimilarity filter."
+          },
+          {
+            "source": "@chen2019",
+            "text": "The high AUC values achieved by the ligand-only CNN model indicated that the actives could be differentiated from the decoys based on the ligand information alone."
+          },
+          {
+            "source": "@chen2019",
+            "text": "We find that the high performance of CNN models trained on DUD-E is not attributable to having learned the features of protein-ligand interactions but rather to analogue and decoy bias inherent in the DUD-E dataset."
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "No replicates or intervals are defined by the benchmark: a target's score is a single ranking of a fixed library. The authors do provide a way to probe one source of variance, since the final decoy pick is random where possible, so several decoy sets can be generated for the same ligands to test whether a method is overfitted to the canonical decoys.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Online Tools for Automated Generation of Further Ligand and Decoy Sets; Methods, Docking Metrics",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The final decoy selection from the applicable pool of decoys is random where possible, allowing the generation of multiple decoys sets to test overfitting to the canonical DUD-E decoys."
+          },
+          {
+            "source": "@paper",
+            "text": "The area under the curve (AUC) of the receiver operating characteristic (ROC) is one common metric to measure docking performance."
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A molecule paired with a target: one example is a compound in a target's library, labelled active or decoy, to be scored against that target's single chosen receptor structure. Decoys belong to a specific active, one decoy to one ligand, so filtering a ligand removes its decoys.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@site"
+        ],
+        "source_locator": "Paper: Online Tools section, Methods; DUD-E home page",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Each decoy belongs to one and only one ligand, so if one wants to filter a ligand, then the corresponding decoys can be easily removed."
+          },
+          {
+            "source": "@site",
+            "text": "50 decoys for each active having similar physico-chemical properties but dissimilar 2-D topology"
+          },
+          {
+            "source": "@paper",
+            "text": "With targets selected, we chose a single X-ray structure to represent"
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Mixed and pooled. Targets are defined by UniProt gene prefix with the data from each species combined into one set, and the structure choice gave preference to the human orthologue, so a target can carry ligands measured against several species' proteins. The saved files give no species breakdown.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Results, Methods (Target Preparation)",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "DUD-E targets are defined by their"
+          },
+          {
+            "source": "@paper",
+            "text": "with data from each species being combined into a single data set."
+          },
+          {
+            "source": "@paper",
+            "text": "Preference was given to higher\nresolution, to higher automated enrichment, and to the human orthologue."
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Binding and activity measurements from the literature, as collected by ChEMBL: half maximal inhibitory and effective concentrations, inhibition and dissociation constants and their logarithmic variants. An active needs 1 micromolar or better; an experimental decoy needs no measurable affinity at 30 micromolar or worse. The receptor structures are X-ray crystal structures from the PDB.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, ChEMBL and RCSB PDB Data Extraction",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "score ≥4) with affinities (IC"
+          },
+          {
+            "source": "@paper",
+            "text": "of 1 μM or better were extracted from the ChEMBL09 database."
+          },
+          {
+            "source": "@paper",
+            "text": "we assigned experimental decoys as molecules with no measurable affinity at 30 μM or higher (greater than relation only)"
+          },
+          {
+            "source": "@paper",
+            "text": "This enhanced DUD\ndatabase has been constructed by combining ligand data from ChEMBL"
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "The target's receptor structure and the molecules. Each target ships one prepared X-ray structure and its ligand and decoy sets in mol2 and SDF form, so a method may use the protein structure, the ligand structures, or only the ligands. Chen et al. exploit exactly that freedom, training a ligand-only model as a control.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@site",
+          "@chen2019"
+        ],
+        "source_locator": "Paper: Methods; DUD-E home page; Chen et al. 2019: Methods",
+        "quotes": [
+          {
+            "source": "@site",
+            "text": "mol2 and SDF format now available in all packages for actives and decoys."
+          },
+          {
+            "source": "@paper",
+            "text": "With targets selected, we chose a single X-ray structure to represent"
+          },
+          {
+            "source": "@chen2019",
+            "text": "The CNN model requires as input ligands posed in a protein-binding pocket with each ligand marked as active or inactive."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "As published, none: DUD-E was built for docking programs, which are not trained on it, and the paper describes using it to test method variants such as a new desolvation model. Later work does train on it, and Chen et al. describe building training and test subsets of DUD-E for convolutional networks, which is the use their study criticises.",
+        "status": "source_checked",
+        "source_ids": [
+          "@paper",
+          "@chen2019"
+        ],
+        "source_locator": "Paper: Applications to Docking Optimization and Testing; Chen et al. 2019: Introduction and Methods",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "DUD-E\nshould provide a more robust benchmarking set for exploring new docking\nmethods"
+          },
+          {
+            "source": "@chen2019",
+            "text": "The Database of Useful Decoys-Enhanced (DUD-E) contains a large number of experimentally verified actives and property-matched decoys and has been widely utilized to train and test machine learning models"
+          },
+          {
+            "source": "@chen2019",
+            "text": "Training and test subsets of the DUD-E dataset were constructed in several different ways."
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "The decoys are hard by construction. They match each active on six properties including net charge, and only the quarter least similar to the actives by ECFP4 fingerprint is kept, so neither property bias nor fingerprint similarity gives an easy win.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Automated Decoy Generation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "As in the original DUD, we property-matched decoys to ligands using molecular weight, estimated water–octanol partition coefficient (miLogP), rotatable bonds, hydrogen bond acceptors, and hydrogen bond donors, plus we added net charge."
+          },
+          {
+            "source": "@paper",
+            "text": "to any ligand, and the most dissimilar 25% were retained through this dissimilarity filter."
+          }
+        ]
+      },
+      {
+        "text": "The target list is broader than the benchmark it replaced, adding classes such as G protein coupled receptors and ion channels, and each target's receptor structure was chosen through a systematic docking campaign rather than by hand alone.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Abstract; Methods, Target Selection Docking and Target Preparation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Here we describe an improved benchmarking set that includes more diverse\ntargets such as GPCRs and ion channels"
+          },
+          {
+            "source": "@paper",
+            "text": "we selected 119 tentative targets for the new DUD. This list was reduced to the final 102 targets"
+          }
+        ]
+      },
+      {
+        "text": "It is extensible rather than frozen. The decoy generation protocol is offered as a service for a user's own ligand list, the raw unclustered sets are published so a different clustering can be used, and the random final pick lets several decoy sets be made for the same ligands to test overfitting.",
+        "source_ids": [
+          "@paper",
+          "@site"
+        ],
+        "source_locator": "Paper: Online Tools for Automated Generation of Further Ligand and Decoy Sets; DUD-E home page",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "The protocol to generate decoys for DUD-E is made available online to generate decoys for any target given only a list of ligand structures, which enables extension of DUD-E to new targets of interest by individual investigators."
+          },
+          {
+            "source": "@paper",
+            "text": "we provide raw ligand and decoy sets before clustering by Bemis–Murcko atomic frameworks"
+          },
+          {
+            "source": "@site",
+            "text": "To generate decoys for your own ligands, see"
+          }
+        ]
+      },
+      {
+        "text": "The metric is designed for screening rather than for overall ranking: the adjusted LogAUC weights the top of the list and is shifted so that random performance reads as zero.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Docking Metrics",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "LogAUC is completely analogous to AUC but in the transformed space after you have zoomed in on early enrichment by taking the semilog of the"
+          },
+          {
+            "source": "@paper",
+            "text": "here, which spans three decades of log space and subtracts the LogAUC of the random curve (14.462%) so that random enrichment is 0%."
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "Scores from models trained on DUD-E can be meaningless. Chen et al. report that convolutional network models reach high area under the curve without using the receptor at all, and attribute this to analogue bias among each target's actives and to how the decoys were selected, so performance on DUD-E is not evidence that such a model has learned protein-ligand binding.",
+        "source_ids": [
+          "@chen2019"
+        ],
+        "source_locator": "Chen et al. 2019: Introduction, Results, Conclusions",
+        "quotes": [
+          {
+            "source": "@chen2019",
+            "text": "We find that the high performance of CNN models trained on DUD-E is not attributable to having learned the features of protein-ligand interactions but rather to analogue and decoy bias inherent in the DUD-E dataset."
+          },
+          {
+            "source": "@chen2019",
+            "text": "The high AUC values achieved by the ligand-only CNN model indicated that the actives could be differentiated from the decoys based on the ligand information alone."
+          }
+        ]
+      },
+      {
+        "text": "The decoys are presumed inactive, not measured inactive. Only 9,219 experimental decoys exist against 1,411,214 computational ones drawn from ZINC, so almost every negative label is an assumption.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Characteristics of DUD-E table; Methods, Automated Decoy Generation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "decoys</td><td style=\"border:none;\" align=\"char\" char=\".\" colspan=\"1\" rowspan=\"1\">9219</td>"
+          },
+          {
+            "source": "@paper",
+            "text": "decoys</td><td style=\"border:none;\" align=\"char\" char=\".\" colspan=\"1\" rowspan=\"1\">1411214</td>"
+          },
+          {
+            "source": "@paper",
+            "text": "a pool of decoys was selected from ZINC"
+          }
+        ]
+      },
+      {
+        "text": "Each target is one receptor structure and one pooled set of species, chosen in part because it already enriched known ligands under automated docking. That selection, which the authors describe, favours targets and structures that docking handles well.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Target Selection Docking and Target Preparation",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Preference was given to higher\nresolution, to higher automated enrichment, and to the human orthologue."
+          },
+          {
+            "source": "@paper",
+            "text": "we selected 119 tentative targets for the new DUD. This list was reduced to the final 102 targets"
+          },
+          {
+            "source": "@paper",
+            "text": "with data from each species being combined into a single data set."
+          }
+        ]
+      },
+      {
+        "text": "There is no leaderboard, no submission route and no stated data licence: the project page says only that the set is free to use and provided by the laboratories at UCSF, and it points to a newer version, DUDE-Z, at another address.",
+        "source_ids": [
+          "@site"
+        ],
+        "source_locator": "DUD-E home page",
+        "quotes": [
+          {
+            "source": "@site",
+            "text": "DUD&bull;E free to use and is provided by the Irwin and Shoichet Laboratories at UCSF."
+          },
+          {
+            "source": "@site",
+            "text": "A newer version of DUDE is available!"
+          },
+          {
+            "source": "@site",
+            "text": "Copyright 2009-2024 The Irwin Lab and the UC Regents"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "DUD-E workflow",
+      "steps": [
+        "ChEMBL09 actives at 1 micromolar or better, molecular weight under 600, fewer than 20 rotatable bonds",
+        "cluster ligands by Bemis-Murcko framework",
+        "match 50 ZINC decoys per active on six properties, keep the most dissimilar quarter",
+        "one chosen X-ray structure per target",
+        "a method ranks the pooled library",
+        "adjusted LogAUC and enrichment factor at 1 per cent, per target"
+      ],
+      "caption": "Each of the 102 targets is scored on its own; the benchmark defines no aggregate and no train and test split.",
+      "source_ids": [
+        "@paper"
+      ],
+      "source_locator": "Paper: Abstract; Methods (ChEMBL and RCSB PDB Data Extraction, Automated Decoy Generation, Docking Metrics)",
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "totaling 102 proteins with 22886 clustered ligands drawn from ChEMBL, each with 50 property-matched decoys drawn from ZINC."
+        },
+        {
+          "source": "@paper",
+          "text": "To ensure chemotype diversity, we cluster each target’s ligands"
+        },
+        {
+          "source": "@paper",
+          "text": "to any ligand, and the most dissimilar 25% were retained through this dissimilarity filter."
+        },
+        {
+          "source": "@paper",
+          "text": "Formally, we use the adjusted LogAUC"
+        },
+        {
+          "source": "@paper",
+          "text": "molecular weights less than 600 and fewer than 20 rotatable bonds were extracted from ChEMBL09 (or the AmpC"
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "Per-target counts and the per-target LogAUC and enrichment values are in Table 2 and the supporting information; the table was not transcribed here and the supporting information was not fetched.",
+      "No licence is stated for the data. The project page says the set is free to use and carries a UC Regents copyright line, and the paper is under ACS AuthorChoice terms rather than a Creative Commons licence.",
+      "The project page says it needs JavaScript to show its pages, so the target list, the subsets and the download packages were not read; only the text in the saved HTML is described.",
+      "The newer DUDE-Z set, which the page announces, was not fetched and is not described here."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read on 27 November 2026: the NCBI PMC full-text XML of PMC3405771 (DUD-E) and PMC6701836 (Chen et al. 2019), and the saved HTML of the DUD-E home page at dude.docking.org as served that day. Supporting information and the site's dynamic pages were not fetched. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Download a target's actives, decoys and receptor from the project site and score them with your own docking or ranking method.",
+    "prerequisites": [
+      "A docking program or scoring model of your own: the benchmark ships data and a receptor structure, not a scoring service.",
+      "No data licence is stated. The project page says DUD-E is free to use and is provided by the laboratories at UCSF, and asks that the 2012 paper be cited."
+    ],
+    "steps": [
+      {
+        "title": "Get the data",
+        "shell": "curl -O https://dude.docking.org/db/subsets/all/all.tar.gz",
+        "explanation": "The project page says the data files can be browsed and downloaded under its /db/ directory even without JavaScript, and that DUD-E can be downloaded target by target, by subset or all at once. The exact file name here is the one the site's own download link uses for the full package; if it has changed, browse /db/ and take the current path.",
+        "source_ids": [
+          "@site"
+        ],
+        "source_locator": "DUD-E home page",
+        "quotes": [
+          {
+            "source": "@site",
+            "text": "This site needs JavaScript to show its pages. Without it, you can still browse and download the data files from"
+          },
+          {
+            "source": "@site",
+            "text": "<a href=\"/db/subsets/all/all.tar.gz\" title=\"Download DUD-E\">"
+          }
+        ]
+      },
+      {
+        "title": "Score a target's library",
+        "shell": "# dock or score each molecule in a target's actives and decoys\n# against that target's receptor with your own program, for example\n# DOCK 3.6 with solvent-excluded volume ligand desolvation",
+        "explanation": "The paper's own numbers come from DOCK 3.6 with solvent-excluded volume ligand desolvation and conformations from Omega. No command line is printed in any saved source, so this step is a comment rather than an executable line.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Docking Calculations",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "Except as noted, docking calculations were performed with DOCK 3.6 and solvent-excluded volume (SEV) ligand desolvation as described previously."
+          },
+          {
+            "source": "@paper",
+            "text": "Ligand\nconformations were generated by OpenEye’s Omega."
+          }
+        ]
+      },
+      {
+        "title": "Compute the enrichment metrics",
+        "shell": "# from the ranked list, compute the adjusted LogAUC(0.001),\n# subtracting 14.462 so that random reads as 0, and the\n# ROC-based enrichment factor at 1 per cent",
+        "explanation": "The metrics are defined in the paper's methods. No scoring script is published in the sources read, so a user implements them; the constants and definitions are the paper's.",
+        "source_ids": [
+          "@paper"
+        ],
+        "source_locator": "Paper: Methods, Docking Metrics",
+        "quotes": [
+          {
+            "source": "@paper",
+            "text": "here, which spans three decades of log space and subtracts the LogAUC of the random curve (14.462%) so that random enrichment is 0%."
+          },
+          {
+            "source": "@paper",
+            "text": "is the percent of ligands found when 1% of the decoys have been found and is preferred over traditional enrichment factors."
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "A ranked library per target, from which the adjusted LogAUC and the enrichment factor at 1 per cent are computed for that target."
+    ],
+    "limitations": [
+      "These steps were assembled from the paper and the project page and have not been executed by Rewire. No command line, scoring script or exact download path is printed in the saved sources, so the download file name may differ.",
+      "The project page needs JavaScript for its target and subset pages, so the per-target download addresses were not read.",
+      "A model trained on DUD-E needs its own train and test split, which the benchmark does not provide, and Chen et al. show that the obvious choices leave the result open to question."
+    ],
+    "source_ids": [
+      "@site",
+      "@paper"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Protein-ligand virtual screening, library ranking",
+      "dataset": "DUD-E",
+      "size": 22886,
+      "size_unit": "clustered active ligands across 102 targets, each with 50 property-matched decoys",
+      "split": "no train and test split: each target is an independent screening test",
+      "primary_metric": "adjusted LogAUC(0.001)",
+      "metric_direction": "higher",
+      "results_url": "https://dude.docking.org/",
+      "code_url": null,
+      "data_url": "https://dude.docking.org/",
+      "data_licence": null,
+      "code_licence": null,
+      "released": null,
+      "quotes": [
+        {
+          "source": "@paper",
+          "text": "totaling 102 proteins with 22886 clustered ligands drawn from ChEMBL, each with 50 property-matched decoys drawn from ZINC."
+        },
+        {
+          "source": "@paper",
+          "text": "Formally, we use the adjusted LogAUC"
+        },
+        {
+          "source": "@paper",
+          "text": "Targets are independent of one another, both in ligands and decoys, allowing target addition, deletion, or replacement."
+        },
+        {
+          "source": "@site",
+          "text": "DUD&bull;E free to use and is provided by the Irwin and Shoichet Laboratories at UCSF."
+        },
+        {
+          "source": "@site",
+          "text": "22,886 active compounds and their affinities against 102 targets, an average of 224 ligands per target"
+        }
+      ]
+    }
+  ],
+  "notes": "DUD-E is a released suite with no leaderboard and no scoring code: results are computed by whoever runs it, so results_url points to the project site rather than to a results table. The decoy count 1,411,214 is the total number of computational decoys across all 102 targets, and 9,219 is the number of experimentally measured decoys; 22,886 is the clustered active count, out of 66,695 raw ligands. Numbers quoted from the paper's characteristics table include the surrounding XML cell markup, because each cell is a separate element. No data licence is printed: the project page says the set is free to use and carries a UC Regents copyright line, and the paper is under ACS AuthorChoice terms, so no licence identifier is recorded for either. The project page announces a newer set, DUDE-Z, at dudez.docking.org, which was not fetched. The site's download path used in the run guide is taken from the page's own full-package link text and may have changed; the page states the files can be browsed under /db/. The page also carries a correspondence address, which is not reproduced here."
+}

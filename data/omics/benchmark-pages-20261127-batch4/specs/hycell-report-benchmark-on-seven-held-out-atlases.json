@@ -1,0 +1,1199 @@
+{
+  "record_id": "hycell-20261106-benchmark-held-out-atlases",
+  "sources": [
+    {
+      "key": "report",
+      "name": "Text layer of the HyCell technical report (Hyra Team, 2026-11-01), from the repository PDF at commit 0dcc533c",
+      "description": "Text extracted with pdftotext -layout from the PDF in the Hyra-results repository, pinned to a commit. The PDF is kept beside it as artifacts/report.pdf. The PDF's bytes differ from the copy in the Rewire store, but the extracted text is byte-identical to the store's saved text layer.",
+      "file": "artifacts/report.txt",
+      "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hycell/paper/HyCell_Technical_Report.pdf",
+      "url": "https://github.com/Tencent-Hunyuan/Hyra-results/blob/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hycell/paper/HyCell_Technical_Report.pdf",
+      "version": "technical report dated 2026-11-01, git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+      "media_type": "text/plain",
+      "sha256": "4261e2cd6ea224537a66bc708c8a4fbba58b818881ab2900e081a58a32514ce1",
+      "retrieved_at": "2026-11-27T04:41:34Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    },
+    {
+      "key": "readme",
+      "name": "Tencent-Hunyuan/Hyra-results AI4Science/hycell/README.md at commit 0dcc533c",
+      "description": "Official repository README for the HyCell package, pinned to a commit. It repeats the benchmark table, and gives the install, embed, decode and fine-tune commands and the input requirements.",
+      "file": "artifacts/hycell-readme.md",
+      "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hycell/README.md",
+      "url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hycell",
+      "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+      "media_type": "text/markdown",
+      "sha256": "cd2eb7ae932124cacf9875b0ed1c48504b3e95b8e36169520bd1fe83cc0eecde",
+      "retrieved_at": "2026-11-27T04:42:16Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    },
+    {
+      "key": "notice",
+      "name": "Tencent-Hunyuan/Hyra-results AI4Science/hycell/NOTICE at commit 0dcc533c",
+      "description": "Official third-party attribution file for the HyCell folder, pinned to a commit. It states the code licence and the terms of the Census data and the scIB lung cells.",
+      "file": "artifacts/hycell-notice.txt",
+      "artifact_url": "https://raw.githubusercontent.com/Tencent-Hunyuan/Hyra-results/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hycell/NOTICE",
+      "url": "https://github.com/Tencent-Hunyuan/Hyra-results/tree/0dcc533cc9f8f76c90ecbfe944df816b6672328a/AI4Science/hycell",
+      "version": "git commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a",
+      "media_type": "text/plain",
+      "sha256": "66cfe5d9272cf9964594444a7f81a5cf355ca25336ce9698bd6c1ca1f5fb392a",
+      "retrieved_at": "2026-11-27T04:42:16Z",
+      "licence": "Apache-2.0",
+      "store_bytes": true
+    }
+  ],
+  "profile": {
+    "summary": "This is the evaluation the HyCell technical report runs: frozen, zero-shot embeddings of eleven pretrained single-cell models, plus PCA of the counts, scored on seven human atlases that were excluded from HyCell's pretraining corpus. Each embedding is scored for biological conservation and batch correction with scIB metrics and for annotation transfer to a held-out batch, combined into one score S. Every model was rerun by the authors on the same cells with one scoring implementation, so the figures are comparable within this report.",
+    "summary_source_ids": [
+      "@report",
+      "@readme"
+    ],
+    "summary_source_locator": "Report: Abstract; Section 3.1; README.md: Recorded result",
+    "summary_quotes": [
+      {
+        "source": "@report",
+        "text": "We compare frozen, zero-shot"
+      },
+      {
+        "source": "@report",
+        "text": "atlases excluded from pretraining, with every model rerun on the same cells and scored"
+      },
+      {
+        "source": "@report",
+        "text": "by the same code"
+      },
+      {
+        "source": "@readme",
+        "text": "Frozen embeddings on seven atlases excluded from pretraining"
+      },
+      {
+        "source": "@report",
+        "text": "S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN"
+      }
+    ],
+    "sections": [
+      {
+        "title": "What it measures",
+        "body": "The question is whether a pretrained model's frozen embedding of a cell is useful without further training: does it separate the curated cell types, does it mix cells from different donors, laboratories and chemistries, and can a simple classifier trained on some batches annotate a held-out batch from it. The report motivates this by noting that independent evaluations find zero-shot embeddings often separate cell types no better than PCA of the counts, so PCA fitted to each atlas is included as a reference without pretraining.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 1; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "then used as frozen encoders, whose embeddings of new cells serve to annotate cell types, integrate"
+          },
+          {
+            "source": "@report",
+            "text": "zero-shot embeddings often separate cell types no better than principal component analysis (PCA) of"
+          },
+          {
+            "source": "@report",
+            "text": "As a reference without pretraining we fit PCA to each"
+          },
+          {
+            "source": "@report",
+            "text": "atlas (2,000 highly variable genes of the log-normalised counts, 50 components)"
+          }
+        ]
+      },
+      {
+        "title": "How it is built",
+        "body": "Seven atlases with raw integer counts and curated cell-type labels are used: the integer-count parts of the scIB integration benchmarks for human immune cells (32,484 cells, 9 batches, 16 cell types), pancreas (10,963 cells, 5 batches, 14 types) and lung (9,701 cells, 4 batches, 11 types); peripheral blood mononuclear cells from two 10x runs (12,039 cells, 2 batches, 9 types); the healthy donors of the MultiVINE human brain vasculature atlas (21,155 cells, 10 donors, 14 types); a stratified 40,322-cell sample of the cross-tissue immune atlas spanning 17 tissue sites, 12 donors and three 10x chemistries, with 45 cell types; and a 41,140-cell sample of the Asian Immune Diversity Atlas (5 sites, 32 types). Batches are the unit held out in annotation transfer and the label the batch metrics use. Every dataset and collection contributing cells to these atlases, and to a separate development set of eight tissues used for the design choices, was removed from HyCell's pretraining corpus, taking the Census from 95.0 million cells in 555 datasets down to 79.5 million in 532.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 3.1 and Table 2; Section 2.5",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "We evaluate on seven atlases with raw integer counts and curated cell-type labels (Table 2)."
+          },
+          {
+            "source": "@report",
+            "text": "Immune                  bone marrow and blood, 5 studies         32,484             9          16"
+          },
+          {
+            "source": "@report",
+            "text": "Cross-tissue immune     17 tissue sites, three 10x chemistries   40,322   12 donors            45"
+          },
+          {
+            "source": "@report",
+            "text": "AIDA                    blood, 5 sites                           41,140       5 sites          32"
+          },
+          {
+            "source": "@report",
+            "text": "Batches are the unit held out in annotation transfer and the label used by the batch"
+          },
+          {
+            "source": "@report",
+            "text": "Every dataset and collection that contributes cells to these atlases is excluded from the pretraining"
+          },
+          {
+            "source": "@report",
+            "text": "leaving 79.5 million training cells from 532 datasets and 20,000 validation cells"
+          },
+          {
+            "source": "@report",
+            "text": "every dataset and collection that contributes cells to an evaluation atlas (Section 3.1) or to a separate development set of eight tissues, which we used for all design choices"
+          },
+          {
+            "source": "@report",
+            "text": "95.0 million cells from 555 datasets"
+          }
+        ]
+      },
+      {
+        "title": "Evaluation methodology",
+        "body": "All embeddings are scored by one implementation built on scib-metrics, on the absolute scale with no rescaling across methods. Biological conservation is the mean of seven scIB metrics: isolated-label score, NMI and ARI of k-means and of Leiden clusters against the cell types, cell-type silhouette and cLISI. Batch correction is the mean of five: batch silhouette, iLISI, kBET, graph connectivity and principal-component regression. Annotation transfer holds out each batch in turn, trains a logistic-regression classifier and a 15-nearest-neighbour classifier on the remaining batches, and reports macro-F1 averaged over held-out batches. The composite score is S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN, which weights the scIB total (0.6 Bio + 0.4 Batch) and annotation transfer equally. Atlases are weighted equally in all averages.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 3.1, Metrics",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "All embeddings are scored by one implementation, built on scib-metrics"
+          },
+          {
+            "source": "@report",
+            "text": "on the absolute scale without rescaling across methods"
+          },
+          {
+            "source": "@report",
+            "text": "mean of seven scIB metrics: isolated-label score, NMI and ARI of k-means and of Leiden clusters"
+          },
+          {
+            "source": "@report",
+            "text": "against the cell types, cell-type silhouette and cLISI"
+          },
+          {
+            "source": "@report",
+            "text": "silhouette, iLISI, kBET, graph connectivity and principal-component regression"
+          },
+          {
+            "source": "@report",
+            "text": "Annotation transfer holds"
+          },
+          {
+            "source": "@report",
+            "text": "out each batch in turn, trains a logistic-regression classifier (LR) and a 15-nearest-neighbour classifier"
+          },
+          {
+            "source": "@report",
+            "text": "Atlases are weighted equally in all averages."
+          }
+        ]
+      },
+      {
+        "title": "Which systems are compared, and under what conditions",
+        "body": "Ten published models are compared with HyCell: Stack, SCimilarity, scFoundation, UCE, Tahoe-x1, TranscriptFormer, scGPT, Geneformer V2, STATE and scPRINT, each run by the authors with its released weights and default inference settings on the same cells, plus PCA fitted to each atlas. The conditions are not identical, and the report says so: Stack encodes sets of 256 cells and the authors encode each batch together, so Stack uses batch labels at inference; SCimilarity and scPRINT were trained with cell-type labels; PCA is fitted to each atlas; and HyCell embeds each cell from its counts alone. The report marks these cases in its tables and states that Stack also draws on the other cells of a sample at inference, which helps sample-level tasks that this benchmark does not include.",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Section 3.1 Models; Section 3.2; README.md: Recorded result",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "each run by us with its released weights and default inference settings"
+          },
+          {
+            "source": "@report",
+            "text": "we encode the cells of each batch together, so Stack uses batch labels at inference"
+          },
+          {
+            "source": "@report",
+            "text": "SCimilarity"
+          },
+          {
+            "source": "@report",
+            "text": "and scPRINT are trained with cell-type labels."
+          },
+          {
+            "source": "@report",
+            "text": "b Batch-grouped inference. l Trained with cell-type labels."
+          },
+          {
+            "source": "@readme",
+            "text": "The benchmark measures cell-level"
+          },
+          {
+            "source": "@readme",
+            "text": "tasks; Stack also draws on the other cells of a sample at inference"
+          }
+        ]
+      },
+      {
+        "title": "Downstream analyses on one atlas",
+        "body": "Beyond the scores, the report applies the frozen embeddings to the cross-tissem immune atlas, where cells of the same state come from 12 donors, 17 tissue sites and three chemistries. The 2,778 CD4 T cells (1,343 naive or central-memory, 1,435 effector or effector-memory) are split in two by k-means on each embedding; with HyCell the groups are 85% naive and 96% effector (ARI 0.64) and nearly independent of chemistry, while every other embedding reaches at most ARI 0.031 and seven of them follow chemistry instead. Diffusion pseudotime on the 3,751 cells of four B-cell to plasma-cell states (1,440, 572, 618 and 1,121) is correlated with stage at Spearman 0.937 for HyCell, the highest of all embeddings, and eight of the ten published models order the stages less faithfully than PCA. The decoder is used to read gene programs back from embeddings, with decoded and counted fold changes correlated at Spearman 0.81 over the 12,879 genes detected in at least 1% of either state.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Sections 4, 4.1, 4.2, 4.3",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "We apply the frozen embeddings to the cross-tissue immune atlas, where cells of the same state come"
+          },
+          {
+            "source": "@report",
+            "text": "We split the 2,778 CD4 T cells of the atlas, 1,343 naive or central-memory and 1,435 effector or effector-"
+          },
+          {
+            "source": "@report",
+            "text": "With HyCell the two groups are 85%"
+          },
+          {
+            "source": "@report",
+            "text": "match the naive–effector distinction (ARI at most 0.031); for seven of them they follow chemistry instead,"
+          },
+          {
+            "source": "@report",
+            "text": "For the 3,751 cells of these four states (1,440, 572, 618 and 1,121 cells), we computed"
+          },
+          {
+            "source": "@report",
+            "text": "Eight of the ten published models"
+          },
+          {
+            "source": "@report",
+            "text": "order the stages less faithfully than PCA of the counts."
+          },
+          {
+            "source": "@report",
+            "text": "Over the 12,879 genes detected in at least 1% of either state, decoded and counted fold changes have a"
+          }
+        ]
+      },
+      {
+        "title": "How to run it",
+        "body": "The hycell package installs from the repository subdirectory with pip, and its weights (64 MB) ship inside the package, so it runs without network access once installed. Embedding is one call on an AnnData object of raw counts, or one command-line call on an h5ad file, and the embedding can then be used as any representation in scanpy. Decoding and fine-tuning have their own calls, and four example scripts plus a 512-cell test file from the scIB lung atlas come with the package. The report's own scores are reproduced bit for bit on a CUDA GPU with flash-attn, verified on all seven evaluation atlases, 167,804 cells. What the package does not provide is the benchmark harness itself: the scIB and annotation-transfer scoring of the eleven models is not among the published scripts.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install, Embed, Decode, Fine-tune, Examples, Reproducibility",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "pip install \"git+https://github.com/Tencent-Hunyuan/Hyra-results.git#subdirectory=AI4Science/hycell\""
+          },
+          {
+            "source": "@readme",
+            "text": "so HyCell runs without"
+          },
+          {
+            "source": "@readme",
+            "text": "network access once installed"
+          },
+          {
+            "source": "@readme",
+            "text": "`hycell` reproduces the embeddings scored in the technical report bit for bit"
+          },
+          {
+            "source": "@readme",
+            "text": "(verified on all seven evaluation atlases, 167,804 cells)"
+          },
+          {
+            "source": "@readme",
+            "text": "`label_transfer.py` (kNN annotation"
+          },
+          {
+            "source": "@readme",
+            "text": "transfer between batches)"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "label": "Datasets",
+        "value": "Seven atlases: Immune (32,484 cells, 9 batches, 16 cell types), Pancreas (10,963, 5, 14), Lung (9,701, 4, 11), PBMC (12,039, 2, 9), Brain (21,155, 10 donors, 14), Cross-tissue immune (40,322, 12 donors, 45) and AIDA (41,140, 5 sites, 32). The README states the seven together come to 167,804 cells.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Table 2; README.md: Reproducibility",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "Pancreas                inDrop and Smart-seq2                    10,963             5          14"
+          },
+          {
+            "source": "@report",
+            "text": "Lung                    Drop-seq                                  9,701             4          11"
+          },
+          {
+            "source": "@report",
+            "text": "PBMC                    blood, 10x Chromium                      12,039             2           9"
+          },
+          {
+            "source": "@report",
+            "text": "Brain                   prefrontal cortex, vascular-enriched     21,155   10 donors            14"
+          },
+          {
+            "source": "@readme",
+            "text": "(verified on all seven evaluation atlases, 167,804 cells)"
+          }
+        ]
+      },
+      {
+        "label": "Splits",
+        "value": "No training split for the embedding tasks: every model embeds all cells of an atlas and the embedding is scored. Annotation transfer holds out each batch in turn and trains on the remaining batches, averaging macro-F1 over held-out batches; for the atlases without a study-level batch column the batch label is the donor or the site, as Table 2 gives: 10 donors for Brain, 12 donors for Cross-tissue immune and 5 sites for AIDA. The held-out status of the atlases themselves is a pretraining exclusion, not a split: every contributing dataset and collection was removed from HyCell's corpus.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 3.1, Metrics and Table 2; Section 2.5",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "out each batch in turn, trains a logistic-regression classifier (LR) and a 15-nearest-neighbour classifier"
+          },
+          {
+            "source": "@report",
+            "text": "(kNN) on the remaining batches, and reports macro-F1 averaged over held-out batches"
+          },
+          {
+            "source": "@report",
+            "text": "Batches are the unit held out in annotation transfer and the label used by the batch"
+          },
+          {
+            "source": "@report",
+            "text": "We remove"
+          },
+          {
+            "source": "@report",
+            "text": "every dataset and collection that contributes cells to an evaluation atlas"
+          },
+          {
+            "source": "@report",
+            "text": "Brain                   prefrontal cortex, vascular-enriched     21,155   10 donors            14"
+          },
+          {
+            "source": "@report",
+            "text": "Cross-tissue immune     17 tissue sites, three 10x chemistries   40,322   12 donors            45"
+          },
+          {
+            "source": "@report",
+            "text": "AIDA                    blood, 5 sites                           41,140       5 sites          32"
+          }
+        ]
+      },
+      {
+        "label": "Metrics",
+        "value": "Four reported quantities, all higher is better: Bio (mean of seven scIB biological-conservation metrics), Batch (mean of five scIB batch-correction metrics), LR and kNN (macro-F1 of annotation transfer with logistic regression and with a 15-nearest-neighbour classifier), combined as S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN. The downstream analyses use ARI, NMI and Spearman correlation.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 3.1, Metrics; Sections 4.1 to 4.3",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN weights the scIB total (0.6 Bio + 0.4 Batch) and annotation"
+          },
+          {
+            "source": "@report",
+            "text": "transfer equally"
+          },
+          {
+            "source": "@report",
+            "text": "the Spearman correlation between pseudotime and stage, 0.937, is the highest of all"
+          }
+        ]
+      },
+      {
+        "label": "Baselines",
+        "value": "Ten published models (Stack, SCimilarity, scFoundation, UCE, Tahoe-x1, TranscriptFormer, scGPT, Geneformer V2, STATE and scPRINT) and PCA fitted to each atlas on 2,000 highly variable genes of the log-normalised counts with 50 components. For the fine-tuning table, the frozen-embedding classifiers are the baseline for the fine-tuned annotator.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Section 3.1, Models; README.md: Fine-tune",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "We compare with Stack (Dong et al., 2026), SCimilarity (Heimberg et al., 2025), scFoundation"
+          },
+          {
+            "source": "@report",
+            "text": "atlas (2,000 highly variable genes of the log-normalised counts, 50 components)"
+          },
+          {
+            "source": "@readme",
+            "text": "| Atlas | Batches | Fine-tuned | Frozen + logistic regression | Frozen + kNN |"
+          }
+        ]
+      },
+      {
+        "label": "Leakage controls",
+        "value": "One-sided. The seven atlases were excluded from HyCell's own pretraining corpus, dataset and collection by dataset and collection, and a separate development set of eight tissues was used for all design choices. The report does not state whether the ten published comparators were pretrained on cells of these atlases, and several of them are trained on CELLxGENE data, so the exclusion is established for HyCell only.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 2.5; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "We remove"
+          },
+          {
+            "source": "@report",
+            "text": "development set of eight tissues, which we used for all design choices"
+          },
+          {
+            "source": "@report",
+            "text": "Every dataset and collection that contributes cells to these atlases is excluded from the pretraining"
+          },
+          {
+            "source": "@report",
+            "text": "each run by us with its released weights and default inference settings"
+          }
+        ]
+      },
+      {
+        "label": "Uncertainty",
+        "value": "None is printed. The tables give single values per model and atlas, with no replicates, seeds or intervals; the only averaging is over held-out batches within annotation transfer, over donors in two downstream analyses, and over the seven atlases.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Tables 3 and 4; Section 3.1; Section 4.2",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "Table 3: Zero-shot embeddings on seven held-out atlases, averaged over atlases."
+          },
+          {
+            "source": "@report",
+            "text": "Averaged over donors it is 0.894, again the highest"
+          }
+        ]
+      },
+      {
+        "label": "Entity type",
+        "value": "A cell, represented by a frozen embedding; scores are computed per atlas and then averaged with equal weight.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 1; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "the transcriptome"
+          },
+          {
+            "source": "@report",
+            "text": "of a cell to an embedding for annotation, integration and comparison across studies"
+          },
+          {
+            "source": "@report",
+            "text": "Atlases are weighted equally in all averages."
+          }
+        ]
+      },
+      {
+        "label": "Organisms",
+        "value": "Human only. The atlases are human immune, pancreas, lung, blood, prefrontal cortex, cross-tissue immune and Asian Immune Diversity Atlas cells, and HyCell's vocabulary is 36,495 human genes.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Section 3.1; README.md: Inputs",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "Three are the integer-count parts of the scIB integration benchmarks for human immune cells, pancreas"
+          },
+          {
+            "source": "@readme",
+            "text": "HyCell reads raw integer counts. Genes are matched to its vocabulary of 36,495 human genes by Ensembl gene id"
+          }
+        ]
+      },
+      {
+        "label": "Assays",
+        "value": "Single-cell and single-nucleus RNA sequencing on several platforms: inDrop and Smart-seq2 for the pancreas atlas, Drop-seq for the lung atlas, 10x Chromium for PBMC, vascular-enriched prefrontal cortex for the brain atlas, and three 10x chemistries across 17 tissue sites for the cross-tissue immune atlas. Labels are the atlases' curated cell-type annotations.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Table 2; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "Pancreas                inDrop and Smart-seq2                    10,963             5          14"
+          },
+          {
+            "source": "@report",
+            "text": "We evaluate on seven atlases with raw integer counts and curated cell-type labels (Table 2)."
+          }
+        ]
+      },
+      {
+        "label": "Allowed inputs",
+        "value": "Raw integer counts of human genes, with all measured genes passed rather than a highly variable subset, because the measured zeros are drawn from the genes present in the input. Genes are matched to the 36,495-gene vocabulary by Ensembl gene id and otherwise by symbol; genes outside it are dropped and duplicates summed. HyCell receives no batch or donor labels at inference; Stack, as run here, does receive batch labels.",
+        "status": "source_checked",
+        "source_ids": [
+          "@readme",
+          "@report"
+        ],
+        "source_locator": "README.md: Inputs, Method; Report: Section 3.1",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "Pass all measured genes,"
+          },
+          {
+            "source": "@readme",
+            "text": "not a highly-variable subset: the measured zeros are drawn from the genes present in the input."
+          },
+          {
+            "source": "@readme",
+            "text": "genes outside the vocabulary are dropped and duplicates are summed"
+          },
+          {
+            "source": "@report",
+            "text": "HyCell embeds each cell"
+          },
+          {
+            "source": "@report",
+            "text": "from its counts alone, without batch or donor information."
+          }
+        ]
+      },
+      {
+        "label": "Adaptation",
+        "value": "Zero-shot frozen embeddings for the headline comparison, with simple classifiers trained on top for annotation transfer. The README adds a separate fine-tuning result in which the encoder and a linear head are trained with cross-entropy on a labelled reference; that table covers four atlases and HyCell only, not the comparators.",
+        "status": "source_checked",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Abstract; README.md: Fine-tune",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "We compare frozen, zero-shot"
+          },
+          {
+            "source": "@readme",
+            "text": "the encoder and a linear head"
+          },
+          {
+            "source": "@readme",
+            "text": "on the embedding are trained with cross-entropy, starting from the pretrained weights"
+          },
+          {
+            "source": "@readme",
+            "text": "| Pancreas | 5 | **0.907** | 0.832 | 0.838 |"
+          }
+        ]
+      }
+    ],
+    "strengths": [
+      {
+        "text": "Every model was rerun by the authors on the same cells with released weights and default settings, and all embeddings were scored by one implementation on the absolute scale, so the figures within the report are not collected from different papers.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Abstract; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "each run by us with its released weights and default inference settings"
+          },
+          {
+            "source": "@report",
+            "text": "on the absolute scale without rescaling across methods"
+          }
+        ]
+      },
+      {
+        "text": "The differing conditions are declared rather than hidden: the tables mark batch-grouped inference and training with cell-type labels, and the text names which models those are.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Table 3 caption; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "b Batch-grouped inference. l Trained with cell-type labels."
+          },
+          {
+            "source": "@report",
+            "text": "we encode the cells of each batch together, so Stack uses batch labels at inference"
+          }
+        ]
+      },
+      {
+        "text": "The embeddings that were scored can be reproduced: the package carries its weights, and the README states the embeddings match the report bit for bit on a CUDA GPU with flash-attn, verified on all seven atlases.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install, Reproducibility",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`hycell` reproduces the embeddings scored in the technical report bit for bit"
+          },
+          {
+            "source": "@readme",
+            "text": "The weights (64 MB, `src/hycell/checkpoints/hycell-16m/`) are part of the package"
+          }
+        ]
+      },
+      {
+        "text": "A reference without pretraining is included and reported per atlas, so the reader can see where pretrained embeddings beat PCA of the counts and where they do not.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 3.1; Table 4",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "As a reference without pretraining we fit PCA to each"
+          },
+          {
+            "source": "@report",
+            "text": "PCA                       0.676         0.710       0.659        0.785      0.779        0.535       0.588"
+          }
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "text": "It is developer-run: the authors of the model under test chose the atlases, the metrics and the composite weights and ran every comparator themselves. There is no independent harness, and the benchmark scoring code is not among the published scripts.",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Section 3.1; README.md: Examples",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "each run by us with its released weights and default inference settings"
+          },
+          {
+            "source": "@readme",
+            "text": "`decode_programs.py` (decoded gene programs)"
+          }
+        ]
+      },
+      {
+        "text": "The held-out claim is established for HyCell only: the seven atlases were removed from its pretraining corpus, but the report does not say whether the ten comparators were trained on cells of these atlases.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 2.5; Section 3.1",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "Every dataset and collection that contributes cells to these atlases is excluded from the pretraining"
+          },
+          {
+            "source": "@report",
+            "text": "Models. We compare with Stack (Dong et al., 2026), SCimilarity (Heimberg et al., 2025), scFoundation"
+          }
+        ]
+      },
+      {
+        "text": "Models run under different conditions: Stack receives batch labels at inference, SCimilarity and scPRINT were trained with cell-type labels, and PCA is fitted to each atlas, so the single score column mixes settings. No uncertainty is printed for any value.",
+        "source_ids": [
+          "@report"
+        ],
+        "source_locator": "Report: Section 3.1 Models; Table 3",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "Stack encodes sets of 256 cells, and its released tutorial orders cells by donor before"
+          },
+          {
+            "source": "@report",
+            "text": "and scPRINT are trained with cell-type labels."
+          },
+          {
+            "source": "@report",
+            "text": "Table 3: Zero-shot embeddings on seven held-out atlases, averaged over atlases."
+          }
+        ]
+      },
+      {
+        "text": "Only cell-level tasks are measured. Tasks defined per sample, such as predicting a donor's disease state, are not included, and the report notes that Stack's use of the other cells of a sample helps exactly those tasks.",
+        "source_ids": [
+          "@report",
+          "@readme"
+        ],
+        "source_locator": "Report: Section 3.2; README.md: Recorded result",
+        "quotes": [
+          {
+            "source": "@report",
+            "text": "These comparisons concern cell-level tasks."
+          },
+          {
+            "source": "@report",
+            "text": "such tasks are not part of this benchmark"
+          },
+          {
+            "source": "@readme",
+            "text": "tasks; Stack also draws on the other cells of a sample at inference"
+          }
+        ]
+      }
+    ],
+    "diagram": {
+      "title": "HyCell report benchmark",
+      "steps": [
+        "Seven atlases excluded from HyCell pretraining",
+        "Each model embeds the same cells with released weights",
+        "scIB biological conservation and batch correction",
+        "Annotation transfer to each held-out batch (LR and kNN)",
+        "Composite score S per atlas, averaged equally"
+      ],
+      "caption": "Every model is rerun on the same cells; one scoring implementation produces the four quantities that make up the composite score.",
+      "source_ids": [
+        "@report"
+      ],
+      "source_locator": "Report: Section 3.1",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "atlases excluded from pretraining, with every model rerun on the same cells and scored"
+        },
+        {
+          "source": "@report",
+          "text": "S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN"
+        },
+        {
+          "source": "@report",
+          "text": "Atlases are weighted equally in all averages."
+        }
+      ]
+    },
+    "coverage": "reviewed",
+    "gaps": [
+      "The benchmark harness is not published: the repository ships the model package and four example scripts, not the scIB and annotation-transfer scoring of the eleven models, so the comparison cannot be rerun end to end from these files.",
+      "The seven atlases are not redistributed; the report cites their original releases and the repository ships only a 512-cell sample of the scIB lung atlas for tests.",
+      "No uncertainty is reported for any value, and the comparators' pretraining overlap with the atlases is not stated."
+    ],
+    "review": {
+      "method": "automated_source_review",
+      "date": "2026-11-27",
+      "note": "Read the full text layer of the HyCell technical report (dated 2026-11-01) from the repository PDF at commit 0dcc533cc9f8f76c90ecbfe944df816b6672328a, and the HyCell README and NOTICE at the same commit, all fetched on 2026-11-27. No command was executed and no human review is claimed."
+    }
+  },
+  "run_guide": {
+    "summary": "Install the hycell package, embed an h5ad of raw counts, and use the embedding for clustering or annotation transfer as the example scripts do.",
+    "prerequisites": [
+      "Python 3.10 or newer and torch 2.4 or newer; a CUDA GPU is recommended and CPU inference runs at about 13 cells per second with 16 threads in the authors' tests.",
+      "An h5ad file with raw integer counts and all measured genes, not a highly variable subset.",
+      "The code and weights are Apache-2.0; the weights were trained on CZ CELLxGENE Census data and the bundled test cells come from the scIB lung atlas, both CC BY 4.0."
+    ],
+    "steps": [
+      {
+        "title": "Install the package",
+        "shell": "pip install \"git+https://github.com/Tencent-Hunyuan/Hyra-results.git#subdirectory=AI4Science/hycell\"\npip install flash-attn --no-build-isolation",
+        "explanation": "Both lines are the README's. The second is optional and CUDA-only; it installs the attention kernel used in training, with which the README says the embeddings match the report bit for bit.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "pip install \"git+https://github.com/Tencent-Hunyuan/Hyra-results.git#subdirectory=AI4Science/hycell\""
+          },
+          {
+            "source": "@readme",
+            "text": "pip install flash-attn --no-build-isolation      # optional, CUDA: the attention kernel used in training"
+          }
+        ]
+      },
+      {
+        "title": "Check the weights",
+        "shell": "hycell info --verify",
+        "explanation": "The weights ship inside the package; this command checks their sha256, as the README states.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Install",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "`hycell info --verify` checks their sha256"
+          }
+        ]
+      },
+      {
+        "title": "Embed the cells",
+        "shell": "hycell embed cells.h5ad -o cells_hycell.h5ad",
+        "explanation": "The README's command-line form, which writes the input with the embedding in obsm[\"X_hycell\"]. The alternative form writes a numpy array plus a file of observation names.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Embed",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "hycell embed cells.h5ad -o cells_hycell.h5ad       # the input with obsm[\"X_hycell\"]"
+          },
+          {
+            "source": "@readme",
+            "text": "hycell embed cells.h5ad -o embeddings.npy          # array + embeddings.obs_names.txt"
+          }
+        ]
+      },
+      {
+        "title": "Run one of the example analyses",
+        "shell": "python docs/examples/decode_programs.py tests/data/lung_512.h5ad --groupby cell_type --a Macrophage --b \"Type 2\"",
+        "explanation": "The README's own example, run against the 512-cell scIB lung sample that ships with the package. It decodes gene programs for two cell groups and compares them with the fold change of the counts; the README reports that it lists SFTPC, SFTPB and SFTPA1 highest in type 2 pneumocytes. For annotation transfer between batches, the README names label_transfer.py in the same folder.",
+        "source_ids": [
+          "@readme"
+        ],
+        "source_locator": "README.md: Examples, Decode",
+        "quotes": [
+          {
+            "source": "@readme",
+            "text": "python docs/examples/decode_programs.py tests/data/lung_512.h5ad --groupby cell_type --a Macrophage --b \"Type 2\""
+          },
+          {
+            "source": "@readme",
+            "text": "lists the surfactant genes SFTPC, SFTPB and SFTPA1 as the genes decoded highest in type 2 pneumocytes"
+          },
+          {
+            "source": "@readme",
+            "text": "`label_transfer.py` (kNN annotation"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      "An h5ad file with the 512-dimensional embedding in obsm[\"X_hycell\"], or a numpy array plus a file of observation names.",
+      "For the decode example, the genes decoded highest in each of the two groups, next to the fold change computed from the counts."
+    ],
+    "limitations": [
+      "These commands were read from the repository and have not been executed by Rewire.",
+      "They run the model, not the benchmark: the scIB and annotation-transfer scoring of the eleven models is not published here, so the comparison itself cannot be reproduced from these steps.",
+      "The seven evaluation atlases are not shipped; only a 512-cell sample of the scIB lung atlas comes with the package."
+    ],
+    "source_ids": [
+      "@readme"
+    ]
+  },
+  "structured": [
+    {
+      "task": "Composite score S on seven held-out atlases",
+      "dataset": "Immune, Pancreas, Lung, PBMC, Brain, Cross-tissue immune, AIDA",
+      "size": 167804,
+      "size_unit": "cells across the seven atlases",
+      "split": "zero-shot frozen embeddings; atlases excluded from HyCell pretraining",
+      "primary_metric": "S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": "https://github.com/Tencent-Hunyuan/Hyra-results",
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "(verified on all seven evaluation atlases, 167,804 cells)"
+        },
+        {
+          "source": "@report",
+          "text": "S = 0.3 Bio + 0.2 Batch + 0.25 LR + 0.25 kNN"
+        },
+        {
+          "source": "@report",
+          "text": "atlases excluded from pretraining, with every model rerun on the same cells and scored"
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        },
+        {
+          "source": "@readme",
+          "text": "pip install \"git+https://github.com/Tencent-Hunyuan/Hyra-results.git#subdirectory=AI4Science/hycell\""
+        }
+      ]
+    },
+    {
+      "task": "scIB biological conservation",
+      "dataset": "Immune, Pancreas, Lung, PBMC, Brain, Cross-tissue immune, AIDA",
+      "size": 7,
+      "size_unit": "atlases, weighted equally",
+      "split": "zero-shot frozen embeddings",
+      "primary_metric": "mean of seven scIB biological-conservation metrics",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "mean of seven scIB metrics: isolated-label score, NMI and ARI of k-means and of Leiden clusters"
+        },
+        {
+          "source": "@report",
+          "text": "Atlases are weighted equally in all averages."
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        },
+        {
+          "source": "@report",
+          "text": "Table 3: Zero-shot embeddings on seven held-out atlases, averaged over atlases."
+        }
+      ]
+    },
+    {
+      "task": "scIB batch correction",
+      "dataset": "Immune, Pancreas, Lung, PBMC, Brain, Cross-tissue immune, AIDA",
+      "size": 7,
+      "size_unit": "atlases, weighted equally",
+      "split": "zero-shot frozen embeddings; batch labels from Table 2",
+      "primary_metric": "mean of five scIB batch-correction metrics",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "silhouette, iLISI, kBET, graph connectivity and principal-component regression"
+        },
+        {
+          "source": "@report",
+          "text": "Batches are the unit held out in annotation transfer and the label used by the batch"
+        },
+        {
+          "source": "@report",
+          "text": "Atlases are weighted equally in all averages."
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        },
+        {
+          "source": "@report",
+          "text": "Table 3: Zero-shot embeddings on seven held-out atlases, averaged over atlases."
+        }
+      ]
+    },
+    {
+      "task": "Annotation transfer with logistic regression",
+      "dataset": "Immune, Pancreas, Lung, PBMC, Brain, Cross-tissue immune, AIDA",
+      "size": 7,
+      "size_unit": "atlases, weighted equally",
+      "split": "each batch held out in turn, trained on the remaining batches",
+      "primary_metric": "macro-F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "out each batch in turn, trains a logistic-regression classifier (LR) and a 15-nearest-neighbour classifier"
+        },
+        {
+          "source": "@report",
+          "text": "(kNN) on the remaining batches, and reports macro-F1 averaged over held-out batches"
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        },
+        {
+          "source": "@report",
+          "text": "Table 3: Zero-shot embeddings on seven held-out atlases, averaged over atlases."
+        }
+      ]
+    },
+    {
+      "task": "Annotation transfer with 15-nearest neighbours",
+      "dataset": "Immune, Pancreas, Lung, PBMC, Brain, Cross-tissue immune, AIDA",
+      "size": 7,
+      "size_unit": "atlases, weighted equally",
+      "split": "each batch held out in turn, trained on the remaining batches",
+      "primary_metric": "macro-F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "(kNN) on the remaining batches, and reports macro-F1 averaged over held-out batches"
+        },
+        {
+          "source": "@report",
+          "text": "out each batch in turn, trains a logistic-regression classifier (LR) and a 15-nearest-neighbour classifier"
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        },
+        {
+          "source": "@report",
+          "text": "Table 3: Zero-shot embeddings on seven held-out atlases, averaged over atlases."
+        }
+      ]
+    },
+    {
+      "task": "Naive against effector CD4 T-cell split",
+      "dataset": "Cross-tissue immune atlas, CD4 T cells",
+      "size": 2778,
+      "size_unit": "CD4 T cells",
+      "split": "two-group k-means on each embedding",
+      "primary_metric": "ARI",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "We split the 2,778 CD4 T cells of the atlas, 1,343 naive or central-memory and 1,435 effector or effector-"
+        },
+        {
+          "source": "@report",
+          "text": "into two groups by k-means on each embedding"
+        },
+        {
+          "source": "@report",
+          "text": "match the naive–effector distinction (ARI at most 0.031)"
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        }
+      ]
+    },
+    {
+      "task": "B-cell to plasma-cell pseudotime ordering",
+      "dataset": "Cross-tissue immune atlas, four B-cell to plasma-cell states",
+      "size": 3751,
+      "size_unit": "cells in the four states",
+      "split": "diffusion pseudotime rooted at naive-B marker-high cells",
+      "primary_metric": "Spearman correlation between pseudotime and stage",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@report",
+          "text": "For the 3,751 cells of these four states (1,440, 572, 618 and 1,121 cells), we computed"
+        },
+        {
+          "source": "@report",
+          "text": "at the medoid of the 50 cells with the highest naive-B marker score (TCL1A, IGHD, FCER2)"
+        },
+        {
+          "source": "@report",
+          "text": "the Spearman correlation between pseudotime and stage, 0.937, is the highest of all"
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        }
+      ]
+    },
+    {
+      "task": "Annotation of a held-out batch after fine-tuning",
+      "dataset": "Pancreas, Lung, PBMC, Immune",
+      "size": 4,
+      "size_unit": "atlases",
+      "split": "one batch held out, annotator fine-tuned on the others",
+      "primary_metric": "macro-F1",
+      "metric_direction": "higher",
+      "results_url": null,
+      "code_url": null,
+      "data_url": null,
+      "data_licence": null,
+      "code_licence": "Apache-2.0",
+      "released": "2026-11-01",
+      "quotes": [
+        {
+          "source": "@readme",
+          "text": "Annotating a held-out batch from the other batches of four benchmark atlases (macro-F1, mean over batches)"
+        },
+        {
+          "source": "@readme",
+          "text": "| Pancreas | 5 | **0.907** | 0.832 | 0.838 |"
+        },
+        {
+          "source": "@readme",
+          "text": "the encoder and a linear head"
+        },
+        {
+          "source": "@readme",
+          "text": "Apache-2.0, see the repository [LICENSE](../../LICENSE)."
+        },
+        {
+          "source": "@report",
+          "text": "2026-11-01"
+        }
+      ]
+    }
+  ],
+  "notes": "This record is a developer-run study, not a released suite: the model package is public under Apache-2.0 but the benchmark harness is not, so the comparison of eleven models cannot be rerun from the published files. The PDF fetched from the repository has a different sha256 from the copy in the Rewire store (dc2cacf8... against the store's archived text), but the pdftotext -layout output is byte-identical to the store's saved text layer, so the quoted text is the same. Sizes belong to the set they are quoted for: 167,804 cells is the total across the seven atlases as the README states it, 2,778 is the CD4 T-cell subset of one atlas, 3,751 the four B-cell states of the same atlas, and the per-atlas cell counts are in Table 2. The fine-tuning table is HyCell only and covers four atlases, not the eleven-model comparison. The report states the atlas exclusion for HyCell's pretraining only; nothing is recorded about the comparators' corpora. The repository tree address with the commit is not printed in any saved file, so results_url is null and code_url is the repository address the README's install line prints."
+}
