@@ -9,13 +9,19 @@ describe("proxy candidates applied (2026-11-27)", () => {
   const allRecords = loadRecords() as unknown as CatalogueRecord[];
   const inputs = deriveUseCaseInputs({ records: allRecords });
 
-  it("activates all 72 proxy judgements, each pinned", () => {
+  it("keeps the 34 of 72 proxy judgements the second verification pass agreed, each pinned", () => {
     expect(stored).toHaveLength(72);
-    for (const claim of stored) {
+    const current = new Map(allRecords.map((r) => [r.id, r]));
+    const live = stored.filter((c) => current.get(c.id)!.status !== "excluded");
+    expect(live).toHaveLength(34);
+    for (const claim of stored.filter((c) => current.get(c.id)!.status === "excluded"))
+      expect(inputs.mappings.some((m) => m.id === claim.id), String(claim.id)).toBe(false);
+    for (const claim of live) {
       const mapping = inputs.mappings.find((m) => m.id === claim.id);
       expect(mapping?.lifecycle, String(claim.id)).toBe("active");
-      expect(mapping!.relevance, String(claim.id)).toBe("proxy");
-      expect(((claim.attributes.pins as JudgementPin[]) || []).length, String(claim.id)).toBeGreaterThan(0);
+      // The two CASP16 series tests each score one congeneric series, so they are direct.
+      expect(mapping!.relevance, String(claim.id)).toBe(/leakctl-protocol-casp16-l[13]000$/.test(String(claim.id)) ? "direct" : "proxy");
+      expect(((current.get(claim.id)!.attributes.pins as JudgementPin[]) || []).length, String(claim.id)).toBeGreaterThan(0);
     }
   });
 
@@ -33,6 +39,12 @@ describe("proxy candidates applied (2026-11-27)", () => {
       ["use-case-structural-hypotheses-experiments", "ucc-research-protocol-foldbench-rna-monomer"],
       ["use-case-structural-hypotheses-experiments", "acquired-protocol-8068932c1a23c9c3f049"],
       ["use-case-missense-pp3-bp4-calibrated-evidence", "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-non-snv"],
+      // Strata of a tied set, totals of tied parts, and rows that compare no models.
+      ["use-case-missense-pp3-bp4-calibrated-evidence", "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-coding-snv-near-splice-site"],
+      ["use-case-regulatory-variant-gene-follow-up", "gfm-guides-20261014-evo2-brixi2026-protocol-clinvar-noncoding-snv-highly-conserved"],
+      ["use-case-regulatory-variant-gene-follow-up", "traitgym-20261116-protocol-complex-per-trait-best-borzoi-tissue-track-auprc"],
+      ["use-case-structural-hypotheses-experiments", "ucc-docking-cluspro-bm5-2020-protocol-total-top10"],
+      ["use-case-structural-hypotheses-experiments", "lit-structure-20261011-lipp-protocol-rmsd-lipp-331"],
     ]) expect(linked.has(`${useCase}|${protocol}`), protocol).toBe(false);
   });
 });

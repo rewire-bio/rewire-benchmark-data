@@ -8,7 +8,7 @@ nine use cases and 254 judgements go live on merge without one. No human scienti
 claimed, and an independent verification pass is needed.
 
 The verification found 82 of these 254 judgements wrong or unsupported. Its fixes are in
-[use-case-pages-verified-2026-11-28.md](use-case-pages-verified-2026-11-28.md): two use cases were
+[use-case-pages-verified-2026-11-27.md](use-case-pages-verified-2026-11-27.md): two use cases were
 removed, and the counts and sentences below are corrected to the state after it.
 
 Batch: `data/omics/use-case-pages-20261127/`. The questions come from

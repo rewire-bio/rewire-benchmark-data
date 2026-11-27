@@ -34,15 +34,16 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 Eight use cases were added on 27 November from evidence that was in the store and tied to no use case
 ([use-case-pages-2026-11-27.md](reviews/use-cases/use-case-pages-2026-11-27.md),
 [fixes](reviews/use-cases/use-case-pages-fixes-2026-11-27.md),
-[verification](reviews/use-cases/use-case-pages-verified-2026-11-28.md)): genomic element annotation,
+[verification](reviews/use-cases/use-case-pages-verified-2026-11-27.md),
+[second pass](reviews/use-cases/use-case-mapping-second-pass-2026-11-27.md)): genomic element annotation,
 RNA structure, single-cell integration, protein function annotation, protein representation probing,
 protein design quality, glycan properties, and viral and microbial sequence classification. Four rest
 on one study and say so, and none has had a literature search. RNA sequence properties and gene
 regulatory network inference were held after verification; the verification review says what would
 make each publishable. What they still need:
 
-- A second-worker review of the viral and microbial page and of the verification fixes, which the
-  verifier is re-checking. The other pages were verified once, independently.
+- A check by the verifier of the second pass's changes. Every other judgement and page sentence
+  added on 27 November has been verified independently.
 - A literature pass, so each can carry `evidence_checked`.
 - Reviewed protocol records for CAFA3, BEELINE, scIB, CAMI and TAPE, and a cleared source for
   Scaffold-Lab, SCMBench and DeepProtein. These are the second study for function annotation, network

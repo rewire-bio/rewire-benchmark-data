@@ -15,8 +15,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-NOW = "2026-11-28T09:00:00Z"
-REVIEW_DOC = "docs/reviews/use-cases/use-case-pages-verified-2026-11-28.md"
+NOW = "2026-11-27T21:00:00Z"
+REVIEW_DOC = "docs/reviews/use-cases/use-case-pages-verified-2026-11-27.md"
 REVIEWER_NOTE = ("Claude applied the independent verification's verdicts (agent verify-mappings) test by test. "
                  "No human scientific review; the verifier re-checks the changed judgements.")
 spec = importlib.util.spec_from_file_location("pages", HERE.parents[1] / "use-case-pages-20261127/extract/build.py")
@@ -87,7 +87,7 @@ def main(root: Path, out: Path):
                                    "constraints": [f"Compare rows only within this protocol: {proto['name']}."],
                                    "limitations": list(proto["attributes"].get("limitations", []))[:3] or ["One held-out split of one landscape."],
                                    "citation_locators": [{"source_id": t, "locator": locator} for t in proto["source_ids"][:2]],
-                                   "source_locator": locator, "reason": f"Verification fixes, 28 November 2026 ({REVIEW_DOC}).",
+                                   "source_locator": locator, "reason": f"Verification fixes, 27 November 2026 ({REVIEW_DOC}).",
                                    "review": {"method": ["scope-review", "source-hash-verification"], "reviewer": ["claude"],
                                               "reviewer_note": REVIEWER_NOTE, "reviewed_at": NOW,
                                               "note": f"Scope and evaluation gates checked for {len(evs)} evaluations against {REVIEW_DOC}."},

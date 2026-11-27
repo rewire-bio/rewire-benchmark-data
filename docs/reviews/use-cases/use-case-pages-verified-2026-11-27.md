@@ -1,8 +1,12 @@
-# Verification fixes to the new use cases, 2026-11-28
+# Verification fixes to the new use cases, 2026-11-27
 
 Reviewer: `claude`, applying the independent verification by agent `verify-mappings` of batches
 `use-case-mapping-gaps-20261127` and `use-case-pages-20261127` (verdicts in its `verdicts.jsonl`). The verifier re-checks what changed here. No
 human scientific review.
+
+A second verification pass untied two of the viral page's ties and corrected five sentences; see
+[use-case-mapping-second-pass-2026-11-27.md](use-case-mapping-second-pass-2026-11-27.md). The table
+below is as of this batch.
 
 Batch: `data/omics/use-case-pages-verified-20261127/`. `extract/remove.py` removes the two held use
 cases, `extract/ties.json` and `ties.py` name every tie change test by test, and `extract/texts.json`

@@ -4,6 +4,10 @@ Reviewer: `claude`, the agent that drafted the links. Drafter and reviewer are t
 is not the second-worker review `docs/use-cases.md` requires; the team lead's verification pass before
 merge is that review. No human scientific review is claimed.
 
+The verification rejected 40 of these 72 judgements: 38 are withdrawn and 2 regraded to direct in
+[use-case-mapping-second-pass-2026-11-27.md](use-case-mapping-second-pass-2026-11-27.md). Counts below
+are as first applied.
+
 Batch: `data/omics/use-case-mapping-proxy-20261127/`. Its `extract/selection.json` lists each applied
 candidate and each refusal with its reason; `applied.jsonl` lists each link with the protocol passage
 it rests on. The candidates come from `kb/curation/use_case_mapping_candidates.jsonl`

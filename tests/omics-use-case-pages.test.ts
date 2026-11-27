@@ -25,8 +25,10 @@ describe("new use cases (2026-11-27)", () => {
     for (const slug of HELD) expect(inputs.use_cases.some((u) => u.slug === slug), slug).toBe(false);
     const fixes = batchRecords("data/omics/use-case-pages-fixes-20261127");
     expect(fixes.filter((r) => r.kind === "use_case").map((r) => r.attributes.slug)).toEqual(["viral-microbial-sequence-classification"]);
+    // The second verification pass untied GenBench human-vs-worm and long-range species classification.
+    const untied = /genbench-protocol-(short-human-vs-worm|long-species-classification)$/;
     for (const claim of fixes.filter((r) => r.kind === "claim"))
-      expect(inputs.mappings.find((m) => m.id === claim.id)?.lifecycle, String(claim.id)).toBe("active");
+      expect(inputs.mappings.find((m) => m.id === claim.id)?.lifecycle, String(claim.id)).toBe(untied.test(String(claim.id)) ? undefined : "active");
     for (const entry of cases) {
       const published = inputs.use_cases.find((u) => u.slug === entry.attributes.slug);
       expect(published, String(entry.id)).toBeDefined();
@@ -81,7 +83,7 @@ describe("new use cases (2026-11-27)", () => {
       ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-stability"],
       ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-embedding-throughput-h20"],
     ]) expect(linked.has(`${useCase}|${protocol}`), protocol).toBe(false);
-    // The question names splice sites, so splice-site classification is direct (verification, 28 November).
+    // The question names splice sites, so splice-site classification is direct (verification, 27 November).
     const splice = inputs.mappings.filter((m) => m.use_case_id === "use-case-genomic-sequence-element-annotation"
       && /ntbench-protocol-splice-|segmentnt-supplement-2025-task-splice-|genbench-protocol-(long-splice-splice|short-human-splice-site)/.test(m.protocol_id!));
     expect(splice).toHaveLength(13);
