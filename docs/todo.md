@@ -93,8 +93,9 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 ## Running things
 
-18. **No run guide has been executed.** First step: run a handful of small models on CPU, record
-    what each step did, and correct the guide where it fails.
+18. **No run guide has been executed.** [run-guide-trials.md](run-guide-trials.md) runs a guide
+    on a clean GitHub runner with no credentials and returns a receipt. First step: try the
+    cheapest candidates, and correct each guide where it fails.
 19. **Run guide status.** The schema has one status, `source_reviewed_not_executed`. An executed
     guide needs a second, with a receipt: commands, versions, hardware, output hash, time.
 20. **Recipes.** A run guide and a `rewirebench` recipe should share one identity so a guide that

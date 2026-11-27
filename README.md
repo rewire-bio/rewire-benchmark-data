@@ -25,6 +25,7 @@ The website and API that display this data live in [rewire-database](https://git
 | [docs/discrepancies.md](docs/discrepancies.md) | Discrepancies between studies: how they are inferred, served and followed up |
 | [docs/linked-data.md](docs/linked-data.md) | Ontology mapping, vocabulary, inference and the knowledge-graph bundle for MCP clients |
 | [docs/serving-contract.md](docs/serving-contract.md) | Prepared release file the website and API read (issue #31) |
+| [docs/run-guide-trials.md](docs/run-guide-trials.md) | Trying a record's run guide on a clean GitHub Actions runner and reading the receipt |
 | [docs/reviews/](docs/reviews/README.md) | Dated evidence reviews: search logs and value-by-value checks |
 
 Agent skills in [.agents/skills/](.agents/skills) (also linked from `.claude/skills`):
