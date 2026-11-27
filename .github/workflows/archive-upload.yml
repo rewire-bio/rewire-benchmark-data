@@ -132,6 +132,13 @@ jobs:
 
       # Minted here rather than at the top, because an installation token is valid for 60
       # minutes and the hydrate and upload above can take most of this job's 90.
+      # A registry row repeats its object's source ids, and a test holds the two equal. A fetch
+      # that finds a new source pinning an object already held changes the manifest row, so the
+      # registry follows here, in the same commit.
+      - name: Carry changed source ids into the layer registry
+        if: ${{ !inputs.dry_run }}
+        run: python3 scripts/omics/layers/sync-source-ids.py
+
       - name: Token for the rewire-bot app
         id: app
         if: ${{ !inputs.dry_run }}
@@ -155,16 +162,16 @@ jobs:
         run: |
           # Only the manifest moves. The cache is gitignored and nothing else in the tree is
           # touched by an upload, so a diff anywhere else means something unexpected ran.
-          if [ -z "$(git status --porcelain data/archive/objects data/omics/audits)" ]; then
+          if [ -z "$(git status --porcelain data/archive/objects data/omics/audits data/omics/layers)" ]; then
             echo "No manifest row changed: every object the cache holds was already in the bucket."
             exit 0
           fi
-          unexpected=$(git status --porcelain | grep -vE '^ M data/archive/objects/|^\?\? data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$|^ M data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$' || true)
+          unexpected=$(git status --porcelain | grep -vE '^ M data/archive/objects/|^ M data/omics/layers/registry\.jsonl$|^\?\? data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$|^ M data/omics/audits/[0-9-]+-archive-fetch\.receipts\.jsonl$' || true)
           if [ -n "$unexpected" ]; then echo "::error::An upload changed more than the manifest:"; echo "$unexpected"; exit 1; fi
           git config user.name "rewire-release-bot"
           git config user.email "rewire-release-bot@users.noreply.github.com"
           git remote set-url origin "https://x-access-token:$TOKEN@github.com/$GITHUB_REPOSITORY"
-          git add data/archive/objects data/omics/audits
+          git add data/archive/objects data/omics/audits data/omics/layers/registry.jsonl
           git commit -m "Record newly fetched sources and R2 as the home of the uploaded objects [skip ci]"
           # A pull request merged while this ran moves main on. Rebase onto it and push again;
           # the manifest is one line per object keyed on a hash, so a rebase conflicts only with
