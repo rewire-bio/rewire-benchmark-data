@@ -1,11 +1,24 @@
 # Which results in the store belong to a use case and are not tied to one
 
-27 November 2026. A proposal, applied to no record. 29,062 of the store's 52,878 results sit on 1,573
-tests that no use case links, while 11 of 31 boards rank nothing. This review asks which of those
-tests answer a use case's stated question, what each board would become, and what is left over.
-Candidates are in `kb/curation/use_case_mapping_candidates.jsonl` (486 rows, loaded by `kb/curate.py`
-as `use_case_mapping_candidate`, not as truth); nothing in `data/` changed, and section 7 accounts for
-every unmapped test.
+27 November 2026. 29,062 of the store's 52,878 results sit on 1,573 tests that no use case links,
+while 11 of 31 boards rank nothing. This review asks which of those tests answer a use case's stated
+question, what each board would become, and what is left over. Candidates are in
+`kb/curation/use_case_mapping_candidates.jsonl` (521 rows, loaded by `kb/curate.py` as
+`use_case_mapping_candidate`); section 7 accounts for every unmapped test. The counts below are as
+this review was written, before anything was applied.
+
+**Later the same day** the owner asked for the mappings to be applied. 12 candidates became reviewed
+judgements ([use-case-mapping-gaps-2026-11-27.md](use-cases/use-case-mapping-gaps-2026-11-27.md)) and
+nine of section 5's questions became use cases
+([use-case-pages-2026-11-27.md](use-cases/use-case-pages-2026-11-27.md)). Every row of the candidates
+file now carries `state` and, where it was not applied, `not_applied_reason`. Three gradings here
+changed when each test was read again for that pass: PerturBench's Srivatsan20 and PBMC covariate
+transfer are small-molecule, not genetic, perturbations; the Barbosa ClinVar splicing set is labelled
+by clinical classification, which splicing-follow-up excludes, so it is `proxy`, not `direct`; and the
+Evo 2 paper's 38 remaining ClinVar strata, counted as not examined in section 7, were graded in that
+pass (coding SNV strata `proxy` on missense, noncoding strata `proxy` on regulatory variants, the
+SpliceAI-and-Pangolin-low subset `proxy` on splicing, and the indel, microsatellite and non-SNV
+classes `outside_scope`).
 
 ## 1. How a test is tied to a use case today
 

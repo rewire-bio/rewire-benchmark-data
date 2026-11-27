@@ -1,0 +1,323 @@
+[
+ {
+  "slug": "genomic-sequence-element-annotation",
+  "name": "Choose a DNA language model for genomic element annotation",
+  "question": "Which DNA language model, and which way of using it, classifies genomic elements such as promoters, enhancers, splice sites and histone marks most accurately for my sequences?",
+  "area": "dna-genomes",
+  "intended_users": [
+   "Researchers choosing a DNA sequence model to annotate or classify regions of a genome",
+   "Method developers comparing a new DNA language model with published ones"
+  ],
+  "decision": "Choose a DNA language model, and whether to probe its frozen embeddings or fine-tune it, for a sequence annotation task.",
+  "inputs": [
+   "DNA sequences of the element type of interest, with genome build and species",
+   "Labelled examples, or none if only a frozen probe is planned",
+   "A compute budget, which decides whether fine-tuning is possible"
+  ],
+  "output": "Per-task scores for each model under each training regime, with the task's split, kept separate by benchmark.",
+  "setting": "Research genome annotation from sequence. Short-range and long-range tasks, frozen probes and fine-tuning are separate comparisons; a rank on one does not transfer to another.",
+  "exclusions": [
+   "Variant effect prediction, which has its own use cases for missense, regulatory, rare-disease and splicing variants",
+   "Sequence conservation scores and synthetic promoter expression level, which are not element annotation",
+   "Pooling scores across benchmarks: each runs its own models, splits and probes"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on five studies: GenBench, the GENEB leaderboard, SegmentNT, the Nucleotide Transformer benchmark and GUANinE v1.1. The models they cover overlap only partly, so a model ranked well in one may be absent from the others.",
+   "BEND, DART-Eval, GUE, Genomic Benchmarks and Gene-MTEB results are in the store on task records with no protocol, so they cannot carry a judgement yet.",
+   "GENEB is recorded as two benchmark records, the leaderboard and GENEB, which are probably one benchmark.",
+   "No conventional baseline, such as a k-mer or position-weight-matrix classifier, is recorded as the reference these models must beat.",
+   "Automated source review only. No human scientific review, and nothing here was reproduced."
+  ],
+  "search_terms": [
+   "DNA language model",
+   "genomic foundation model",
+   "promoter prediction",
+   "enhancer prediction",
+   "splice site prediction",
+   "histone mark prediction",
+   "genome annotation benchmark"
+  ]
+ },
+ {
+  "slug": "rna-structure-prediction",
+  "name": "Predict RNA structure to guide an experiment",
+  "question": "Which method predicts an RNA's three-dimensional structure reliably enough to plan an experiment on it?",
+  "area": "rna-transcriptomes",
+  "intended_users": [
+   "Structural biologists choosing an RNA structure predictor",
+   "Researchers designing mutations, probes or constructs from a predicted RNA fold"
+  ],
+  "decision": "Choose an RNA structure predictor, and judge how far to trust its model for a given RNA.",
+  "inputs": [
+   "An RNA sequence, and its partners if it forms a complex",
+   "Whether similar structures were released before the method's training cut-off"
+  ],
+  "output": "Accuracy of predicted structures on targets the methods had not seen, separately for easy and hard sets and for monomers and complexes.",
+  "setting": "Research RNA structural biology. Monomers, RNA-RNA complexes and RNA-protein complexes are separate comparisons, as are easy and hard sets.",
+  "exclusions": [
+   "Inverse folding and RNA sequence design",
+   "Secondary structure read from a language model's attention map, which measures what the model learned rather than a usable structure"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on two studies: the independent benchmark of Ludaic and Elofsson 2026, and the RhoFold+ paper's retrospective comparison on the six natural CASP15 targets, which is one developer's table and takes the best of five models.",
+   "Wang et al. 2026 read secondary structure from language-model attention maps on the same kind of RNA. That is excluded here as a probe of the model rather than a usable structure, so the question has only the two studies above.",
+   "NABench's results and the RNA secondary-structure comparisons reported in single papers are on task records or unreviewed protocols, so they are not linked.",
+   "No method here has been run by Rewire, and no uncertainty is recorded for any of these accuracies.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "RNA structure prediction",
+   "RNA 3D structure",
+   "CASP15 RNA",
+   "RNA-protein complex prediction",
+   "RhoFold"
+  ]
+ },
+ {
+  "slug": "rna-sequence-property-prediction",
+  "name": "Choose an RNA language model to predict sequence properties",
+  "question": "Which RNA language model best predicts a property of an RNA from its sequence, such as the fitness of its mutants or its family and type?",
+  "area": "rna-transcriptomes",
+  "intended_users": [
+   "Researchers choosing an RNA language model for a sequence-to-property task",
+   "RNA engineers ranking mutated or designed sequences before making them"
+  ],
+  "decision": "Choose an RNA language model, and whether to score sequences zero-shot or train a probe on its embeddings.",
+  "inputs": [
+   "RNA sequences and the property to predict",
+   "Measured labels for part of the set, if a probe will be trained"
+  ],
+  "output": "Per-task scores for each model, kept within each benchmark and each training regime.",
+  "setting": "Research RNA biology and engineering. Zero-shot scoring and trained probes are separate comparisons.",
+  "exclusions": [
+   "RNA structure prediction, which has its own use case",
+   "Clinical interpretation of RNA variants",
+   "Benchmark-wide averages that pool unrelated tasks"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on two studies: the zero-shot evaluation of 21 RNA language models by Wang et al. 2026, and the RNAGym fitness leaderboard.",
+   "The fitness assays are 31 non-coding RNA deep mutational scans (ribozyme, tRNA and aptamer). No mRNA fitness assay is linked.",
+   "mRNABench's own results, BEACON and NABench are on task records or unreviewed protocols, so an mRNA property comparison (ribosome load, half-life, localisation) cannot be linked yet, although the results are in the store.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "RNA language model",
+   "RNA fitness prediction",
+   "RNAGym",
+   "RNA family classification",
+   "zero-shot RNA"
+  ]
+ },
+ {
+  "slug": "single-cell-data-integration",
+  "name": "Integrate single-cell datasets and correct batch effects",
+  "question": "Which method combines single-cell datasets from different batches, laboratories or technologies while keeping the biological differences between cells?",
+  "area": "cells-tissues",
+  "intended_users": [
+   "Single-cell analysts combining datasets into one atlas or reference",
+   "Method developers comparing integration methods or pretrained embeddings"
+  ],
+  "decision": "Choose an integration method or a pretrained embedding for combining single-cell datasets.",
+  "inputs": [
+   "Count matrices from several batches, with batch labels and cell-type labels where known",
+   "Whether an embedding may be trained on the data or must stay frozen"
+  ],
+  "output": "Batch-correction and biological-conservation scores for each method on the same datasets, and the trade-off between the two.",
+  "setting": "Research single-cell analysis. Batch removal and conservation of biology pull against each other, so they are reported separately and never summed into one verdict without saying how.",
+  "exclusions": [
+   "Transferring cell-type labels to a new dataset, which has its own use case",
+   "Clustering agreement or embedding separation presented as correct cell identity"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on one study, the HyCell technical report, which scores frozen embeddings of eleven pretrained models and PCA of the counts on seven held-out atlases. It is one developer's evaluation of its own model among others, and one study cannot settle the question.",
+   "scIB's own published results are in the store, but each result's scoring conditions carry the method configuration, so no two methods ever fall in one comparison group, and its protocol record is not reviewed.",
+   "SCMBench's RNA-ATAC integration and the Open Problems integration tasks are unreviewed or on task records, so they are not linked.",
+   "No method here has been run by Rewire. Automated source review only."
+  ],
+  "search_terms": [
+   "single-cell integration",
+   "batch correction",
+   "scIB",
+   "atlas integration",
+   "single-cell foundation model embedding"
+  ]
+ },
+ {
+  "slug": "protein-function-annotation",
+  "name": "Annotate protein function from sequence",
+  "question": "Which method assigns functions, such as Gene Ontology terms or enzyme classes, to protein sequences that have no close annotated relative?",
+  "area": "proteins-complexes",
+  "intended_users": [
+   "Researchers annotating proteins from a new genome, metagenome or design campaign",
+   "Method developers comparing function predictors"
+  ],
+  "decision": "Choose a function prediction method, and decide whether its accuracy is enough to annotate without manual curation.",
+  "inputs": [
+   "Protein sequences",
+   "Whether close homologues with known function exist, which sets what a sequence-similarity baseline would achieve"
+  ],
+  "output": "Accuracy of each method on held-out proteins, separately for molecular function, biological process, cellular component and enzyme class.",
+  "setting": "Research protein annotation. Prospective evaluation, where proteins are annotated after the predictions were submitted, is stronger evidence than a fixed held-out split and is kept apart from it.",
+  "exclusions": [
+   "Predicting the effect of mutations on function, which has its own use cases",
+   "Structure prediction, and function inferred from a predicted structure without a scored evaluation"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on one study, the HyPLM technical report, which probes frozen protein language model embeddings on Gene Ontology and enzyme-class tasks with fixed splits. One study cannot settle the question.",
+   "CAFA3's prospective evaluation is in the store, with three protocols (one per ontology) and 438 entries. Its protocol records are not reviewed, so it is not linked; it is the stronger evidence for this question once reviewed.",
+   "No sequence-similarity baseline, such as BLAST transfer of the nearest annotated neighbour, is recorded as the reference these methods must beat.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "protein function prediction",
+   "GO term prediction",
+   "EC number prediction",
+   "CAFA",
+   "protein annotation"
+  ]
+ },
+ {
+  "slug": "gene-regulatory-network-inference",
+  "name": "Infer a gene regulatory network from single-cell expression",
+  "question": "Which method infers a gene regulatory network from single-cell expression data that agrees with known regulation?",
+  "area": "biological-networks",
+  "intended_users": [
+   "Researchers inferring transcription factor to gene links from single-cell data",
+   "Method developers comparing network inference methods"
+  ],
+  "decision": "Choose a network inference method, and decide how far to trust the edges it ranks highest.",
+  "inputs": [
+   "A single-cell expression matrix, optionally with chromatin accessibility",
+   "A list of candidate transcription factors",
+   "The reference network or held-out data the result will be judged against"
+  ],
+  "output": "Agreement of each method's ranked network with the reference, by the benchmark's own metrics, with the reference's kind stated.",
+  "setting": "Research regulatory genomics. Reference networks differ in kind (ChIP-seq binding, perturbation response, curated literature), and a score against one does not transfer to another.",
+  "exclusions": [
+   "Predicting expression after a perturbation, which has its own use case",
+   "Causal claims: agreement with a reference network does not establish that an edge is causal"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on one study, the geneRNIB result reported in the PerturbPFN paper. One study cannot settle the question.",
+   "The comparators in that result are recorded with origin paper_compilation, numbers the PerturbPFN paper copied from the geneRNIB leaderboard, so the board leaves them out and the use case has no comparison of two systems measured by one study yet.",
+   "BEELINE's results are in the store, recorded from three source-data files of one paper (Pratapa et al. 2020). They are one study, not three, although the store currently counts them as three because none of the three source records carries the paper's DOI in its doi field (docs/reviews/2026-11-27-use-case-mapping-gaps.md, section 8). Its 62 protocol records are not reviewed, so they are not linked.",
+   "No comparison of the same methods on the same data by two independent studies is linked.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "gene regulatory network inference",
+   "GRN inference",
+   "BEELINE",
+   "geneRNIB",
+   "GENIE3",
+   "GRNBoost2"
+  ]
+ },
+ {
+  "slug": "protein-representation-property-prediction",
+  "name": "Choose a protein language model representation for property prediction",
+  "question": "Which protein language model's representation gives the best predictions of a measured protein property when a probe is trained on its embeddings?",
+  "area": "proteins-complexes",
+  "intended_users": [
+   "Protein engineers choosing an embedding to train a property predictor on",
+   "Method developers comparing protein language models as feature extractors"
+  ],
+  "decision": "Choose a protein language model to embed sequences with, and a probe to train on those embeddings, for a measured property.",
+  "inputs": [
+   "Protein sequences and measured labels for the property",
+   "A split that reflects how the predictor will be used, such as holding out high-mutation or unseen-target sequences",
+   "A compute budget for embedding and probing"
+  ],
+  "output": "Per-task scores for each model's frozen representation under the same probe and split, with the throughput each model needs.",
+  "setting": "Research protein engineering and annotation. Frozen-representation probing only: a score here does not say how a model would do fine-tuned.",
+  "exclusions": [
+   "Zero-shot variant effect scoring from a model's likelihood, which is the protein variant effect use case",
+   "Function annotation against an ontology, which has its own use case",
+   "Folding stability of substitutions as an endpoint on its own, which is the protein stability use case; whole-protein melting temperature is kept, as a measured property of the protein",
+   "Pretraining perplexity and likelihood, which measure the model's fit to sequences rather than a property",
+   "Embedding throughput and other resource measures, which are a cost rather than a property score"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on one study, the HyPLM technical report, which runs 29 models from 13 families through the same evaluation code. It is one developer's evaluation including its own model, and one study cannot settle the question.",
+   "FLIP, FLIP2, PFMBench, TAPE and the DeepProtein benchmark results are in the store but their protocol records are not reviewed, so the question has no second study linked.",
+   "Each task is one split of one dataset; no uncertainty is recorded for any score.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "protein language model",
+   "frozen embedding probe",
+   "protein property prediction",
+   "FLIP",
+   "thermostability prediction",
+   "localization prediction"
+  ]
+ },
+ {
+  "slug": "protein-design-quality",
+  "name": "Judge the quality of generated protein backbones",
+  "question": "Which generative model produces protein backbones that are designable, diverse and unlike known structures?",
+  "area": "protein-structure",
+  "intended_users": [
+   "Protein designers choosing a generative model for unconditional backbone generation",
+   "Method developers comparing generative protein models"
+  ],
+  "decision": "Choose a generative model for producing backbones to take forward to sequence design and testing.",
+  "inputs": [
+   "The length range of the backbones wanted",
+   "How many designs can be generated and screened computationally"
+  ],
+  "output": "Designability, diversity and novelty of generated backbones at each length, measured in silico.",
+  "setting": "Research protein design, unconditional generation with no target. Every measure here is computational; none says a design will fold or function when made.",
+  "exclusions": [
+   "Designing a binder to a chosen target, which has its own use case",
+   "Any claim that a generated backbone will express, fold or function: nothing here is made or tested",
+   "Sequence design and inverse folding"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on one study, the Genie 3 paper's Table 3, which compares 13 method and version rows at short monomer lengths. It is one developer's table including its own model.",
+   "ProteinBench's backbone, co-design and sequence generation tracks are in the store on task records, so they cannot carry a judgement yet; Scaffold-Lab's protocols are not reviewed.",
+   "Designability is measured by self-consistency through a structure predictor, so a model that matches the predictor's biases scores well. No experimental outcome is linked.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "protein backbone generation",
+   "designability",
+   "self-consistency RMSD",
+   "Genie",
+   "protein diffusion model"
+  ]
+ },
+ {
+  "slug": "glycan-property-prediction",
+  "name": "Predict glycan properties from structure",
+  "question": "Which model predicts a glycan's taxonomy, immunogenicity or glycosylation type from its structure?",
+  "area": "glycans",
+  "intended_users": [
+   "Glycobiologists choosing a model to annotate or screen glycan structures",
+   "Method developers comparing glycan representation models"
+  ],
+  "decision": "Choose a model for predicting a glycan property from its structure.",
+  "inputs": [
+   "Glycan structures in a machine-readable form",
+   "Labels for the property, which decide which tasks apply"
+  ],
+  "output": "Per-task accuracy and macro-F1 for each model on the same splits.",
+  "setting": "Research glycobiology. Taxonomic prediction, immunogenicity and glycosylation type are separate tasks and are not pooled.",
+  "exclusions": [
+   "Glycan-protein interaction prediction, which these tasks do not measure",
+   "Any clinical or immunological conclusion from an immunogenicity score"
+  ],
+  "evidence_gaps": [
+   "The linked evidence rests on one study, the GlycanGT paper's Supplementary Table S4, which compares four models on the GlycanML tasks. One study cannot settle the question.",
+   "GlycanML's own published results are in the store but their evaluations link a method rather than a configuration, so they cannot carry a judgement yet.",
+   "Taxonomic labels at kingdom to species level are highly imbalanced, and no uncertainty is recorded.",
+   "Automated source review only. No human scientific review."
+  ],
+  "search_terms": [
+   "glycan property prediction",
+   "GlycanML",
+   "glycan taxonomy",
+   "glycan immunogenicity"
+  ]
+ }
+]

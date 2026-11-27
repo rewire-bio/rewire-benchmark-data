@@ -1,0 +1,72 @@
+import { describe, expect, it } from "vitest";
+import { loadRecords } from "../scripts/omics/records";
+import { deriveUseCaseInputs, type JudgementPin } from "../shared/omics/use-cases";
+import type { CatalogueRecord } from "../shared/omics/catalogue-query";
+import { batchRecords } from "./helpers/records";
+
+const BATCH = "data/omics/use-case-pages-20261127";
+const SLUGS = [
+  "genomic-sequence-element-annotation", "rna-structure-prediction", "rna-sequence-property-prediction",
+  "single-cell-data-integration", "protein-function-annotation", "gene-regulatory-network-inference",
+  "protein-representation-property-prediction", "protein-design-quality", "glycan-property-prediction",
+];
+
+describe("new use cases (2026-11-27)", () => {
+  const stored = batchRecords(BATCH);
+  const allRecords = loadRecords() as unknown as CatalogueRecord[];
+  const inputs = deriveUseCaseInputs({ records: allRecords });
+  const cases = stored.filter((r) => r.kind === "use_case");
+  const claims = stored.filter((r) => r.kind === "claim");
+
+  it("adds nine research-only use cases, each citing sources and stating how many studies it rests on", () => {
+    expect(cases.map((c) => c.attributes.slug).sort()).toEqual([...SLUGS].sort());
+    for (const entry of cases) {
+      const published = inputs.use_cases.find((u) => u.slug === entry.attributes.slug);
+      expect(published, String(entry.id)).toBeDefined();
+      expect(published!.contexts, String(entry.id)).toEqual(["research"]);
+      expect(entry.source_ids.length, String(entry.id)).toBeGreaterThan(0);
+      expect(published!.citations.length, String(entry.id)).toBeGreaterThan(0);
+      // Every page says what its evidence rests on, so a one-study page does not read as settled.
+      expect(published!.evidence_gaps.some((gap) => /\bstud(y|ies)\b/.test(gap)), String(entry.id)).toBe(true);
+      expect(published!.clinical_scope, String(entry.id)).toMatch(/Research only/);
+      // No literature search ran for these questions, so none claims a checked date.
+      expect(published!.evidence_checked, String(entry.id)).toBeUndefined();
+      expect([1, 2, 3], String(entry.id)).toContain(entry.attributes.depth_tier);
+    }
+  });
+
+  it("activates every judgement it adds, with pins and eligible evaluations", () => {
+    expect(claims).toHaveLength(254);
+    for (const claim of claims) {
+      const mapping = inputs.mappings.find((m) => m.id === claim.id);
+      expect(mapping, String(claim.id)).toBeDefined();
+      expect(mapping!.lifecycle, String(claim.id)).toBe("active");
+      expect(mapping!.evaluation_ids.length, String(claim.id)).toBeGreaterThan(0);
+      expect(((claim.attributes.pins as JudgementPin[]) || []).length, String(claim.id)).toBeGreaterThan(0);
+    }
+  });
+
+  it("keeps the questions apart: variant effect, annotation transfer and binder design stay where they were", () => {
+    const linked = new Set(inputs.mappings.map((m) => `${m.use_case_id}|${m.protocol_id}`));
+    for (const [useCase, protocol] of [
+      // Zero-shot likelihood scoring is the protein variant effect question, not representation probing.
+      ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-proteingym-zero-shot"],
+      // Annotation transfer stays on the annotation use case.
+      ["use-case-single-cell-data-integration", "hycell-20261106-protocol-annotation-transfer-knn"],
+      // Conservation and variant scoring are not element annotation.
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-guanine-protocol-cons30"],
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-guanine-protocol-clinvar-snv"],
+      ["use-case-genomic-sequence-element-annotation", "lit-genomics-20261011-guanine-protocol-gpra-c"],
+      // The RNA structure use case excludes attention-map secondary structure in as many words.
+      ["use-case-rna-structure-prediction", "lit-rna-20261011-rnalm-zeroshot-protocol-t4-mcc-mean"],
+      // Folding stability of substitutions is the protein stability question; throughput is a cost.
+      ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-stability"],
+      ["use-case-protein-representation-property-prediction", "hyplm-flash-20261106-protocol-embedding-throughput-h20"],
+    ]) expect(linked.has(`${useCase}|${protocol}`), protocol).toBe(false);
+    // Splice-site tasks are proxy here because the splicing use cases hold the same tasks.
+    const splice = inputs.mappings.filter((m) => m.use_case_id === "use-case-genomic-sequence-element-annotation"
+      && /ntbench-protocol-splice-|segmentnt-supplement-2025-task-splice-|genbench-protocol-(long-splice-|short-human-splice-site)/.test(m.protocol_id!));
+    expect(splice.length).toBeGreaterThan(0);
+    for (const m of splice) expect(m.relevance, m.protocol_id).toBe("proxy");
+  });
+});
