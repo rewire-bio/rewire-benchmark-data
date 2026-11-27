@@ -25,6 +25,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
+      default_python: ${{ steps.plan.outputs.default_python }}
       session_seconds: ${{ steps.plan.outputs.session_seconds }}
       step_timeout_minutes: ${{ steps.plan.outputs.step_timeout_minutes }}
       job_timeout_minutes: ${{ steps.plan.outputs.job_timeout_minutes }}
@@ -61,11 +62,36 @@ jobs:
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
           df -h /
 
-      - name: Set up the Python the guide names
-        if: matrix.python != ''
+      # The guide's Python, or the harness default when the guide names none. If that version cannot
+      # be set up, the default is tried, then the runner's own Python; the receipt records which.
+      - name: Set up Python ${{ matrix.python }} (chosen by ${{ matrix.python_chosen_by }})
+        id: python
+        continue-on-error: true
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+
+      - name: Set up the default Python instead
+        id: python_default
+        if: steps.python.outcome == 'failure' && matrix.python != needs.setup.outputs.default_python
+        continue-on-error: true
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ needs.setup.outputs.default_python }}
+
+      # Miniforge, installed by root and read-only to the trial user: conda puts that user's
+      # environments and package cache under its own home. Pinned by version and checksum.
+      - name: Install conda
+        env:
+          MINIFORGE_VERSION: 26.9.4-2
+          MINIFORGE_SHA256: bbaf16b3897da24c4be50315934ba74848f617b4495982841d6a0a60e0edbbdf
+        run: |
+          installer="$RUNNER_TEMP/miniforge.sh"
+          curl -fsSL -o "$installer" "https://github.com/conda-forge/miniforge/releases/download/$MINIFORGE_VERSION/Miniforge3-$MINIFORGE_VERSION-Linux-x86_64.sh"
+          echo "$MINIFORGE_SHA256  $installer" | sha256sum --check
+          sudo bash "$installer" -b -p /opt/conda
+          sudo chmod -R go-w /opt/conda
+          /opt/conda/bin/conda --version
 
       - name: Prepare the trial user, script and environment
         run: |
@@ -96,23 +122,34 @@ jobs:
             PATH="$TRIAL_PATH" \
             TRIAL_TIMEOUT_SECONDS="$SESSION_SECONDS" \
             TRIAL_VENV=/trial/home/venv \
-            TRIAL_CONDA="${CONDA:-}" \
+            TRIAL_CONDA=/opt/conda \
             bash /trial/run-guide.sh /trial/run > /dev/null 2> "$RUNNER_TEMP/harness.log"
 
       - name: Stop the trial user's processes
         if: always()
         run: |
-          sudo pkill -KILL -u trial || true
-          sleep 2
-          sudo chown -R --no-dereference "$(id -u):$(id -g)" /trial/run
-          chmod -R u+rwX /trial/run
+          if id trial > /dev/null 2>&1; then sudo pkill -KILL -u trial || true; sleep 2; fi
+          if [ -d /trial/run ]; then
+            sudo chown -R --no-dereference "$(id -u):$(id -g)" /trial/run
+            chmod -R u+rwX /trial/run
+          fi
 
       - name: Build the receipt
         if: always()
+        env:
+          PYTHON_OUTCOME: ${{ steps.python.outcome }}
+          DEFAULT_PYTHON_OUTCOME: ${{ steps.python_default.outcome }}
         run: |
-          python3 scripts/runs/trial.py receipt /trial/run "$RECORD_ID" --out-dir "$RUNNER_TEMP/receipt"
+          if [ "$PYTHON_OUTCOME" = success ]; then python_setup=ok
+          elif [ "$DEFAULT_PYTHON_OUTCOME" = success ]; then python_setup=failed_used_default
+          else python_setup=failed_used_runner_python; fi
+          code=0
+          python3 scripts/runs/trial.py receipt /trial/run "$RECORD_ID" --out-dir "$RUNNER_TEMP/receipt" --python-setup "$python_setup" || code=$?
           if [ -s "$RUNNER_TEMP/harness.log" ]; then cp "$RUNNER_TEMP/harness.log" "$RUNNER_TEMP/receipt/"; fi
-          python3 scripts/runs/trial.py summary "$RUNNER_TEMP/receipt/receipt.json" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$RUNNER_TEMP/receipt/receipt.json" ]; then
+            python3 scripts/runs/trial.py summary "$RUNNER_TEMP/receipt/receipt.json" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$code"
 
       - name: Keep the receipt and logs
         if: always()
