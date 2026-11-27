@@ -301,5 +301,343 @@
   },
   "notes": "The repository was found by a GitHub name search; its README names the paper, which matches the preprint by Gong and Bu (2024), so it is treated as official. Revision of 2026-11-27: the full bioRxiv v1 text is now read. The PDF has no bioRxiv banner and states no licence; the source record takes CC-BY-ND-4.0 from the bioRxiv details API. The text layer carries author email addresses; none is copied to the page. The parameter count in structured is the paper's figure for its model; no saved file counts weight.pth.",
   "no_run_guide_reason": ""
+ },
+ "vep-uc-20261014-model-promoterai": {
+  "slug": "promoterai",
+  "new_source_ids": [
+   "model-pages-20261126-batch4-promoterai-source-readme",
+   "model-pages-20261126-batch4-promoterai-source-license",
+   "model-pages-20261126-batch4-promoterai-source-setup",
+   "model-pages-20261126-batch4-promoterai-source-architecture",
+   "model-pages-20261126-batch4-promoterai-source-paper-abstract",
+   "model-pages-20261126-batch4-promoterai-source-issue-3",
+   "model-pages-20261126-batch4-promoterai-source-issue-10",
+   "model-pages-20261126-batch4-promoterai-source-issue-10-question",
+   "model-pages-20261126-batch4-promoterai-source-github-repo",
+   "paper-full-texts-20261127b-source-promoterai-paper-text"
+  ],
+  "profile": {
+   "summary": "PromoterAI is a deep learning model from Illumina that predicts how a variant in a gene promoter changes that gene's expression. It takes a list of variants (chromosome, position, reference and alternative allele, strand) and a reference genome, and adds a score between -1 and 1 to each variant: negative values mean lower expression and positive values mean higher expression. The authors built it to find noncoding promoter variants that may explain rare genetic diseases.",
+   "summary_source_ids": [
+    "model-pages-20261126-batch4-promoterai-source-readme",
+    "model-pages-20261126-batch4-promoterai-source-paper-abstract"
+   ],
+   "summary_source_locator": "README.md: introduction and Variant effect prediction; Europe PMC abstract",
+   "sections": [
+    {
+     "title": "How it works",
+     "body": "PromoterAI is a convolutional network written in TensorFlow and Keras. In the paper, a 20,480-base one-hot sequence is widened to 1,024 channels and passed through 24 MetaFormer blocks, each a depthwise convolution and a feed-forward step with batch normalisation and residual connections, with kernel size 5 and dilations chosen to cover 16,384 bases. The outputs of every fourth block are averaged to predict 970 human and mouse regulatory profiles over the central 4,096 positions. The model was first trained on these profiles around annotated transcription start sites, then fine-tuned on rare GTEx promoter variants with known expression effects; only the output layers, about 3 million parameters, were tuned. A variant's score is the alternative minus the reference prediction, averaged over positions and channels.",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-architecture",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "paper: Materials and methods (Model architecture, Model training, Model fine-tuning, Variant score)"
+    },
+    {
+     "title": "Versions and reproducibility",
+     "body": "The paper's score is the average of two models: one trained and fine-tuned on human data only, and one on human and mouse data. The README's scoring command takes a single model folder and describes no averaging step. The Python package is at version 1.0rc6 in the repository read here. In June 2025 the authors said they had released the code and precomputed scores but not the model weights; in September 2025 they said the download link is sent by email after the licence agreement linked from the README is completed. The sources read do not name or version the distributed weights, so a result should name the package version, the repository commit, the model folder or folders used and the input length (20480).",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-setup",
+      "model-pages-20261126-batch4-promoterai-source-issue-3",
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "paper: Model ensemble, Variant score; README.md: scoring; setup.py; issues 3 and 10"
+    },
+    {
+     "title": "Scores and thresholds",
+     "body": "Scores run from -1 to 1. The README recommends cut-offs at 0.1, 0.2 and 0.5 in absolute value. Because a promoter variant acts through one gene's strand, each variant row needs a strand; if it is unknown, the README says to score both strands as separate rows and combine the results. Precomputed scores for all human promoter single nucleotide variants are available for academic and non-commercial research after the licence agreement.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: introduction and Variant effect prediction"
+    }
+   ],
+   "facts": [
+    {
+     "label": "Model type",
+     "value": "Supervised deep neural network for promoter variant effect prediction on gene expression.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-paper-abstract"
+     ],
+     "source_locator": "README.md: introduction; Europe PMC abstract"
+    },
+    {
+     "label": "Architecture",
+     "value": "1D convolutional network: input widened from 4 to 1,024 channels, then 24 MetaFormer blocks (depthwise convolution with kernel size 5 and a feed-forward step, each with batch normalisation and a residual connection); the outputs of every fourth block pass through a dense layer and are averaged. Output: 970 profiles over the central 4,096 positions.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-architecture",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "paper: Model architecture"
+    },
+    {
+     "label": "Inputs",
+     "value": "A TSV of variants with columns chrom, pos, ref, alt and strand, plus a reference genome FASTA file. Single nucleotide variants and left-normalised indels are accepted.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "label": "Outputs",
+     "value": "One score per variant row, from -1 (under-expression) to 1 (over-expression), written as a new column named score in a copy of the variant file.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: introduction and Variant effect prediction"
+    },
+    {
+     "label": "Parameters",
+     "value": "About 208 million trainable parameters per model, as the paper states; the fine-tuning step tuned about 3 million of them. The published score uses two such models. The distributed weight files are not named in the sources read.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Model architecture, Model fine-tuning"
+    },
+    {
+     "label": "Training data",
+     "value": "970 regulatory profiles (498 human, 472 mouse): ENCODE histone, accessibility and transcription factor tracks (310 human and 192 mouse experiments after filtering) and FANTOM5 CAGE tracks, in 4,096-base windows around 244,939 GENCODE v39 and 81,540 GENCODE vM25 transcription start sites. Fine-tuned on 57,795 rare promoter variants from GTEx v8 with expression effects from RNA-seq.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "paper: Training dataset, Model training, Model fine-tuning"
+    },
+    {
+     "label": "Known versions",
+     "value": "Python package promoterai 1.0rc6 in the repository read here. The sources read do not name the distributed model checkpoints.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-setup"
+     ],
+     "source_locator": "setup.py"
+    },
+    {
+     "label": "Training cutoff",
+     "value": "No date is given. The data versions named are GENCODE v39 and vM25 for the training windows and GTEx v8 for fine-tuning.",
+     "status": "source_checked",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Model training; GTEx multi-tissue expression outliers"
+    },
+    {
+     "label": "Context limits",
+     "value": "20,480 bases of input sequence, as in the paper and the README scoring and training commands; predictions cover the central 4,096 positions. Training preprocessing writes 32,768-base windows.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Model architecture; README.md"
+    },
+    {
+     "label": "Weights licence",
+     "value": "Licence agreement with Illumina; weights are shared by email after the agreement linked from the README is completed. Commercial use is by purchase from Illumina.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "issue 10 collaborator reply; README.md: introduction"
+    },
+    {
+     "label": "Code licence",
+     "value": "PolyForm Strict License 1.0.0: noncommercial use only, no distribution and no changes or new works based on the software. GitHub lists the repository licence as NOASSERTION.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-license",
+      "model-pages-20261126-batch4-promoterai-source-setup",
+      "model-pages-20261126-batch4-promoterai-source-github-repo"
+     ],
+     "source_locator": "LICENSE; setup.py; GitHub API licence field"
+    },
+    {
+     "label": "Access",
+     "value": "Code: https://github.com/Illumina/PromoterAI and the pip package promoterai. Weights and precomputed scores: by email after completing the licence agreement linked from the README. Commercial licences are handled by Illumina; the README gives a contact.",
+     "status": "source_checked",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "README.md: introduction and Installation; issue 10 collaborator reply"
+    }
+   ],
+   "strengths": [
+    {
+     "text": "Works from plain variant coordinates and a reference genome, and handles both single nucleotide variants and left-normalised indels.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "text": "Gives a signed score, so a user can tell predicted loss of expression from predicted gain, and the README gives thresholds to apply.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: introduction"
+    },
+    {
+     "text": "The authors report a correlation of 0.63 between PromoterAI scores and effect sizes measured for 686 promoter eQTLs in an assay of fine-mapped variants (the authors' figure).",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Results, Fig. 3E"
+    },
+    {
+     "text": "Training, preprocessing and fine-tuning code is included, along with the benchmark and training annotation files, so the model can be retrained.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-3"
+     ],
+     "source_locator": "README.md: Model training and fine-tuning; issue 3 collaborator reply"
+    }
+   ],
+   "limitations": [
+    {
+     "text": "Not open source: the code is under the PolyForm Strict licence (noncommercial, no distribution, no derivative works), and commercial use of scores and models must be bought from Illumina.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-license",
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "LICENSE; README.md: introduction"
+    },
+    {
+     "text": "The weights are not downloadable directly. They are sent by email after a licence agreement, and the scoring command cannot run without a model folder.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-issue-10",
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+     ],
+     "source_locator": "issue 10 collaborator reply; README.md: Variant effect prediction"
+    },
+    {
+     "text": "Each variant needs a strand. If the strand is unknown the user must score both strands and combine the results themselves.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "text": "The authors state that the model is limited by the modest number of gene expression measurements available for training, and may miss tissue-specific effects and variants further from the transcription start site.",
+     "source_ids": [
+      "paper-full-texts-20261127b-source-promoterai-paper-text"
+     ],
+     "source_locator": "paper: Discussion"
+    }
+   ],
+   "diagram": {
+    "title": "PromoterAI workflow",
+    "steps": [
+     "Variant TSV (chrom, pos, ref, alt, strand)",
+     "Reference genome FASTA",
+     "Reference and alternative sequences, 20,480 bases",
+     "Convolutional network predicts regulatory profiles for each",
+     "Difference averaged into a score from -1 to 1",
+     "Score column added to the variant file"
+    ],
+    "caption": "PromoterAI scores a promoter variant by comparing the model's predictions for the reference and the alternative sequence.",
+    "source_ids": [
+     "model-pages-20261126-batch4-promoterai-source-readme",
+     "model-pages-20261126-batch4-promoterai-source-architecture"
+    ],
+    "source_locator": "README.md: Variant effect prediction; promoterai/architecture.py: twin_wrap"
+   },
+   "coverage": "reviewed",
+   "gaps": [
+    "The supplementary materials (figs. S1 to S8, tables S1 to S6) are not in the saved PDF.",
+    "The sources read do not name the distributed weight files or say whether they are one model or the two-model ensemble.",
+    "The exact list of ENCODE and FANTOM5 tracks is in data/bigwig/hg38.tsv, which was not fetched."
+   ],
+   "review": {
+    "method": "automated_source_review",
+    "date": "2026-11-27",
+    "note": "Read README.md, LICENSE, setup.py and promoterai/architecture.py of Illumina/PromoterAI at commit ce9fcd080556d7e962a5946327fe8fd1a04e272b, the GitHub repository metadata, the Europe PMC abstract and GitHub issues 3 and 10 on 2026-11-26, and revised on 2026-11-27 from the text layer of the Science First Release PDF, which the owner downloaded that day. No command was executed and no human review is claimed."
+   }
+  },
+  "run_guide": {
+   "record_id": "vep-uc-20261014-model-promoterai",
+   "summary": "Install PromoterAI and score a small variant file against a reference genome, using a model folder obtained under the licence agreement.",
+   "status": "source_reviewed_not_executed",
+   "prerequisites": [
+    "Python 3.8 or later, with TensorFlow 2.13 to 2.15 and Keras 2 (installed by pip).",
+    "CPU or GPU; tested on H100 and A100 GPUs.",
+    "A trained PromoterAI model folder, sent by email after completing the licence agreement linked from the README. Noncommercial use only under the PolyForm Strict licence.",
+    "A reference genome FASTA file matching the variant coordinates."
+   ],
+   "steps": [
+    {
+     "title": "Get the code at the pinned commit",
+     "shell": "git clone https://github.com/Illumina/PromoterAI\ncd PromoterAI\ngit checkout --detach ce9fcd080556d7e962a5946327fe8fd1a04e272b",
+     "explanation": "Clones the official repository. The checkout line, added here, pins the commit this page was written from.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Installation"
+    },
+    {
+     "title": "Install",
+     "shell": "pip install -e .",
+     "explanation": "Installs the package and the promoterai command. For scoring only, the README also allows pip install promoterai.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme",
+      "model-pages-20261126-batch4-promoterai-source-setup"
+     ],
+     "source_locator": "README.md: Installation; setup.py"
+    },
+    {
+     "title": "Prepare a variant file",
+     "shell": "printf 'chrom\\tpos\\tref\\talt\\tstrand\\nchr16\\t84145214\\tG\\tT\\t1\\nchr2\\t55232249\\tT\\tG\\t-1\\n' > variants.tsv",
+     "explanation": "Writes two of the README's example variants to a tab-separated file with the required columns. Coordinates must match the reference FASTA used in the next step.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    },
+    {
+     "title": "Score the variants",
+     "shell": "promoterai \\\n    --model_folder path/to/model \\\n    --var_file variants.tsv \\\n    --fasta_file path/to/genome_fa \\\n    --input_length 20480",
+     "explanation": "Runs the scoring command from the README. Replace path/to/model with the model folder received under the licence agreement and path/to/genome_fa with the reference FASTA.",
+     "source_ids": [
+      "model-pages-20261126-batch4-promoterai-source-readme"
+     ],
+     "source_locator": "README.md: Variant effect prediction"
+    }
+   ],
+   "outputs": [
+    "A copy of the variant file with a new score column, named by appending the model folder name to the variant file name."
+   ],
+   "limitations": [
+    "These commands were read from the repository and have not been executed by Rewire.",
+    "The model folder is not public; the sources read do not say which reference genome build the distributed model expects beyond the hg38 training annotation."
+   ],
+   "source_ids": [
+    "model-pages-20261126-batch4-promoterai-source-readme",
+    "model-pages-20261126-batch4-promoterai-source-setup",
+    "model-pages-20261126-batch4-promoterai-source-issue-10",
+    "model-pages-20261126-batch4-promoterai-source-issue-10-question"
+   ],
+   "review": {
+    "method": "official_repository_review",
+    "date": "2026-11-27"
+   }
+  },
+  "notes": "The existing source vep-uc-20261014-source-promoterai is the same README at the same commit. Weights access comes from collaborator replies on GitHub issues, not the README itself. The record's licence attribute says GitHub does not assert a licence; the repository LICENSE file is PolyForm Strict 1.0.0, which should replace that wording. A user on issue 15 refers to a model named promoterAI_v1_hg38_finetune; that name was not used here because no maintainer source states it. 'PolyForm-Strict-1.0.0' in the structured table is a short name: PolyForm Strict is not on the SPDX licence list (only PolyForm Noncommercial and Small Business are). Revision of 2026-11-27: the Science First Release full text is now read. The paper's ~208 million parameters is not put in structured, because no saved file says the distributed weights are that model. An email address on the earlier page was removed. The text layer carries the corresponding author's email; it is not copied.",
+  "no_run_guide_reason": ""
  }
 }

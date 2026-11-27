@@ -1,0 +1,102 @@
+[
+ {
+  "where": "sources",
+  "before": null,
+  "after": "added source paper-full-text (artifacts/paper-full-text.txt)",
+  "source": "paper",
+  "reason": "The paper's full text is now saved; its text layer is the quoted file."
+ },
+ {
+  "where": "section How it works",
+  "before": "PromoterAI is a convolutional network written in TensorFlow and Keras. The code first projects one-hot DNA (4 channels) with a 1-wide convolution, then stacks blocks that each apply a dilated depthwise convolution and a two-layer dense step, with batch normalisation and residual connections. The README's training command uses 24 blocks of width 1024, a 20,480-base input and a 4,096-base output. The model is first trained to predict regulatory profiles stored as bigWig tracks around transcription start sites, optionally across several species, and is then fine-tuned on a GTEx variant file. For variant scoring, a twin wrapper runs the model on the reference and the alternative sequence and averages the difference between the two predictions.",
+  "after": "PromoterAI is a convolutional network written in TensorFlow and Keras. In the paper, a 20,480-base one-hot sequence is widened to 1,024 channels and passed through 24 MetaFormer blocks, each a depthwise convolution and a feed-forward step with batch normalisation and residual connections, with kernel size 5 and dilations chosen to cover 16,384 bases. The outputs of every fourth block are averaged to predict 970 human and mouse regulatory profiles over the central 4,096 positions. The model was first trained on these profiles around annotated transcription start sites, then fine-tuned on rare GTEx promoter variants with known expression effects; only the output layers, about 3 million parameters, were tuned. A variant's score is the alternative minus the reference prediction, averaged over positions and channels.",
+  "source": "paper",
+  "reason": "The paper's methods give the block design, output size and fine-tuning scope."
+ },
+ {
+  "where": "section Versions and reproducibility",
+  "before": "The Python package is at version 1.0rc6 in the repository read here. In June 2025 the authors said they had released the code and precomputed scores but not the model weights. In September 2025, answering an issue titled 'Pretrained model weights release', they said the download link is sent by email after the licence agreement linked from the README is completed. The sources read do not name or version the distributed weights, so a result should name the package version, the repository commit, the model folder used and the input length (the README uses 20480).",
+  "after": "The paper's score is the average of two models: one trained and fine-tuned on human data only, and one on human and mouse data. The README's scoring command takes a single model folder and describes no averaging step. The Python package is at version 1.0rc6 in the repository read here. In June 2025 the authors said they had released the code and precomputed scores but not the model weights; in September 2025 they said the download link is sent by email after the licence agreement linked from the README is completed. The sources read do not name or version the distributed weights, so a result should name the package version, the repository commit, the model folder or folders used and the input length (20480).",
+  "source": "paper",
+  "reason": "The paper says the published score averages two models, which the README's single-folder command does not show."
+ },
+ {
+  "where": "fact Architecture",
+  "before": "1D convolutional network: a 1-wide input convolution followed by blocks of dilated depthwise convolution and a dense layer pair with batch normalisation and residual connections; output heads average dense layers taken every fourth block. The README training command uses 24 blocks with model dimension 1024.",
+  "after": "1D convolutional network: input widened from 4 to 1,024 channels, then 24 MetaFormer blocks (depthwise convolution with kernel size 5 and a feed-forward step, each with batch normalisation and a residual connection); the outputs of every fourth block pass through a dense layer and are averaged. Output: 970 profiles over the central 4,096 positions.",
+  "source": "paper",
+  "reason": "The paper states the design the code implements."
+ },
+ {
+  "where": "fact Parameters",
+  "before": "Not stated in the sources read; it may be in the Science paper, whose full text was not read. The README training command uses 24 blocks of width 1024.",
+  "after": "About 208 million trainable parameters per model, as the paper states; the fine-tuning step tuned about 3 million of them. The published score uses two such models. The distributed weight files are not named in the sources read.",
+  "source": "paper",
+  "reason": "The paper gives the count; the page said it was not extracted."
+ },
+ {
+  "where": "fact Training data",
+  "before": "Regulatory profile bigWig tracks from ENCODE and FANTOM5 at promoter (transcription start site) positions on hg38, with optional non-human species such as mouse (mm10); fine-tuned on GTEx outlier variants in data/annotation/finetune_gtex.tsv.",
+  "after": "970 regulatory profiles (498 human, 472 mouse): ENCODE histone, accessibility and transcription factor tracks (310 human and 192 mouse experiments after filtering) and FANTOM5 CAGE tracks, in 4,096-base windows around 244,939 GENCODE v39 and 81,540 GENCODE vM25 transcription start sites. Fine-tuned on 57,795 rare promoter variants from GTEx v8 with expression effects from RNA-seq.",
+  "source": "paper",
+  "reason": "The paper gives the profile counts, annotation releases and fine-tuning set."
+ },
+ {
+  "where": "fact Training cutoff",
+  "before": "Not stated in the sources read; it may be in the Science paper, whose full text was not read.",
+  "after": "No date is given. The data versions named are GENCODE v39 and vM25 for the training windows and GTEx v8 for fine-tuning.",
+  "source": "paper",
+  "reason": "The paper names the data releases; the page said not extracted."
+ },
+ {
+  "where": "fact Context limits",
+  "before": "20,480 bases of input sequence in the README scoring and training commands (training preprocessing writes 32,768-base windows).",
+  "after": "20,480 bases of input sequence, as in the paper and the README scoring and training commands; predictions cover the central 4,096 positions. Training preprocessing writes 32,768-base windows.",
+  "source": "paper",
+  "reason": "The paper confirms the input length and gives the output span."
+ },
+ {
+  "where": "fact Access",
+  "before": "Code: https://github.com/Illumina/PromoterAI and the pip package promoterai. Weights and precomputed scores: by email after completing the licence agreement linked from the README. Commercial licences: AI_licensing@illumina.com.",
+  "after": "Code: https://github.com/Illumina/PromoterAI and the pip package promoterai. Weights and precomputed scores: by email after completing the licence agreement linked from the README. Commercial licences are handled by Illumina; the README gives a contact.",
+  "source": "other",
+  "reason": "An email address was removed from the page; the brief forbids copying one."
+ },
+ {
+  "where": "strengths[2]",
+  "before": "The authors report that variants it flags show outlier RNA and protein expression and strong negative selection, and that they confirmed effects with reporter assays (the authors' claims, from the paper abstract).",
+  "after": "The authors report a correlation of 0.63 between PromoterAI scores and effect sizes measured for 686 promoter eQTLs in an assay of fine-mapped variants (the authors' figure).",
+  "source": "paper",
+  "reason": "Replaces the abstract-based claim with a figure the paper reports."
+ },
+ {
+  "where": "limitations[3]",
+  "before": "Tied to TensorFlow 2.13 to 2.15 and Keras 2; GPU testing covers H100 and A100 only.",
+  "after": "The authors state that the model is limited by the modest number of gene expression measurements available for training, and may miss tissue-specific effects and variants further from the transcription start site.",
+  "source": "paper",
+  "reason": "A limitation the paper states; the TensorFlow version limit stays in the run guide prerequisites."
+ },
+ {
+  "where": "profile.gaps",
+  "before": [
+   "The paper's full text (Science 2025) is not open and was not read; only its abstract was read.",
+   "No parameter count is given in the sources read.",
+   "The sources read do not name the distributed weight files or give their versions.",
+   "The training cutoff and the exact list of ENCODE and FANTOM5 tracks were not read; the track list is in data/bigwig/hg38.tsv, which was not fetched."
+  ],
+  "after": [
+   "The supplementary materials (figs. S1 to S8, tables S1 to S6) are not in the saved PDF.",
+   "The sources read do not name the distributed weight files or say whether they are one model or the two-model ensemble.",
+   "The exact list of ENCODE and FANTOM5 tracks is in data/bigwig/hg38.tsv, which was not fetched."
+  ],
+  "source": "paper",
+  "reason": "The full paper closes the gaps on parameters and training data; the rest are restated."
+ },
+ {
+  "where": "profile.review",
+  "before": null,
+  "after": "date and note updated",
+  "source": "paper",
+  "reason": "Records that the full text was read. The quote that held the address is replaced by the sentence before it."
+ }
+]
