@@ -1,0 +1,719 @@
+{
+ "record_id": "uc20260930-model-unirep",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "churchlab/UniRep README.md at commit 95735d4e",
+   "description": "Official repository README, pinned to a commit. It documents the three model sizes, the weight downloads including the evotuned weights, and the licence terms.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/churchlab/UniRep/95735d4e5d98e91bd1bd23fe2e279fefe9949cb1/README.md",
+   "url": "https://github.com/churchlab/UniRep",
+   "version": "git commit 95735d4e5d98e91bd1bd23fe2e279fefe9949cb1",
+   "media_type": "text/markdown",
+   "sha256": "1b0ebb6619df6a5e582041a95a10b86e44410eb96f5410f9e867faf0ff221375",
+   "retrieved_at": "2026-11-26T23:55:35Z",
+   "store_bytes": false
+  },
+  {
+   "key": "gpl",
+   "name": "churchlab/UniRep gpl.txt at commit 95735d4e",
+   "description": "The licence text the README names for the code in the repository, pinned to a commit.",
+   "file": "artifacts/gpl.txt",
+   "artifact_url": "https://raw.githubusercontent.com/churchlab/UniRep/95735d4e5d98e91bd1bd23fe2e279fefe9949cb1/gpl.txt",
+   "url": "https://github.com/churchlab/UniRep",
+   "version": "git commit 95735d4e5d98e91bd1bd23fe2e279fefe9949cb1",
+   "media_type": "text/plain",
+   "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+   "retrieved_at": "2026-11-26T23:55:54Z",
+   "store_bytes": false
+  },
+  {
+   "key": "proteingym-readme",
+   "name": "OATML-Markslab/ProteinGym README.md at commit 144fe22b",
+   "description": "README of the benchmark that produced this record, pinned to the commit the record cites, used only for the baseline listing.",
+   "file": "artifacts/proteingym-readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/OATML-Markslab/ProteinGym/144fe22b07dfaeec2b366f2346203a9838a55b4c/README.md",
+   "url": "https://github.com/OATML-Markslab/ProteinGym",
+   "version": "git commit 144fe22b07dfaeec2b366f2346203a9838a55b4c",
+   "media_type": "text/markdown",
+   "sha256": "321487a8de52c6cfa647a658f61150dd72e0acb0125470524fb94d1f8b23321a",
+   "retrieved_at": "2026-11-26T23:29:56Z",
+   "licence": "MIT",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "UniRep is a protein sequence representation model: a multiplicative LSTM trained on unlabelled sequences from UniRef50, which turns an amino acid sequence into a fixed length vector. Simple models fitted on that vector predict protein properties, and the same model can also generate sequences, which the developers call babbling. Three sizes are released with trained weights, 64, 256 and 1900 hidden units, together with the evotuned weights that come from further unsupervised training on one protein family.",
+  "summary_source_ids": [
+   "@readme"
+  ],
+  "summary_source_locator": "README: header and Description of files in this repository",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "UniRep, a mLSTM \"babbler\" deep representation learner for protein engineering informatics."
+   },
+   {
+    "source": "@readme",
+    "text": "as used in representation training on UniRef50"
+   },
+   {
+    "source": "@readme",
+    "text": "All three architectures (64, 256, and 1900 units) are provided along with the trained architectures, the random initializations used to begin evotuning (to ensure reproducibility) and the evotuned parameters."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "UniRep is a multiplicative LSTM trained on unlabelled protein sequences, which the repository calls a babbler. Running a sequence through it gives a fixed length representation, and simple models fitted on that representation predict properties such as stability or mutant function. The repository provides three sizes, 64, 256 and 1900 hidden units, each with trained weights, and the same interface supports inferring representations, further training and generating sequences. The 1900 unit model is the full one. The custom model file in the repository holds the GRU, LSTM and mLSTM cell implementations used for the representation training on UniRef50.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header and Description of files in this repository",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "UniRep, a mLSTM \"babbler\" deep representation learner for protein engineering informatics."
+     },
+     {
+      "source": "@readme",
+      "text": "We present an interface for training, inferencing representations, generative modelling aka \"babbling\", and data management."
+     },
+     {
+      "source": "@readme",
+      "text": "All three architectures (64, 256, and 1900 units) are provided along with the trained architectures"
+     },
+     {
+      "source": "@readme",
+      "text": "custom_models.py -  Custom implementations of GRU, LSTM and mLSTM cells as used in representation training on UniRef50"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "Several weight sets are published on a public S3 bucket, each as its own directory: trained weights for the 1900, 256 and 64 unit models; the random initialisations that were used to begin evotuning, which the README says are provided to make that reproducible; the evotuned 1900 unit weights from the pretrained model; and the evotuned 1900 unit weights from a random start. A result should name which of these directories it used, and whether any further evotuning was done by the user, since the developers publish only the fluorescent protein evotuning.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header and Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "the random initializations used to begin evotuning (to ensure reproducibility) and the evotuned parameters"
+     },
+     {
+      "source": "@readme",
+      "text": "`1900_weights/`: trained weights for the 1900-unit (full) UniRep model"
+     },
+     {
+      "source": "@readme",
+      "text": "`evotuned/unirep/`"
+     },
+     {
+      "source": "@readme",
+      "text": "`evotuned/random_init/`"
+     }
+    ]
+   },
+   {
+    "title": "Running it in practice",
+    "body": "The developers recommend their Docker environments, one for CPU and one for GPU, both built on a TensorFlow 1.3 image over Ubuntu 16.04, which launch a Jupyter notebook tutorial. The weight files are fetched from a public S3 bucket with the AWS command line tool and no credentials. The README warns that back propagation through an mLSTM of this size is memory hungry and that the main driver is the maximum input sequence length rather than the batch size: they fine tuned on fluorescent proteins of about 120 to 280 residues on a 16 GB GPU instance, and they note the full model needs more than 16 GB of RAM while the 64 unit model runs anywhere.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick-start, Obtaining weight files, and the note on memory",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We recommend using our docker environments."
+     },
+     {
+      "source": "@readme",
+      "text": "This step pulls the Tensorflow 1.3 CPU image and installs a few required python packages. Note that Tensorflow pulls from Ubuntu 16.04."
+     },
+     {
+      "source": "@readme",
+      "text": "aws s3 sync --no-sign-request --quiet s3://unirep-public/<weights_dir> <weights_dir>"
+     },
+     {
+      "source": "@readme",
+      "text": "note that backpropagation of an mLSTM of this size is very memory intensive, and the primary determinant of memory use is the max length of the input sequence rather than the batch size"
+     },
+     {
+      "source": "@readme",
+      "text": "The 64-unit model should be OK to run on any machine."
+     }
+    ]
+   },
+   {
+    "title": "How this record was benchmarked",
+    "body": "ProteinGym lists one Unirep baseline, citing the Alley et al. paper, with single sequence input and a multiple sequence alignment used for evotuning, and names the UniRep repository among the repositories its own code borrowed from. The companion record for the evotuned variant covers that step.",
+    "source_ids": [
+     "@proteingym-readme",
+     "run-doc-proteingym-readme-md-144fe22b"
+    ],
+    "source_locator": "ProteinGym README: baseline table and Acknowledgements",
+    "quotes": [
+     {
+      "source": "@proteingym-readme",
+      "text": "Unirep | Single sequence (MSA for evo-tuning) |"
+     },
+     {
+      "source": "@proteingym-readme",
+      "text": "UniRep | https://github.com/churchlab/UniRep"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Unsupervised protein sequence representation model (a multiplicative LSTM), used to produce fixed length features, to score sequences and to generate them.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "a mLSTM \"babbler\" deep representation learner for protein engineering informatics"
+     },
+     {
+      "source": "@readme",
+      "text": "an interface for training, inferencing representations, generative modelling aka \"babbling\", and data management"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Multiplicative LSTM, released in three widths: 64, 256 and 1900 hidden units. The repository also carries GRU and LSTM cell implementations used in the representation training.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header; Description of files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All three architectures (64, 256, and 1900 units) are provided"
+     },
+     {
+      "source": "@readme",
+      "text": "Custom implementations of GRU, LSTM and mLSTM cells"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "Amino acid sequences. The repository's tutorial files show the two formats it takes, a plain sequence file and a formatted one.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Description of files in this repository",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "formatted.txt and seqs.txt - Tutorial files."
+     },
+     {
+      "source": "@readme",
+      "text": "Start here for examples on loading the model, preparing data, training, and running inference."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "A learned representation of the input sequence, used as features for a downstream model, plus generated sequences from the babbling mode.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "inferencing representations, generative modelling aka \"babbling\""
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not given as a count. The sources give the widths instead: 1900, 256 and 64 hidden units, with 1900 called the full model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header; Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "(64, 256, and 1900 units)"
+     },
+     {
+      "source": "@readme",
+      "text": "the 1900-unit (full) UniRep model"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "UniRef50, as the repository states for the representation training. No size or version of that corpus is given in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Description of files in this repository",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "as used in representation training on UniRef50"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Eight published weight directories on the public S3 bucket: trained weights at 1900, 256 and 64 units; random initialisations at the same three widths; and two evotuned 1900 unit checkpoints, one from the pretrained model and one from a random start.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`256_weights/`: trained weights for the 256-unit UniRep model"
+     },
+     {
+      "source": "@readme",
+      "text": "`64_weights_random/`: random weights that could be used to initialize the 64-unit UniRep model (e.g. for evotuning)"
+     },
+     {
+      "source": "@readme",
+      "text": "`evotuned/unirep/`"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "No date is stated. The sources date the work only by the copyright years 2018 and 2019 in the README's licence section, and name UniRef50 without a version.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Copyright 2018, 2019 Ethan Alley, Grigory Khimulya, Surojit Biswas"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No hard limit is stated, but length is the binding constraint in practice: the README says the main driver of memory use is the maximum input sequence length, and reports fine tuning on sequences of about 120 to 280 residues on a 16 GB GPU.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: note on memory",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "the primary determinant of memory use is the max length of the input sequence rather than the batch size"
+     },
+     {
+      "source": "@readme",
+      "text": "We have finetuned on GFP-like fluorescent proteins (~120-280aa) on a p3.2xlarge instance (aws) with 16GB GPU memory successfully."
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY-NC 4.0: the README states that all the model weights are under the Creative Commons Attribution-NonCommercial 4.0 International License, so commercial use of the weights is excluded.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All the model weights are licensed under the terms of Creative Commons Attribution-NonCommercial 4.0 International License."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "GPL v3: the README states that otherwise the code in the repository is under GPL v3 as specified by gpl.txt, and that file is the GNU General Public License version 3.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@gpl"
+    ],
+    "source_locator": "README: License; gpl.txt",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Otherwise the code in this repository is licensed under the terms of [GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) as specified by the gpl.txt file."
+     },
+     {
+      "source": "@gpl",
+      "text": "GNU GENERAL PUBLIC LICENSE"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/churchlab/UniRep. Weights on the public S3 bucket s3://unirep-public, fetched with the AWS command line tool and no credentials.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "aws s3 sync --no-sign-request --quiet s3://unirep-public/<weights_dir> <weights_dir>"
+     },
+     {
+      "source": "@readme",
+      "text": "`1900_weights/`: trained weights for the 1900-unit (full) UniRep model"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Three widths are released with trained weights, so a small model can be used where memory is tight and the full one where it is not.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header; Quick-start",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All three architectures (64, 256, and 1900 units) are provided along with the trained architectures"
+     },
+     {
+      "source": "@readme",
+      "text": "as will using one of the smaller pre-trained models (64 or 256)"
+     }
+    ]
+   },
+   {
+    "text": "The weights are on a public S3 bucket that needs no account, and the repository ships Docker images and a tutorial notebook for both CPU and GPU.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick-start; Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "--no-sign-request"
+     },
+     {
+      "source": "@readme",
+      "text": "Open up the `unirep_tutorial.ipynb` notebook and get started."
+     }
+    ]
+   },
+   {
+    "text": "It needs only a sequence: the representation is produced without an alignment or a structure, and simple downstream models are fitted on it.",
+    "source_ids": [
+     "@readme",
+     "@proteingym-readme"
+    ],
+    "source_locator": "README: header; ProteinGym README: baseline table",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "deep representation learner for protein engineering informatics"
+     },
+     {
+      "source": "@proteingym-readme",
+      "text": "Unirep | Single sequence (MSA for evo-tuning) |"
+     }
+    ]
+   },
+   {
+    "text": "The developers also release the evotuned weights and the random initialisations behind them, so the fine tuned variant can be used or reproduced rather than rebuilt.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header; Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "and the evotuned parameters"
+     },
+     {
+      "source": "@readme",
+      "text": "`evotuned/unirep/`"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The weights are non-commercial: CC BY-NC 4.0 covers all of them, while the code is GPL v3, so neither is a permissive licence for a product.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: License",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All the model weights are licensed under the terms of Creative Commons Attribution-NonCommercial 4.0 International License."
+     },
+     {
+      "source": "@readme",
+      "text": "the code in this repository is licensed under the terms of [GPL v3]"
+     }
+    ]
+   },
+   {
+    "text": "Memory use is driven by sequence length, not batch size, and the full model needs more than 16 GB; the developers' own fine tuning was on proteins of roughly 120 to 280 residues.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: note on memory; Quick-start",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "backpropagation of an mLSTM of this size is very memory intensive"
+     },
+     {
+      "source": "@readme",
+      "text": "The full-sized model will require a machine with more than 16GB of RAM."
+     }
+    ]
+   },
+   {
+    "text": "The environment is dated: the Docker images pull a TensorFlow 1.3 image over Ubuntu 16.04, and the GPU route lists CUDA 8.0 and cuDNN 6.0.21 as system requirements.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick-start, CPU-only support and GPU support",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This step pulls the Tensorflow 1.3 GPU image"
+     },
+     {
+      "source": "@readme",
+      "text": "System requirements: NVIDIA CUDA 8.0 (V8.0.61), NVIDIA cuDNN 6.0.21"
+     }
+    ]
+   },
+   {
+    "text": "It is a representation, not a predictor: a downstream model has to be fitted on the features before anything is predicted.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header and Description of files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "deep representation learner"
+     },
+     {
+      "source": "@readme",
+      "text": "unirep.py - Interface for most use cases."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "UniRep workflow",
+   "steps": [
+    "Amino acid sequences as input",
+    "mLSTM at 64, 256 or 1900 units with the published weights",
+    "Fixed length representation of each sequence",
+    "Simple downstream model fitted on the representation",
+    "Property prediction, or generated sequences from babbling"
+   ],
+   "caption": "The path the repository documents for representations and babbling.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README: header, Obtaining weight files",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "All three architectures (64, 256, and 1900 units) are provided"
+    },
+    {
+     "source": "@readme",
+     "text": "inferencing representations, generative modelling aka \"babbling\""
+    },
+    {
+     "source": "@readme",
+     "text": "Start here for examples on loading the model, preparing data, training, and running inference."
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The paper, Alley et al. 2019 in Nature Methods, is not open: it is not in PubMed Central and the preprint is on bioRxiv, which was not contacted today, so no paper text was read and the model is described only from the repository.",
+   "No parameter count is given for any size, only the hidden unit widths.",
+   "The UniRef50 version used for pretraining is not stated.",
+   "The tutorial notebook, which holds the actual loading and inference code, was not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: README.md and gpl.txt of churchlab/UniRep at commit 95735d4e5d98e91bd1bd23fe2e279fefe9949cb1, and the ProteinGym README at commit 144fe22b07dfaeec2b366f2346203a9838a55b4c. The paper itself was not read, because no open full text was fetchable. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "1900_weights (full UniRep, 1900 units)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "GPL-3.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/churchlab/UniRep",
+   "weights_url": "s3://unirep-public/1900_weights/",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "`1900_weights/`: trained weights for the 1900-unit (full) UniRep model"
+    },
+    {
+     "source": "@readme",
+     "text": "All the model weights are licensed under the terms of Creative Commons Attribution-NonCommercial 4.0 International License."
+    }
+   ]
+  },
+  {
+   "checkpoint": "256_weights (UniRep, 256 units)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "GPL-3.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/churchlab/UniRep",
+   "weights_url": "s3://unirep-public/256_weights/",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "`256_weights/`: trained weights for the 256-unit UniRep model"
+    }
+   ]
+  },
+  {
+   "checkpoint": "64_weights (UniRep, 64 units)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "GPL-3.0",
+   "weights_licence": "CC-BY-NC-4.0",
+   "code_url": "https://github.com/churchlab/UniRep",
+   "weights_url": "s3://unirep-public/64_weights/",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "`64_weights/`: trained weights for the 64-unit UniRep model"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Build the developers' Docker environment, fetch the published UniRep weights and work through the tutorial that loads the model and runs inference.",
+  "prerequisites": [
+   "Docker, which the developers recommend over a local install.",
+   "For the GPU route the README lists CUDA 8.0 (V8.0.61), cuDNN 6.0.21, GPU driver 410.79 and nvidia-docker.",
+   "awscli to fetch the weights, which is already in the Docker images.",
+   "More than 16 GB of RAM or GPU memory for the full 1900 unit model; the 64 unit model runs on any machine."
+  ],
+  "steps": [
+   {
+    "title": "Get the code and build the Docker image",
+    "shell": "git clone https://github.com/churchlab/UniRep.git\ncd UniRep\ngit checkout --detach 95735d4e5d98e91bd1bd23fe2e279fefe9949cb1\ndocker build -f docker/Dockerfile.cpu -t unirep-cpu .",
+    "explanation": "The README says to clone or fork the repository and change into its top directory, then gives the Docker build. The detach line pins the commit read for this page. For a GPU machine the README gives the same command with Dockerfile.gpu and the tag unirep-gpu.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick-start, CPU-only support and GPU support",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "First clone or fork this repository and navigate to the repository's top directory (`cd UniRep`)."
+     },
+     {
+      "source": "@readme",
+      "text": "Build docker: `docker build -f docker/Dockerfile.cpu -t unirep-cpu .`"
+     },
+     {
+      "source": "@readme",
+      "text": "Build docker: `docker build -f docker/Dockerfile.gpu -t unirep-gpu .`"
+     }
+    ]
+   },
+   {
+    "title": "Download the weights for one model size",
+    "shell": "pip install awscli\naws s3 sync --no-sign-request --quiet s3://unirep-public/1900_weights/ 1900_weights/",
+    "explanation": "The README's weight download, with the directory set to the full 1900 unit model. The install line is the README's own instruction for working outside Docker; inside the Docker images awscli is already present. Use 64_weights/ or 256_weights/ for the smaller models. The tutorial notebook downloads the 64 and 1900 unit weights by itself.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Obtaining weight files",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "If working outside docker, first do `pip install awscli`."
+     },
+     {
+      "source": "@readme",
+      "text": "aws s3 sync --no-sign-request --quiet s3://unirep-public/<weights_dir> <weights_dir>"
+     },
+     {
+      "source": "@readme",
+      "text": "The `unirep_tutorial.ipynb` notebook downloads the needed weight files for the 64-unit and 1900-unit UniRep models."
+     }
+    ]
+   },
+   {
+    "title": "Run the container and work through the tutorial",
+    "shell": "docker/run_cpu_docker.sh",
+    "explanation": "The README's run script, which launches Jupyter and prints a URL to open. The tutorial notebook covers loading the model, preparing data, training and inference. There is also a plain Python version of the tutorial in the repository.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Quick-start; Description of files in this repository",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Run docker: `docker/run_cpu_docker.sh`. This will launch Jupyter."
+     },
+     {
+      "source": "@readme",
+      "text": "unirep_tutorial.py - A pure python script version of the tutorial notebook."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A Jupyter URL printed by the run script, and the tutorial notebook's own output: a loaded model, representations for the example sequences and an inference run.",
+   "The downloaded weight directory, as a TensorFlow checkpoint."
+  ],
+  "limitations": [
+   "These commands were read from the repository README at commit 95735d4e5d98e91bd1bd23fe2e279fefe9949cb1 and have not been executed by Rewire.",
+   "The tutorial notebook itself was not read, so what it prints is described only as the README describes it.",
+   "The weights are under CC BY-NC 4.0, so this route is for non-commercial use."
+  ],
+  "source_ids": [
+   "@readme"
+  ]
+ },
+ "notes": "Coverage is limited because no open full text of Alley et al. 2019 (Nature Methods) could be fetched: PubMed Central holds only citing articles, and the preprint is on bioRxiv, which this address was told not to contact today. Everything here comes from the repository README and the ProteinGym README. Licences split and both are restrictive: the weights are CC BY-NC 4.0 (non-commercial) and the code is GPL v3, stated in the README's licence section rather than in a licence file for the weights. The weights live on a public S3 bucket, so no revision can be pinned and the weights_url is an s3 address. This record overlaps 15-unirep-evotuned, which covers the evotuned checkpoints from the same repository; they should stay separate, because ProteinGym scores them as different baselines."
+}

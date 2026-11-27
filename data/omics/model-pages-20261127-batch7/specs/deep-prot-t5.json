@@ -1,0 +1,659 @@
+{
+ "record_id": "lit-protein-20261011-deepprotein-model-deep-prot-t5",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "jiaqingxie/DeepProtein Readme.md at commit 63247833",
+   "description": "Official repository README of DeepProtein, the library that produced DeepProt-T5, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/jiaqingxie/DeepProtein/6324783383cda5b46d635e3d9ac2dfdbf629ee0a/Readme.md",
+   "url": "https://github.com/jiaqingxie/DeepProtein",
+   "version": "git commit 6324783383cda5b46d635e3d9ac2dfdbf629ee0a",
+   "media_type": "text/markdown",
+   "sha256": "d44c378faa817afe6590d4dd56bc8ba21414c8eb93e8c3a249be1e2fe2453636",
+   "retrieved_at": "2026-11-26T23:35:30Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "jiaqingxie/DeepProtein LICENSE at commit 63247833",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/jiaqingxie/DeepProtein/6324783383cda5b46d635e3d9ac2dfdbf629ee0a/LICENSE",
+   "url": "https://github.com/jiaqingxie/DeepProtein",
+   "version": "git commit 6324783383cda5b46d635e3d9ac2dfdbf629ee0a",
+   "media_type": "text/plain",
+   "sha256": "3f696872d951135cf367eeb0d4f4c6337099c626fed8ee552cb90ac5b4582358",
+   "retrieved_at": "2026-11-26T23:35:07Z",
+   "licence": "MIT",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Xie and Fu 2025, DeepProtein, Bioinformatics btaf165, full text (PMC12553333)",
+   "description": "Full text of the paper that introduces DeepProt-T5, as NCBI PMC JATS XML.",
+   "file": "artifacts/deepprotein-pmc.xml",
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=12553333&rettype=xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12553333/",
+   "version": "PMC12553333 as served by NCBI on 2026-11-26",
+   "media_type": "application/xml",
+   "sha256": "6cc4bdb5678a0761dc6cd1fbc6998dfa1d2a7bab7b5c5e8a38b014cd22adce1a",
+   "retrieved_at": "2026-11-26T23:28:56Z",
+   "licence": "CC BY 4.0",
+   "store_bytes": true
+  },
+  {
+   "key": "collection",
+   "name": "Hugging Face collection jiaxie/protlm, as served on 2026-11-26",
+   "description": "API response for the ProtLM collection that the README and paper name as the home of the released DeepProt-T5 models.",
+   "file": "artifacts/protlm-collection.json",
+   "artifact_url": "https://huggingface.co/api/collections/jiaxie/protlm-67bba5b973db936ce90e7d54",
+   "url": "https://huggingface.co/collections/jiaxie/protlm-67bba5b973db936ce90e7d54",
+   "version": "As served on 2026-11-26; the response may change",
+   "media_type": "application/json",
+   "sha256": "621a721797ef87c506d2e550e62cdfd1b837973632156cff0332cd86b320aef0",
+   "retrieved_at": "2026-11-26T23:35:20Z",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "DeepProt-T5 is a set of protein property predictors made by the DeepProtein authors. They took Prot-T5-XL, an existing protein language model, and fine-tuned it separately on each task of their benchmark, so there is one checkpoint per task rather than a single general model. Each checkpoint takes a protein sequence and returns the prediction for its task, for example a stability value, a subcellular location or a per-residue epitope label. The authors report it as the strongest entry in their own benchmark on several tasks.",
+  "summary_source_ids": [
+   "@paper",
+   "lit-protein-20261011-deepprotein-source-shen2025"
+  ],
+  "summary_source_locator": "Paper: Abstract; Fine-tuned models; Deep Prot-T5",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we introduce DeepProt-T5, a series of fine-tuned Prot-T5-based models that achieve state-of-the-art performance on four benchmark tasks, while demonstrating competitive results on six of others"
+   },
+   {
+    "source": "@paper",
+    "text": "We have trained Prot-T5-XL on our benchmark datasets individually"
+   },
+   {
+    "source": "@paper",
+    "text": "This leads to a series of DeepProt-T5 models."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "DeepProt-T5 is not a new architecture. The DeepProtein authors took Prot-T5-XL, a 3B parameter protein language model from ProtTrans, and fine-tuned it separately on each of their benchmark datasets with the Hugging Face trainer. The difference from their other protein language model runs is that the upstream weights are updated during training rather than frozen, which they call dynamic rather than fixed embeddings. Each task therefore has its own checkpoint, and together they form the series the paper calls DeepProt-T5.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; DeepProtein framework, Deep Prot-T5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we introduce DeepProt-T5, a series of fine-tuned Prot-T5-based models"
+     },
+     {
+      "source": "@paper",
+      "text": "We have trained Prot-T5-XL on our benchmark datasets individually"
+     },
+     {
+      "source": "@paper",
+      "text": "dynamic embeddings enabled us to finetuned the upstream architectures while also maintain a good predictive power for downstream tasks"
+     },
+     {
+      "source": "@paper",
+      "text": "by using the huggingface trainer"
+     }
+    ]
+   },
+   {
+    "title": "Training setup the authors report",
+    "body": "For the DeepProt-T5 fine-tunes the paper gives a learning rate of 0.00002 for every model and a batch size of 10, chosen to avoid memory errors, against a default of 0.0001 and batch size 32 for the library's other sequence models. The maximum number of training epochs for all models is 100. The fine-tuning ran on two 24 GB NVIDIA RTX 3090 cards.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Training setup; Hardware configuration",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For DeepProt-T5 models, fine-tuning has used a more generalized learning rate of 0.00002 for all models, batch size is equal to 10 to avoid memory errors"
+     },
+     {
+      "source": "@paper",
+      "text": "For all models, the maximal training epoch number is set to 100."
+     },
+     {
+      "source": "@paper",
+      "text": "For DeepProt-T5 fine-tuning, two 24GB NVIDIA RTX 3090 were used"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "There is one checkpoint per benchmark task rather than a single model. The paper and the README both say the fine-tuned models are released in the Hugging Face collection jiaxie/protlm. When that collection was read through the API on 2026-11-26 its item list was empty, so no individual checkpoint could be pinned to a revision, and the per-task parameter counts and sizes could not be read. A result should name the task, the seed (the paper uses 7, 42 and 100) and the library commit; the code is at github.com/jiaqingxie/DeepProtein, read here at commit 63247833.",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@collection"
+    ],
+    "source_locator": "Paper: Fine-tuned models, Availability and implementation; README: News; collection API response",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We have released our fine-tuned Prot-T5-XL models for each task, which is available on Hugging Face"
+     },
+     {
+      "source": "@readme",
+      "text": "DeepProtein has now released DeepProtT5 Series Models, which can be found at https://huggingface.co/collections/jiaxie/protlm-67bba5b973db936ce90e7d54"
+     },
+     {
+      "source": "@collection",
+      "text": "\"title\":\"ProtLM\",\"description\":\"finetuning on protein sequences\""
+     },
+     {
+      "source": "@collection",
+      "text": "\"items\":[]"
+     },
+     {
+      "source": "@readme",
+      "text": "| seed         | For paper: 7 / 42 /100."
+     }
+    ]
+   },
+   {
+    "title": "What the authors claim for it",
+    "body": "The abstract says the DeepProt-T5 series reaches the best reported performance on four of the benchmark tasks and is competitive on six others. In the results text the authors say their DeepProt-T5 models improved on the original Prot-T5 models on six tasks, named as Beta-lactamase, Solubility, SubCellular, PPI_Affinity, CRISPR and Fold. These are the authors' own claims about their own benchmark.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "that achieve state-of-the-art performance on four benchmark tasks, while demonstrating competitive results on six of others"
+     },
+     {
+      "source": "@paper",
+      "text": "have improved original Prot-T5 models on six tasks: Beta-lactamase, Solubility, SubCellular, PPI_Affinity, CRISPR, and Fold"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Task-specific fine-tunes of a protein language model, one checkpoint per benchmark task.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract; Fine-tuned models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "a series of fine-tuned Prot-T5-based models"
+     },
+     {
+      "source": "@paper",
+      "text": "We have released our fine-tuned Prot-T5-XL models for each task"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Prot-T5-XL, which the paper describes as based on the T5-3B model with a BART-like masked language modelling objective and an embedding dimension of 1024, with the upstream weights updated during task fine-tuning.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Prot-T5-XL; Deep Prot-T5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Prot-T5-XL-UniRef50 is based on the T5-3B model"
+     },
+     {
+      "source": "@paper",
+      "text": "this model uses a BART-like MLM denoising objective"
+     },
+     {
+      "source": "@paper",
+      "text": "The embedding dimension is 1024."
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A protein sequence as a string, or a pair of sequences for the interaction tasks. The paper says protein language models are given the initial string rather than a transformed representation.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: DeepProtein framework, Part 2 (A)",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we directly use the initial string as the input instead of the transformed SMILES"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "The prediction for the task the checkpoint was fine-tuned on: a number for the regression tasks, a class for the classification tasks, and a per-residue label for the epitope and paratope tasks.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results tables and metrics",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For the binary classification task, metrics are ROC (or PR-AUC) and averaged macro F1."
+     },
+     {
+      "source": "@paper",
+      "text": "For multi classification task, metrics are the accuracy and averaged macro F1"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not reported per checkpoint. The base model Prot-T5-XL is described as T5-3B, but the sources give no parameter count for the DeepProt-T5 fine-tunes and the released collection listed no items when read.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper",
+     "@collection"
+    ],
+    "source_locator": "Paper: Prot-T5-XL; collection API response",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "The DeepProtein benchmark datasets, one per checkpoint. The README lists them as Fluorescence, Solubility, Stability, Beta-lactamase, SubCellular, SubCellular-Binary, PPI_Affinity, Human_PPI, Yeast_PPI, Fold and Secondary Structure from PEER, plus IEDB, PDB-Jespersen, SAbDab-Liberis, TAP, SAbDab-Chen and CRISPR-Leenay from TDC. The underlying language model was pretrained on protein sequences before that.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Data; paper: Deep Prot-T5",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "| Fluorescence | PEER | LMDB | Protein Property Prediction |"
+     },
+     {
+      "source": "@readme",
+      "text": "| CRISPR-Leenay | TDC | TAB | CRISPR Repair Outcome Prediction  |"
+     },
+     {
+      "source": "@paper",
+      "text": "We have trained Prot-T5-XL on our benchmark datasets individually"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "One fine-tuned checkpoint per benchmark task, published as the ProtLM collection on Hugging Face. The collection's item list was empty when read on 2026-11-26, so the individual checkpoint names and revisions could not be recorded.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@collection"
+    ],
+    "source_locator": "Paper: Fine-tuned models; collection API response",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We have released our fine-tuned Prot-T5-XL models for each task, which is available on Hugging Face. The model family is called DeepProt-T5."
+     },
+     {
+      "source": "@collection",
+      "text": "\"items\":[]"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "No date is given. The sources date the work only by the paper and the repository news entries, not by a data cutoff.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Training setup",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "Not stated for these fine-tunes. The DeepProtein sources give no sequence length limit.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Deep Prot-T5; Training setup",
+    "quotes": []
+   },
+   {
+    "label": "Weights licence",
+    "value": "Not stated. Neither the paper nor the README gives a licence for the released fine-tuned checkpoints, and the collection response carries no licence field. A user should check the base ProtT5 licence before redistributing a fine-tune.",
+    "status": "unreported",
+    "source_ids": [
+     "@collection",
+     "@paper"
+    ],
+    "source_locator": "Collection API response; paper: Fine-tuned models",
+    "quotes": []
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, as the LICENSE file of jiaqingxie/DeepProtein states.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE file",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "The MIT License Copyright (c) 2024 DeepProtein Team"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/jiaqingxie/DeepProtein. Weights are said to be at https://huggingface.co/collections/jiaxie/protlm-67bba5b973db936ce90e7d54, a public collection that listed no items when read on 2026-11-26. Documentation at https://deepprotein.readthedocs.io/.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme",
+     "@collection"
+    ],
+    "source_locator": "Paper: Availability and implementation; README: News; collection API response",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "The library is publicly available at"
+     },
+     {
+      "source": "@readme",
+      "text": "It's at https://deepprotein.readthedocs.io/"
+     },
+     {
+      "source": "@collection",
+      "text": "\"private\":false"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The authors report that these fine-tunes beat the frozen Prot-T5 embeddings on six named tasks of their own benchmark: Beta-lactamase, Solubility, SubCellular, PPI_Affinity, CRISPR and Fold.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, key observations",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "have improved original Prot-T5 models on six tasks: Beta-lactamase, Solubility, SubCellular, PPI_Affinity, CRISPR, and Fold"
+     }
+    ]
+   },
+   {
+    "text": "The authors' stated purpose is to spare users the fine-tuning run, since a trained checkpoint exists for each benchmark task.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Fine-tuned models",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "so there’s no need for the redundant retraining process, making model deployment much more efficient and convenient"
+     }
+    ]
+   },
+   {
+    "text": "The surrounding library is open under MIT, with documented one-line training commands, dataset loaders and Colab notebooks, including one for inference with DeepProtT5 models.",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE file; README: Demos, Example",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "The MIT License"
+     },
+     {
+      "source": "@readme",
+      "text": "Inference of DeepProtT5 models on all above tasks"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The released weights could not be pinned: the Hugging Face collection the authors name listed no items when read on 2026-11-26, so there is no checkpoint name, revision, size or licence to record.",
+    "source_ids": [
+     "@collection",
+     "@paper"
+    ],
+    "source_locator": "Collection API response; paper: Fine-tuned models",
+    "quotes": [
+     {
+      "source": "@collection",
+      "text": "\"items\":[]"
+     },
+     {
+      "source": "@paper",
+      "text": "which is available on Hugging Face"
+     }
+    ]
+   },
+   {
+    "text": "There is no single model: each benchmark task has its own checkpoint, so a user must pick the one matching their task and cannot expect it to transfer.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Fine-tuned models; Deep Prot-T5",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "our fine-tuned Prot-T5-XL models for each task"
+     },
+     {
+      "source": "@paper",
+      "text": "This leads to a series of DeepProt-T5 models."
+     }
+    ]
+   },
+   {
+    "text": "No licence is stated for the fine-tuned weights in the paper, the README or the Hugging Face collection, so redistribution terms are unknown.",
+    "source_ids": [
+     "@collection",
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Collection API response; paper; README",
+    "quotes": [
+     {
+      "source": "@collection",
+      "text": "\"gating\":false"
+     }
+    ]
+   },
+   {
+    "text": "Fine-tuning the model needs real hardware and small batches: the authors used two 24 GB RTX 3090 cards and had to drop the batch size to 10 to avoid memory errors.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Hardware configuration; Training setup",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For DeepProt-T5 fine-tuning, two 24GB NVIDIA RTX 3090 were used"
+     },
+     {
+      "source": "@paper",
+      "text": "batch size is equal to 10 to avoid memory errors"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "DeepProt-T5 workflow",
+   "steps": [
+    "Protein sequence string for one benchmark task",
+    "Prot-T5-XL encoder, weights not frozen",
+    "Task head trained with the Hugging Face trainer",
+    "One fine-tuned checkpoint per task",
+    "Task prediction: value, class or per-residue label"
+   ],
+   "caption": "Per-task fine-tuning as the DeepProtein paper describes it.",
+   "source_ids": [
+    "@paper"
+   ],
+   "source_locator": "Paper: DeepProtein framework, Part 2 (C); Deep Prot-T5",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "We extend the family of Prot-T5 to our DeepProt-T5, where the upstream embeddings are dynamic, by using the huggingface trainer."
+    },
+    {
+     "source": "@paper",
+     "text": "We have trained Prot-T5-XL on our benchmark datasets individually"
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No individual checkpoint could be pinned: the Hugging Face ProtLM collection listed no items when read on 2026-11-26, so there are no per-task names, revisions, sizes or parameter counts.",
+   "No licence is stated anywhere in the sources for the released fine-tuned weights.",
+   "No sequence length limit is stated for these fine-tunes.",
+   "The Colab notebook the README offers for inference with DeepProtT5 models was not read, so the exact loading code is not recorded here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-26",
+   "note": "Read on 2026-11-26: the DeepProtein Readme.md and LICENSE at commit 6324783383cda5b46d635e3d9ac2dfdbf629ee0a; the full text of Xie and Fu 2025 from NCBI PMC (PMC12553333); and the Hugging Face API response for the jiaxie/protlm collection. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "DeepProt-T5 (series, one checkpoint per benchmark task)",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": null,
+   "code_url": "https://github.com/jiaqingxie/DeepProtein",
+   "weights_url": "https://huggingface.co/collections/jiaxie/protlm-67bba5b973db936ce90e7d54",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@license",
+     "text": "The MIT License"
+    },
+    {
+     "source": "@collection",
+     "text": "\"gating\":false"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Install the DeepProtein environment, then run the library's one-line training command with the Prot-T5 encoder, which is the fine-tuning that produces a DeepProt-T5 checkpoint for a task.",
+  "prerequisites": [
+   "Conda, and Python 3.9 as the README's environment line specifies.",
+   "Torch 2.1 or newer, which the README requires, with a matching CUDA build for GPU use.",
+   "A GPU with enough memory for fine-tuning a 3B parameter model. The authors used two 24 GB NVIDIA RTX 3090 cards for the DeepProt-T5 fine-tuning.",
+   "A weights and biases project name if the argument form of the command is used, since the README's examples pass wandb_proj."
+  ],
+  "steps": [
+   {
+    "title": "Create the environment and install the dependencies",
+    "shell": "conda create -n DeepProtein python=3.9\nconda activate DeepProtein\npip install git+https://github.com/bp-kelley/descriptastorus\npip install lmdb seaborn wandb pydantic DeepPurpose\npip install transformers bitsandbytes \npip install accelerate>=0.26.0\npip install SentencePiece einops rdchiral peft\npip install numpy==1.23.5 pandas==1.5.3 scikit-learn==1.2.2\npip install datasets\nconda install -c conda-forge pytdc",
+    "explanation": "The README installation block, copied as it stands.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "conda create -n DeepProtein python=3.9\nconda activate DeepProtein\npip install git+https://github.com/bp-kelley/descriptastorus\npip install lmdb seaborn wandb pydantic DeepPurpose"
+     }
+    ]
+   },
+   {
+    "title": "Install torch for your hardware",
+    "shell": "pip install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu118\npip install torch-geometric",
+    "explanation": "The README's GPU example, which pairs torch 2.3.0 with CUDA 11.8. For a machine without a GPU the README gives the same lines against the cpu index URL.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation, GPU and CPU options",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "pip install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu118"
+     },
+     {
+      "source": "@readme",
+      "text": "pip install torch-geometric"
+     }
+    ]
+   },
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/jiaqingxie/DeepProtein.git\ncd DeepProtein\ngit checkout --detach 6324783383cda5b46d635e3d9ac2dfdbf629ee0a",
+    "explanation": "The README does not give a clone command. These three lines fetch the repository and detach at the commit this page was written from, so the training script and the dataset loaders match what was read.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Example, training commands under train/",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python train/beta.py --target_encoding CNN --seed 7 --wandb_proj DeepProtein --lr 0.0001 --epochs 100"
+     }
+    ]
+   },
+   {
+    "title": "Fine-tune Prot-T5 on one task",
+    "shell": "python train/beta.py --target_encoding prot_t5 --seed 7 --wandb_proj DeepProtein --lr 0.00002 --epochs 100",
+    "explanation": "This is the README's one-line training command for the Beta-lactamase task, with the encoder set to prot_t5, which the README's argument table lists as a supported protein encoder, and the learning rate set to the 0.00002 the paper reports for DeepProt-T5 fine-tuning. The README gives no command specific to DeepProt-T5, so the encoder and learning rate were put together from those two sources; the paper also reports a batch size of 10 for these fine-tunes, which this command does not set.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: Example, Case Study 1(a) and argument table; paper: Training setup",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python train/beta.py --target_encoding CNN --seed 7 --wandb_proj DeepProtein --lr 0.0001 --epochs 100"
+     },
+     {
+      "source": "@readme",
+      "text": "DeepProtein 2.0 supports torch-only protein encoders such as 'CNN', 'Transformer', 'CNN_RNN', 'prot_t5', 'esm_1b', 'esm_2', and 'prot_bert'"
+     },
+     {
+      "source": "@paper",
+      "text": "For DeepProt-T5 models, fine-tuning has used a more generalized learning rate of 0.00002 for all models"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A fine-tuned model for the chosen task, with training and test metrics. The README says results are logged to the weights and biases project named by wandb_proj, and the paper reports Spearman and Pearson correlation and mean absolute error for regression tasks."
+  ],
+  "limitations": [
+   "These commands were read from the repository README at commit 6324783383cda5b46d635e3d9ac2dfdbf629ee0a and from the paper, and have not been executed by Rewire.",
+   "The sources give no command for downloading a released DeepProt-T5 checkpoint, because the collection listed no items when read, so this guide fine-tunes rather than loads.",
+   "The README's own notebook for inference with DeepProtT5 models is a Colab link and was not read."
+  ],
+  "source_ids": [
+   "@readme",
+   "@paper"
+  ]
+ },
+ "notes": "This is a real release, not a generic architecture, but the weights could not be verified: the paper and README both point at the Hugging Face collection jiaxie/protlm, and the API response for that collection listed no items on 2026-11-26, so no per-task checkpoint name, revision, parameter count or licence is recorded. A human should open the collection page in a browser to see whether items exist but are not served by the API. The fine-tuning command in the run guide is assembled from the README's argument table (prot_t5 as a target encoding) and the paper's learning rate, because the README gives no DeepProt-T5 specific command; the explanation says so. The record overlaps 11-prot-t5, which covers the base ProtT5 model from ProtTrans; they are separate models and the fine-tunes carry no licence of their own."
+}
