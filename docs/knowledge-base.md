@@ -117,23 +117,29 @@ statements: 4 were wrong and 34 added a detail the source does not give, 1.6 per
 
 ## What a complete record looks like
 
-A model record is complete when its page can answer five questions.
+A model record is complete when its page can answer the questions below. On a benchmark page the
+tasks take the place of the checkpoints.
 
 | Question | Where the answer is stored |
 | --- | --- |
 | What is it for? | `profile.summary` |
 | How does it work? | `profile.sections`, `profile.diagram` |
 | Which sizes and versions exist, and on what terms? | `profile.facts`: twelve fixed facts, among them parameters, context limits, training data, weights licence and code licence |
+| Which checkpoints are released, as values a query can compare? | `checkpoints`: one entry per checkpoint with parameters and context length as numbers, licences, addresses, access and release date, each citing the record's sources |
+| For a benchmark, which tasks does it set, on what data, scored how? | `benchmark_tasks`: one entry per task or track with dataset, size as a number, split, primary metric and whether higher is better, addresses, licences and release date, each citing the record's sources |
 | How do I run it? | `run_guide`: commands from the developers' documentation, pinned to a commit |
 | How has it scored? | Results, through its configurations |
 
 Where the developers do not state something, the fact says so (`unreported`), which is different
 from nobody having looked (`unextracted`).
 
-Content files written since 26 November also carry a `structured` list: one entry per released
-checkpoint with the parameter count and context length as numbers, licences as identifiers, and
-addresses for code and weights. These are kept in the batch folders and are not yet loaded into
-the records.
+Content files written since batch 4 of 26 November also carry a `structured` list: one entry per
+released checkpoint with the parameter count and context length as numbers, licences as identifiers,
+and addresses for code and weights. A benchmark page lists its tasks or tracks the same way.
+`python3 scripts/enrich/structured.py plan <batch name>` and `apply <batch name>` put these onto the
+records as `checkpoints` on models and `benchmark_tasks` on benchmarks, each entry citing the
+record's source records and saying which saved file it was read from. The copied passages stay in
+the content files. See [reviews/2026-11-27-structured-facts.md](reviews/2026-11-27-structured-facts.md).
 
 ## From the files to the website and the graph
 

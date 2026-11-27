@@ -24,7 +24,7 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 | Work | State |
 | --- | --- |
-| Checkpoint and benchmark task facts on the records, so the website can show them | An attribute for each is being added; the facts are already in `kb/` |
+| Checkpoint and benchmark task facts on the records, so the website can show them | On the records: `checkpoints` on 199 model records (465 entries) and `benchmark_tasks` on 98 benchmarks (535 entries). The website does not show them yet |
 | Leaderboards per use case on the website | Built as a query (`kb/board.py`); not on the site |
 | Review of the differences found inside papers and code | 65 are in a register, checked against saved files; ten reports are drafted for the owner |
 | Running the run guides | Not started |
@@ -53,7 +53,7 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
    run them through the slow single queue, then revise the pages as in
    `docs/reviews/2026-11-27-model-pages-revision-1.md`. RNAGenesis has its paper saved and still
    needs its revision.
-7. **Structured facts for the first three model batches.** About 40 of their pages have no
+7. **Structured facts for the first three model batches.** 52 of their 74 records have no
    checkpoint list. First step: the revision procedure, without a new paper.
 8. **Corrections to existing records** that the page work showed are needed and that were not
    made: ESCOTT's description (the allele frequency step belongs to PRESCOTT), ProGen3's

@@ -4,7 +4,7 @@ Usage: python3 kb/tools/import_pilot.py
 
 Reads data/omics/comparison-settings-pilot-20261126/*.proposal.json. Writes kb/curation/settings.jsonl,
 protocol_settings.jsonl and leads.jsonl. After this the curation files are edited directly. The
-structured checkpoint facts are loaded by kb/curate.py straight from the batch content files.
+structured checkpoint facts are loaded by kb/curate.py from the records.
 """
 import glob
 import json
