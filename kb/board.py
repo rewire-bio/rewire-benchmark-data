@@ -344,7 +344,7 @@ def plural(n, one, many=None):
 
 def summary(counts):
     if counts["ranked"]:
-        text = (f"Ranks {counts['ranked']} models compared in two or more studies, from {plural(counts['groups'], 'comparison group')} "
+        text = (f"Orders {counts['ranked']} models compared in two or more studies, from {plural(counts['groups'], 'comparison group')} "
                 f"in {plural(counts['studies'], 'study', 'studies')}.")
     else:
         text = (f"No ranking: fewer than two models were compared in two or more studies "
