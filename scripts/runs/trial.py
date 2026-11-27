@@ -5,7 +5,7 @@
   receipt <trial dir> <record id>      write receipt.json after a run
   candidates [--limit N]               list guides that look cheap to try on a CPU runner
   matrix --ids "A B" --timeout-minutes N   validate workflow inputs and print the job matrix
-  summary <receipt.json>               print a markdown table of a receipt
+  summary <receipt.json | folder>      print a receipt as a table, or one table for a folder of receipts
 
 See docs/run-guide-trials.md.
 """
@@ -34,6 +34,8 @@ HASH_LIMIT_BYTES = 200 * 1024 * 1024
 MAX_IDS = 10
 MAX_TIMEOUT_MINUTES = 90
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,199}$")
+# Used when a guide names no Python. The runner's own Python is often newer than packages support.
+DEFAULT_PYTHON = "3.11"
 
 
 # Records
@@ -122,9 +124,16 @@ __rg_on_exit() {
 trap __rg_on_exit EXIT
 cd "$__RG_WORK"
 export CONDA_ALWAYS_YES=true PIP_NO_INPUT=1 DEBIAN_FRONTEND=noninteractive
-if [ -n "${TRIAL_CONDA:-}" ] && [ -f "$TRIAL_CONDA/etc/profile.d/conda.sh" ]; then . "$TRIAL_CONDA/etc/profile.d/conda.sh"; fi
+if [ -n "${TRIAL_CONDA:-}" ] && [ -f "$TRIAL_CONDA/etc/profile.d/conda.sh" ]; then
+  . "$TRIAL_CONDA/etc/profile.d/conda.sh"
+  if [ -x "$TRIAL_CONDA/bin/mamba" ]; then
+    export MAMBA_ROOT_PREFIX="$TRIAL_CONDA"
+    eval "$("$TRIAL_CONDA/bin/mamba" shell hook --shell bash)" || true
+  fi
+fi
 if [ -n "${TRIAL_VENV:-}" ]; then . "$TRIAL_VENV/bin/activate"; fi
 { command -v python3 && python3 --version; } > "$__RG_RECORD/session-python.txt" 2>&1 || true
+{ conda --version && mamba --version | head -n 1; } > "$__RG_RECORD/session-conda.txt" 2>&1 || true
 """
 
 SESSION_STEP = r"""
@@ -200,6 +209,7 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
         r"No CUDA GPUs|CUDA is not available|cuda\.is_available|Invalid device string: 'cuda|"
         r"deserialize object on a CUDA device|libcuda|cudaGetDevice|CUDA error|nvcc|"
         r"requires a GPU|no GPU", re.I)),
+    ("tool_not_installed", re.compile(r"command not found|: not found$|No such file or directory: '(conda|mamba|git|wget|curl|java|R|Rscript)'", re.I | re.M)),
     ("python_version", re.compile(
         r"requires a different Python|Requires-Python|python_requires|"
         r"not supported on this Python|unsupported Python version|requires Python [<>=]", re.I)),
@@ -207,8 +217,7 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
         r"ResolutionImpossible|Could not find a version that satisfies|No matching distribution|"
         r"Failed building wheel|Failed to build|subprocess-exited-with-error|"
         r"ModuleNotFoundError|ImportError|PackagesNotFoundError|UnsatisfiableError|"
-        r"conflicting dependencies|error: command '.*' failed|CMake Error|compilation terminated|"
-        r"command not found", re.I)),
+        r"conflicting dependencies|error: command '.*' failed|CMake Error|compilation terminated", re.I)),
     ("network", re.compile(
         r"Could not resolve host|Temporary failure in name resolution|Name or service not known|"
         r"Connection (refused|reset|timed out)|ConnectionError|ReadTimeout|Max retries exceeded|"
@@ -218,8 +227,20 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
         r"sudo: |is not in the sudoers|must be run as root|are you root|"
         r"permission denied while trying to connect to the Docker daemon", re.I)),
     ("missing_file", re.compile(
-        r"No such file or directory|FileNotFoundError|can't open file|cannot access|not found", re.I)),
+        r"No such file or directory|FileNotFoundError|can't open file|cannot access|does not exist", re.I)),
+    ("code_raised_error", re.compile(r"Traceback \(most recent call last\)|^\w*(Error|Exception): ", re.M)),
 ]
+
+ERROR_LINE_RE = re.compile(r"error|exception|traceback|failed|not found|fatal|killed|denied", re.I)
+
+
+def last_error_line(log_tail: str) -> str:
+    """The last line that reads like an error, or the last line."""
+    lines = [line.strip() for line in log_tail.splitlines() if line.strip()]
+    for line in reversed(lines):
+        if ERROR_LINE_RE.search(line):
+            return line
+    return lines[-1] if lines else ""
 
 
 def is_manual(shell: str) -> bool:
@@ -228,9 +249,15 @@ def is_manual(shell: str) -> bool:
 
 
 def likely_cause(log_tail: str, exit_code: int | None = None) -> str:
-    for cause, pattern in CAUSE_RULES:
-        if pattern.search(log_tail):
-            return cause
+    """The first rule matching the last error line, else the first matching anywhere in the tail."""
+    if exit_code == 127:
+        return "tool_not_installed"
+    for text in (last_error_line(log_tail), log_tail):
+        for cause, pattern in CAUSE_RULES:
+            if cause != "code_raised_error" and pattern.search(text):
+                return cause
+    if CAUSE_RULES[-1][1].search(log_tail):
+        return "code_raised_error"
     if exit_code == 137:
         return "out_of_memory"
     return "other"
@@ -338,22 +365,41 @@ def repository_commit() -> str | None:
         return os.environ.get("GITHUB_SHA")
 
 
+def read_small(path: Path) -> str | None:
+    return path.read_text(errors="replace").strip() if path.is_file() and not path.is_symlink() else None
+
+
 def runner_facts(trial_dir: Path, run: dict) -> dict:
-    session_python = trial_dir / "record" / "session-python.txt"
+    existing = trial_dir if trial_dir.exists() else Path("/")
     return {
         "os": os_name(),
         "platform": platform.platform(),
         "cpu_count": os.cpu_count(),
         "memory_bytes": memory_bytes(),
         "disk_free_bytes_at_start": int(run["disk_free_kb_at_start"]) * 1024 if run.get("disk_free_kb_at_start", "").isdigit() else None,
-        "disk_free_bytes_at_end": shutil.disk_usage(trial_dir).free,
-        "session_python": session_python.read_text(errors="replace").strip() if session_python.is_file() else None,
+        "disk_free_bytes_at_end": shutil.disk_usage(existing).free,
+        "session_python": read_small(trial_dir / "record" / "session-python.txt"),
+        "session_conda": read_small(trial_dir / "record" / "session-conda.txt"),
         "receipt_python": platform.python_version(),
         "gpu_present": bool(shutil.which("nvidia-smi") or Path("/dev/nvidia0").exists()),
     }
 
 
-def build_receipt(trial_dir: Path, record: dict) -> dict:
+PYTHON_SETUP = {"ok", "failed_used_default", "failed_used_runner_python"}
+
+
+def python_facts(guide: dict, setup: str | None) -> dict | None:
+    """Which Python the trial asked for, who chose it, and whether it could be set up."""
+    if setup is None:
+        return None
+    if setup not in PYTHON_SETUP:
+        raise SystemExit(f"Unknown Python setup outcome {setup!r}")
+    named = guide_python(guide)
+    return {"requested": named or DEFAULT_PYTHON, "chosen_by": "guide" if named else "harness_default",
+            "setup": setup}
+
+
+def build_receipt(trial_dir: Path, record: dict, python_setup: str | None = None) -> dict:
     guide = record["attributes"]["run_guide"]
     record_dir = trial_dir / "record"
     sha = guide_hash(guide)
@@ -407,7 +453,7 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
     elif first_bad["status"] == "timed_out":
         result = "timed_out"
     elif first_bad["status"] == "not_run":
-        result = "timed_out" if timed_out and finished is False else "not_started"
+        result = "not_started"
     else:
         result = f"failed_at_step_{first_bad['number']}"
 
@@ -427,6 +473,7 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
         "run_guide_sha256": sha,
         "run_guide_status": guide.get("status"),
         "runner": runner_facts(trial_dir, run),
+        "python": python_facts(guide, python_setup),
         "started_at": run.get("started_at"),
         "finished_at": run.get("finished_at"),
         "timeout_seconds": int(run["timeout_seconds"]) if run.get("timeout_seconds", "").isdigit() else None,
@@ -437,12 +484,13 @@ def build_receipt(trial_dir: Path, record: dict) -> dict:
     }
     if result.startswith("failed_at_step_"):
         receipt["likely_cause"] = likely_cause(first_bad["log_tail"], first_bad["exit_code"])
+        receipt["last_error_line"] = last_error_line(first_bad["log_tail"])
     receipt["outputs"] = describe_outputs(guide, trial_dir, final_cwd)
     return receipt
 
 
-def write_receipt(trial_dir: Path, record: dict, out_dir: Path) -> dict:
-    receipt = build_receipt(trial_dir, record)
+def write_receipt(trial_dir: Path, record: dict, out_dir: Path, python_setup: str | None = None) -> dict:
+    receipt = build_receipt(trial_dir, record, python_setup)
     (out_dir / "logs").mkdir(parents=True, exist_ok=True)
     for step in receipt["steps"]:
         if step["log_tail"]:
@@ -463,6 +511,9 @@ def summary(receipt: dict) -> str:
              f"Result: **{markdown_cell(receipt['result'])}**"]
     if "likely_cause" in receipt:
         lines.append(f"Likely cause: {markdown_cell(receipt['likely_cause'])}")
+    python = receipt.get("python")
+    if python:
+        lines.append(f"Python {markdown_cell(python['requested'])}, chosen by {python['chosen_by']}, setup {python['setup']}")
     if receipt.get("manual_steps"):
         lines.append("Steps with only comments, not exercised: " + ", ".join(map(str, receipt["manual_steps"])))
     lines += ["", "| Step | Title | Status | Exit code | Seconds |", "| --- | --- | --- | --- | --- |"]
@@ -473,6 +524,20 @@ def summary(receipt: dict) -> str:
             "" if step["seconds"] is None else round(step["seconds"]),
         ))
     return "\n".join(lines) + "\n"
+
+
+def receipts_table(folder: Path) -> str:
+    """One row per receipt.json under a folder of downloaded receipts."""
+    rows = ["| Record | Result | Failed step | Likely cause | Last error line |", "| --- | --- | --- | --- | --- |"]
+    for path in sorted(folder.rglob("receipt.json")):
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        bad = next((s for s in receipt["steps"] if s["status"] != "completed"), None)
+        failed = f"{bad['number']}. {bad['title']}" if bad and receipt["result"] != "completed" else ""
+        error = receipt.get("last_error_line") or (last_error_line(bad["log_tail"]) if failed else "")
+        rows.append("| {} | {} | {} | {} | {} |".format(
+            markdown_cell(receipt["record_id"]), markdown_cell(receipt["result"]), markdown_cell(failed),
+            markdown_cell(receipt.get("likely_cause", "")), markdown_cell(error[:200])))
+    return "\n".join(rows) + "\n"
 
 
 # Candidates
@@ -602,11 +667,15 @@ def matrix(ids_text: str, timeout_minutes: str, entities: Path = ENTITIES) -> di
         raise SystemExit(f"timeout_minutes is not a number: {timeout_minutes!r}")
     if not 1 <= minutes <= MAX_TIMEOUT_MINUTES:
         raise SystemExit(f"timeout_minutes must be between 1 and {MAX_TIMEOUT_MINUTES}")
-    include = [{"id": record_id, "python": guide_python(find_record(record_id, entities)["attributes"]["run_guide"])}
-               for record_id in ids]
+    include = []
+    for record_id in ids:
+        named = guide_python(find_record(record_id, entities)["attributes"]["run_guide"])
+        include.append({"id": record_id, "python": named or DEFAULT_PYTHON,
+                        "python_chosen_by": "guide" if named else "harness_default"})
     # The session stops itself at timeout_minutes; the step and job limits are backstops above it,
     # so that a receipt is still written when the session has to be killed.
-    return {"matrix": {"include": include}, "timeout_minutes": minutes, "session_seconds": minutes * 60,
+    return {"matrix": {"include": include}, "default_python": DEFAULT_PYTHON,
+            "timeout_minutes": minutes, "session_seconds": minutes * 60,
             "step_timeout_minutes": minutes + 5, "job_timeout_minutes": minutes + 30}
 
 
@@ -622,6 +691,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("trial_dir", type=Path)
     p.add_argument("record_id")
     p.add_argument("--out-dir", type=Path)
+    p.add_argument("--python-setup", choices=sorted(PYTHON_SETUP))
     p = sub.add_parser("candidates")
     p.add_argument("--limit", type=int, default=25)
     p.add_argument("--json", action="store_true")
@@ -643,7 +713,7 @@ def main(argv: list[str] | None = None) -> int:
         recorded_id = args.trial_dir / "record" / "record-id"
         if recorded_id.is_file() and recorded_id.read_text().strip() != record["id"]:
             raise SystemExit(f"{args.trial_dir} holds a run of another record")
-        receipt = write_receipt(args.trial_dir, record, args.out_dir or args.trial_dir / "receipt")
+        receipt = write_receipt(args.trial_dir, record, args.out_dir or args.trial_dir / "receipt", args.python_setup)
         print(f"{receipt['record_id']}: {receipt['result']}")
         if receipt["result"] == "not_started":
             return 1
@@ -659,7 +729,10 @@ def main(argv: list[str] | None = None) -> int:
         for key, value in plan.items():
             print(f"{key}={json.dumps(value, separators=(',', ':')) if key == 'matrix' else value}")
     elif args.command == "summary":
-        sys.stdout.write(summary(json.loads(args.receipt.read_text(encoding="utf-8"))))
+        if args.receipt.is_dir():
+            sys.stdout.write(receipts_table(args.receipt))
+        else:
+            sys.stdout.write(summary(json.loads(args.receipt.read_text(encoding="utf-8"))))
     return 0
 
 

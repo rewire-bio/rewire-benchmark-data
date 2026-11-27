@@ -114,6 +114,28 @@ class RunGuideTrialTest(unittest.TestCase):
         self.assertIn("| 2 | Fail in the middle | failed | 1 |", table)
         self.assertIn("| 3 | Never reached | not_run |  |  |", table)
 
+    def test_folder_summary_has_one_row_per_receipt(self):
+        out = self.root / "downloaded"
+        for record in (CD_GUIDE, FAIL_GUIDE):
+            trial_dir, _ = self.run_trial(record)
+            trial.write_receipt(trial_dir, record, out / f"run-guide-receipt-{record['id']}", "ok")
+        table = trial.receipts_table(out)
+        self.assertEqual(len(table.splitlines()), 4)
+        self.assertIn("| synthetic-cd | completed |  |  |  |", table)
+        self.assertIn("| synthetic-fail | failed_at_step_2 | 2. Fail in the middle | other | before |", table)
+
+    def test_python_choice_is_recorded(self):
+        trial_dir, _ = self.run_trial(FAIL_GUIDE)
+        receipt = trial.build_receipt(trial_dir, FAIL_GUIDE, "failed_used_runner_python")
+        self.assertEqual(receipt["python"], {"requested": trial.DEFAULT_PYTHON, "chosen_by": "harness_default",
+                                             "setup": "failed_used_runner_python"})
+        self.assertIsNone(trial.build_receipt(trial_dir, FAIL_GUIDE)["python"])
+
+    def test_a_missing_trial_directory_gives_a_not_started_receipt(self):
+        receipt = trial.build_receipt(self.root / "never-made", FAIL_GUIDE, "ok")
+        self.assertEqual(receipt["result"], "not_started")
+        self.assertEqual([s["status"] for s in receipt["steps"]], ["not_run"] * 3)
+
     def test_receipt_refuses_a_changed_guide(self):
         trial_dir, _ = self.run_trial(FAIL_GUIDE)
         changed = json.loads(json.dumps(FAIL_GUIDE))
@@ -192,7 +214,9 @@ class LikelyCauseTest(unittest.TestCase):
         "dependency": "ERROR: Could not find a version that satisfies the requirement tensorflow==1.15",
         "python_version": "ERROR: Package 'foo' requires a different Python: 3.12.3 not in '<3.11,>=3.8'",
         "needs_root": "sudo: a terminal is required to read the password",
-        "other": "Traceback (most recent call last):\nValueError: bad value",
+        "code_raised_error": "Traceback (most recent call last):\nValueError: bad value",
+        "tool_not_installed": "/trial/run/record/steps/1.sh: line 4: conda: command not found",
+        "other": "something went wrong",
     }
 
     def test_each_rule(self):
@@ -205,7 +229,29 @@ class LikelyCauseTest(unittest.TestCase):
         self.assertEqual(trial.likely_cause(tail), "no_gpu")
 
     def test_download_sizes_are_not_http_errors(self):
-        self.assertEqual(trial.likely_cause("Downloading foo-1.0.whl (404 kB)\nValueError: bad"), "other")
+        self.assertEqual(trial.likely_cause("Downloading foo-1.0.whl (404 kB)\nValueError: bad"), "code_raised_error")
+
+    def test_tails_from_the_first_trial(self):
+        tails = {
+            "tool_not_installed": ("Cloning into 'basenji'...\nHEAD is now at 06ce5d3 freeze tf\n"
+                                   "/trial/run/record/steps/1.sh: line 4: conda: command not found", 127),
+            "dependency": ("Collecting fsspec==2023.10.0\n"
+                           "ERROR: Could not find a version that satisfies the requirement ginnm==0.0.2 (from versions: none)\n"
+                           "ERROR: No matching distribution found for ginnm==0.0.2", 1),
+            "code_raised_error": ("[transformers] Model config: bos_token_id must be `None`\n"
+                                  "Traceback (most recent call last):\n  File \"<stdin>\", line 11, in <module>\n"
+                                  "AssertionError: Unrecognized token supplied in starting tokens", 1),
+        }
+        for cause, (tail, code) in tails.items():
+            with self.subTest(cause=cause):
+                self.assertEqual(trial.likely_cause(tail, code), cause)
+        lol_eve = ("Traceback (most recent call last):\n"
+                   "    if t.is_floating_point() and \"float8_\" not in str(t.dtype):\n"
+                   "AttributeError: 'int' object has no attribute 'is_floating_point'")
+        self.assertEqual(trial.likely_cause(lol_eve, 1), "code_raised_error")
+        self.assertEqual(trial.last_error_line(lol_eve), "AttributeError: 'int' object has no attribute 'is_floating_point'")
+        self.assertEqual(trial.likely_cause("Traceback (most recent call last):\nModuleNotFoundError: No module named 'torch'", 1),
+                         "dependency")
 
     def test_a_killed_process_with_no_message_is_memory(self):
         self.assertEqual(trial.likely_cause("", 137), "out_of_memory")
@@ -287,7 +333,10 @@ class MatrixTest(unittest.TestCase):
 
     def test_matrix_names_python_only_when_stated(self):
         plan = trial.matrix("py synthetic-fail", "30", self.entities)
-        self.assertEqual(plan["matrix"]["include"], [{"id": "py", "python": "3.10"}, {"id": "synthetic-fail", "python": ""}])
+        self.assertEqual(plan["matrix"]["include"], [
+            {"id": "py", "python": "3.10", "python_chosen_by": "guide"},
+            {"id": "synthetic-fail", "python": trial.DEFAULT_PYTHON, "python_chosen_by": "harness_default"},
+        ])
         self.assertEqual(plan["timeout_minutes"], 30)
         self.assertEqual(plan["session_seconds"], 1800)
         self.assertLess(plan["timeout_minutes"], plan["step_timeout_minutes"])
