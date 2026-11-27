@@ -61,6 +61,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # Runs queue, so by the time one starts an earlier run may have pushed its manifest
+          # commit. Start from the tip of main, not from the commit that triggered this run: a
+          # run that starts on a stale tree fetches the same sources again and cannot rebase
+          # its commit.
+          ref: main
           # Without this, checkout leaves the default GITHUB_TOKEN in the local git config as
           # an http.extraheader, and that beats credentials in a remote URL. The push below
           # then goes out as github-actions[bot], which main's protection refuses: the first
