@@ -237,6 +237,40 @@ a number attached to the wrong set. Before you write a size, a count or a split:
 - When you describe what a script does, read the script: say what it runs, not what its name or its
   README suggests.
 
+## What reviews of earlier batches found
+
+Independent reviewers judged every statement in the first batches against the saved files. These
+are the faults they found most often. Check your page against each before you finish.
+
+Saying more than the files show:
+
+- A licence, parameter count, file or checkpoint name, address, date, HTTP status or command that
+  no saved file prints. Save the LICENSE file or the API response, or record the fact as not stated.
+- A statement that a site was searched, or that an address did not resolve, with no saved response.
+  Say what the saved files name and do not name.
+- A fact carried over from a related model, a sibling checkpoint or an earlier version. A page
+  states only what the files in its own folder show.
+- An explanation of why two figures differ that no saved file gives. State both figures.
+- A figure attached to the wrong thing: a count on the wrong checkpoint, a host's memory given as a
+  GPU's, a learning-rate patience read as an epoch count, a training-set size called a test set.
+- A code licence carried over to the weights. Record a weights licence only when a saved file
+  states one for the weights or the model.
+
+Saying less than the files show:
+
+- A fact marked not reported, or a discrepancy called unexplained, when the saved paper states or
+  explains it. Search the saved full text for the figure before writing a gap.
+- A saved PDF that was never read. Make its text layer with `pdftotext -layout`, save that as the
+  quoted file, and read it.
+
+Families: when several records share one paper and repository, write the shared facts from the
+shared files, identically on each page, and add to each page only what that record's own card or
+config states.
+
+Privacy: some publishers stamp a downloaded PDF with the requesting machine's address. Do not keep
+such a file. Keep the text layer with the stamp line removed, and say so in the notes. Never copy
+an email address onto a page.
+
 ## Report
 
 When all your folders are done, reply with one line per benchmark: folder, OK or not, number of sources,
