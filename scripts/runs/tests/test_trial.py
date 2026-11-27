@@ -245,6 +245,9 @@ class LikelyCauseTest(unittest.TestCase):
         for cause, (tail, code) in tails.items():
             with self.subTest(cause=cause):
                 self.assertEqual(trial.likely_cause(tail, code), cause)
+        akita = ("Pip subprocess error:\nERROR: Invalid requirement: 'tensorflow=2.15': Expected end or semicolon\n"
+                 "Hint: = is not a valid operator. Did you mean == ?\nfailed\n\nCondaEnvException: Pip failed")
+        self.assertEqual(trial.likely_cause(akita, 1), "dependency")
         lol_eve = ("Traceback (most recent call last):\n"
                    "    if t.is_floating_point() and \"float8_\" not in str(t.dtype):\n"
                    "AttributeError: 'int' object has no attribute 'is_floating_point'")
@@ -252,6 +255,15 @@ class LikelyCauseTest(unittest.TestCase):
         self.assertEqual(trial.last_error_line(lol_eve), "AttributeError: 'int' object has no attribute 'is_floating_point'")
         self.assertEqual(trial.likely_cause("Traceback (most recent call last):\nModuleNotFoundError: No module named 'torch'", 1),
                          "dependency")
+
+    def test_a_boxed_error_gives_its_message(self):
+        tail = ("2.9.0\n"
+                "╭─ Error ──────────────────────────────────────────────────────────────────────╮\n"
+                "│ Invalid value for --window-size: unable to convert \"WINDOW_SIZE\" into int.   │\n"
+                "╰──────────────────────────────────────────────────────────────────────────────╯")
+        self.assertEqual(trial.last_error_line(tail),
+                         'Invalid value for --window-size: unable to convert "WINDOW_SIZE" into int.')
+        self.assertEqual(trial.likely_cause(tail, 2), "bad_arguments")
 
     def test_a_killed_process_with_no_message_is_memory(self):
         self.assertEqual(trial.likely_cause("", 137), "out_of_memory")
@@ -277,13 +289,15 @@ class CandidatesTest(unittest.TestCase):
             "needs sudo or a container runtime": guide_record("docker", [install, ("Run", "docker run image")]),
             "has a placeholder or refers to the reader's own data": guide_record("placeholder", [install, ("Run", "python3 run.py --in /path/to/data")]),
             "has a manual step (comments only)": guide_record("manual", [install, ("Fetch", "# Download the weights by hand")]),
+            "has a placeholder or refers to the reader's own data ": guide_record(
+                "capsplaceholder", [install, ("Score", "gpn msa vep --msa-path LOCAL_MSA_PATH --window-size WINDOW_SIZE")]),
             "names a size of 40 GB": guide_record("big", [install], prerequisites=["About 40 GB of disk for the weights."]),
         }
         for expected, record in cases.items():
             with self.subTest(expected=expected):
                 ok, why, _ = self.assess(record)
                 self.assertFalse(ok)
-                self.assertEqual(why, [expected])
+                self.assertEqual(why, [expected.strip()])
 
     def test_unstated_gpu_memory_does_not_make_a_gpu_optional(self):
         record = guide_record("gpumemory", [("Install", "pip install thing")],
