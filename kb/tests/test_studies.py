@@ -14,6 +14,20 @@ from pathlib import Path
 
 DB = os.environ.get("KB_DB", str(Path(__file__).resolve().parents[1] / "build" / "kb.sqlite"))
 BEELINE = ("acquired-source-0f6c059ffdc338b70a5c", "acquired-source-31344fb7e5e8ae6b9666", "acquired-source-3156602fda847ae943b4")
+MSALIGN = ("evidence-official-760ab2fa8c396aeb796c", "uc20260930-source-msalign-v2")
+FLIP2_LOCAL = (
+    "rewire-local-20260920-source-flip2-composition",
+    "rewire-local-20260920-source-flip2-train-mean",
+    "rewire-local-20260921-source-composition22",
+    "rewire-local-20260921-source-esm2-35m",
+    "rewire-local-20260921-source-esm2-8m",
+)
+TRROSETTARNA = (
+    "model-pages-20261126-batch3-trrosettarna-source-package-env",
+    "model-pages-20261126-batch3-trrosettarna-source-package-readme",
+    "model-pages-20261126-batch3-trrosettarna-source-paper",
+    "model-pages-20261126-batch3-trrosettarna-source-zenodo",
+)
 
 
 class Studies(unittest.TestCase):
@@ -38,6 +52,12 @@ class Studies(unittest.TestCase):
         found = {s for (s,) in self.db.execute(
             f"SELECT study_id FROM source_study WHERE source_id IN ({', '.join('?' * len(BEELINE))})", BEELINE)}
         self.assertEqual(len(found), 1)
+
+    def test_companion_and_zenodo_work_groups_are_one_study_each(self):
+        for label, group in (("MSAlign", MSALIGN), ("FLIP2_LOCAL", FLIP2_LOCAL), ("TRROSETTARNA", TRROSETTARNA)):
+            found = {s for (s,) in self.db.execute(
+                f"SELECT study_id FROM source_study WHERE source_id IN ({', '.join('?' * len(group))})", group)}
+            self.assertEqual(len(found), 1, f"{label}: {sorted(found)}")
 
 
 if __name__ == "__main__":

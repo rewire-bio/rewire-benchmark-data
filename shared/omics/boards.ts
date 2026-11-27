@@ -46,7 +46,9 @@ export type Board = {
   studies: Record<string, { source_ids: string[]; dois: string[] }>;
 };
 
-export type BoardsFile = { schema_version: number; release_id: string; released_at: string | null; method: string; boards: Board[] };
+export type BoardGroup = { id: string; label: string; use_cases: [string, string][] };
+
+export type BoardsFile = { schema_version: number; release_id: string; released_at: string | null; method: string; groups?: BoardGroup[]; boards: Board[] };
 
 const COUNT_KEYS = ["studies", "groups", "models", "ranked", "one_study", "not_a_model", "not_connected", "too_few"] as const;
 
@@ -66,6 +68,16 @@ export function boardsProblems(raw: unknown, releaseId?: string): string[] {
   if (releaseId !== undefined && raw.release_id !== releaseId) fail("file", `release_id is ${String(raw.release_id)}, not ${releaseId}`);
   if (raw.released_at !== null && !isText(raw.released_at)) fail("file", "released_at is neither a date nor null");
   if (!isText(raw.method)) fail("file", "method missing");
+  if (raw.groups !== undefined) {
+    if (!Array.isArray(raw.groups)) fail("file", "groups is not a list");
+    else raw.groups.forEach((g: unknown, i: number) => {
+      const at = `group ${i}`;
+      if (!isObject(g)) return fail(at, "not an object");
+      if (!isText(g.id) || !isText(g.label)) fail(at, "id or label missing");
+      if (!Array.isArray(g.use_cases) || !g.use_cases.every((u: unknown) => Array.isArray(u) && u.length === 2 && isText(u[0]) && isText(u[1])))
+        fail(at, "use_cases must be [slug, label] pairs");
+    });
+  }
   if (!Array.isArray(raw.boards)) return [...problems, "file: boards is not a list"];
   const slugs = new Set<string>();
   raw.boards.forEach((b: unknown, i: number) => {

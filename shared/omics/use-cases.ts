@@ -83,7 +83,7 @@ const mappingSchema = z.object({
   revision: z.number().int().positive(), reason: text,
   prior_release_id: releaseId.optional(), supersedes_id: id.optional(),
   protocol_id: id.optional(), task_id: id.optional(),
-  evaluation_ids: z.array(id).max(500), endpoint: text.optional(),
+  evaluation_ids: z.array(id).max(2000), endpoint: text.optional(),
   relevance: z.enum(["direct", "proxy", "outside_scope"]).optional(),
   rationale: text.optional(), constraints: texts, limitations: texts,
   citations: z.array(citationSchema).max(100), review: reviewSchema.optional(),
@@ -639,7 +639,7 @@ function evaluationBlocker(ix: Index, protocolId: string, evaluation: CatalogueR
 }
 
 /** Build the use-case inputs from use_case records and their relevance judgement claims. */
-export const MAX_JUDGEMENT_EVALUATIONS = 500;
+export const MAX_JUDGEMENT_EVALUATIONS = 2000;
 function reviewedEvaluations(claim: CatalogueRecord): string[] {
   return (Array.isArray(claim.attributes.reviewed_evaluations) ? claim.attributes.reviewed_evaluations : []).map(String);
 }
@@ -1027,11 +1027,24 @@ export function useCaseQueryFrom(state: UseCaseState) {
       if (!entry) return null;
       const mappings = mappingsByCase.get(entry.id) || [];
       const flattened = mappings.flatMap((m) => m.evaluations.map((evaluation, position) => ({ mapping_id: m.id, position, evaluation })));
+      // Deduplicate protocol, task and citation sources once in top-level `records`
+      // instead of repeating them per mapping on every page.
+      const records: Record<string, CatalogueRecord> = {};
+      for (const m of mappings) {
+        if (m.protocol) records[m.protocol.id] = m.protocol;
+        if (m.task) records[m.task.id] = m.task;
+        for (const s of m.sources) records[s.id] = s;
+      }
+      const compact = (m: ResolvedMapping, evaluations: ResolvedMapping["evaluations"]): ResolvedMapping => {
+        const { protocol: _p, task: _t, sources: _s, ...rest } = m;
+        return { ...rest, evaluations } as unknown as ResolvedMapping;
+      };
       // Mapping and use-case metadata is sent whole on every page, so the evaluations get
       // only what the response budget leaves after it, never more than their own budget.
       const fixed = {
         release_id, input_sha256, use_case: entry,
-        mappings: mappings.map((m) => ({ ...m, evaluations: [] })),
+        records,
+        mappings: mappings.map((m) => compact(m, [])),
         sources: sourcesByCase.get(entry.id) || [],
         evaluations_total: flattened.length,
         evaluations_next_cursor: null,
@@ -1050,7 +1063,8 @@ export function useCaseQueryFrom(state: UseCaseState) {
       for (const item of page.items) byMapping.set(item.mapping_id, [...(byMapping.get(item.mapping_id) || []), item.evaluation]);
       const response = {
         release_id, input_sha256, use_case: entry,
-        mappings: mappings.map((m) => ({ ...m, evaluations: byMapping.get(m.id) || [] })),
+        records,
+        mappings: mappings.map((m) => compact(m, byMapping.get(m.id) || [])),
         sources: sourcesByCase.get(entry.id) || [],
         evaluations_total: flattened.length,
         evaluations_next_cursor: page.next_cursor,

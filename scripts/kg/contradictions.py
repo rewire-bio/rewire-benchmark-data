@@ -164,6 +164,8 @@ class Comparison:
     unit: URIRef | None = None
     qualifier: str = ""
     split: str = ""
+    aggregation: str = ""
+    conditions: str = ""
     # The tested systems (configurations, or the model itself) whose rows the values come from.
     config_a: URIRef | None = None
     config_b: URIRef | None = None
@@ -183,6 +185,37 @@ class Comparison:
             return None
         gap = float((mine - theirs) / abs(theirs))
         return gap if self.higher_is_better else -gap
+
+
+# Keys of a structured scoring condition that describe the submission, the system's own
+# configuration or the result's own counts, rather than how the test was scored.
+IGNORED_CONDITION_KEYS = frozenset({
+    "participant_id", "submission", "submission_id", "submission_date", "team_id", "model_name_reported", "low_id",
+    "configuration", "features", "scaling",
+    "tp", "fp", "fn", "n_called_dup", "n_called_del", "classification", "clashes",
+})
+
+
+def condition_key(value) -> str:
+    """The scoring conditions as compared: a dict without IGNORED_CONDITION_KEYS, else scalar/JSON text."""
+    if value is None:
+        return ""
+    if isinstance(value, dict):
+        filtered = {k: v for k, v in value.items() if k not in IGNORED_CONDITION_KEYS}
+        return json.dumps(filtered, sort_keys=True, separators=(",", ":"), ensure_ascii=False) if filtered else ""
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+
+
+def parse_conditions(raw) -> str:
+    if raw is None:
+        return ""
+    text = str(raw)
+    try:
+        return condition_key(json.loads(text))
+    except ValueError:
+        return text
 
 
 def local(node: URIRef | None) -> str | None:
@@ -468,10 +501,12 @@ def comparisons(index: Index) -> list[Comparison]:
         except InvalidOperation:
             continue
         protocol = g.value(evaluation, RB.testedOn)
+        aggregation = str(g.value(result, RB.aggregation) or "")
+        conditions = parse_conditions(g.value(result, RB.scoringConditions))
         key = (
             index.study[sources[0]], protocol, g.value(evaluation, RB.dataset), g.value(result, RB.metric),
             g.value(result, RB.unit), str(g.value(result, RB.metricQualifier) or ""),
-            str(g.value(result, RB.split) or ""), higher,
+            str(g.value(result, RB.split) or ""), aggregation, conditions, higher,
         )
         rows.append((key, resolved[0], tested, number, result, resolved[1]))
 
@@ -489,7 +524,7 @@ def comparisons(index: Index) -> list[Comparison]:
 
     found = []
     for key, by_system in groups.items():
-        study, protocol, dataset, metric, unit, qualifier, split, higher = key
+        study, protocol, dataset, metric, unit, qualifier, split, aggregation, conditions, higher = key
         best = {}
         for system, items in by_system.items():
             value = (max if higher else min)(number for number, _, _ in items)
@@ -499,7 +534,8 @@ def comparisons(index: Index) -> list[Comparison]:
                 if a < b and b not in index.members(a) and a not in index.members(b):
                     (va, ra, rev_a), (vb, rb_, rev_b) = best[a], best[b]
                     found.append(Comparison(study, protocol, metric, a, b, va, vb, higher, ra, rb_, rev_a and rev_b,
-                                            dataset, unit, qualifier, split, chosen[(study, a)], chosen[(study, b)]))
+                                            dataset, unit, qualifier, split, aggregation, conditions,
+                                            chosen[(study, a)], chosen[(study, b)]))
     return found
 
 
@@ -704,7 +740,7 @@ def studies_json(f: Finding, index: Index, tolerance: float) -> list[dict]:
         by_study[c.study].append(c)
     studies = []
     for study, items in by_study.items():
-        items.sort(key=lambda c: tuple(str(x or "") for x in (c.protocol, c.dataset, c.metric, c.unit, c.qualifier, c.split)))
+        items.sort(key=lambda c: tuple(str(x or "") for x in (c.protocol, c.dataset, c.metric, c.unit, c.qualifier, c.split, c.aggregation, c.conditions)))
         winners = Counter(c.better(tolerance) for c in items)
         gap = f.gaps.get(study)
         used = {local(f.a): local(items[0].config_a if items[0].a == f.a else items[0].config_b),

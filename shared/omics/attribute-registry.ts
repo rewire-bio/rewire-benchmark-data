@@ -439,6 +439,7 @@ export const attributeRegistry = {
     entity_classification: "json",
     entity_level: "concept:entity-level",
     identity_scope: "text",
+    legacy_kinds: "entity-kinds",
     licence: "text",
     missing_metadata: "missing-metadata",
     profile: "json",

@@ -106,6 +106,67 @@ IGNORED_CONDITION_KEYS = frozenset({
     "tp", "fp", "fn", "n_called_dup", "n_called_del", "classification", "clashes",
 })
 NOT_A_MODEL, ONE_STUDY, NOT_CONNECTED, TOO_FEW = "not a model record", "one study", "not compared with the main group", "no second model to rank"
+GROUPS = [
+    ("variant", "Variant interpretation", [
+        ["missense-pp3-bp4-calibrated-evidence", "Missense PP3/BP4"],
+        ["brca1-brca2-germline-interpretation", "BRCA1/BRCA2"],
+        ["rare-disease-candidate-ranking", "Rare disease ranking"],
+        ["somatic-small-variant-oncogenicity", "Somatic oncogenicity"],
+        ["egfr-nsclc-actionability-resistance-evidence", "EGFR in NSCLC"],
+        ["unresolved-rare-disease-reanalysis", "Rare disease reanalysis"],
+    ]),
+    ("protein", "Proteins", [
+        ["protein-variant-effect-prediction", "Protein variant effects"],
+        ["protein-variant-stability", "Protein stability"],
+        ["protein-representation-property-prediction", "Protein probing"],
+        ["protein-function-annotation", "Protein function"],
+        ["protein-design-quality", "Protein design"],
+        ["structural-hypotheses-experiments", "Structural hypotheses"],
+        ["de-novo-binder-design", "Binder design"],
+        ["rhodopsin-wavelength-transfer", "Rhodopsin wavelength"],
+        ["rna-structure-prediction", "RNA structure"],
+        ["glycan-property-prediction", "Glycan properties"],
+        ["lead-optimisation-affinity-ranking", "Affinity ranking"],
+        ["hit-discovery-virtual-screening", "Virtual screening"],
+    ]),
+    ("regulatory", "Regulation and splicing", [
+        ["genomic-sequence-element-annotation", "Genomic annotation"],
+        ["regulatory-variant-gene-follow-up", "Regulatory variants"],
+        ["splicing-follow-up", "Splicing follow-up"],
+        ["patient-rna-splicing-validation", "Patient RNA splicing"],
+        ["plant-promoter-reporters", "Plant promoters"],
+        ["utr-translation-baselines", "UTR translation"],
+    ]),
+    ("cells", "Cells", [
+        ["cell-type-annotation-transfer", "Cell type annotation"],
+        ["single-cell-data-integration", "Single-cell integration"],
+        ["genetic-perturbation-response", "Perturbation response"],
+        ["phenotype-perturbation-selection", "Phenotype screens"],
+        ["therapeutic-target-validation", "Target validation"],
+    ]),
+    ("diagnostics", "Sequencing and diagnostics", [
+        ["tumour-dna-somatic-variant-detection", "Somatic variant calling"],
+        ["cnv-detection-characterisation", "CNV detection"],
+        ["tumour-rna-fusion-detection", "RNA fusions"],
+        ["diagnostic-dna-pathogen-identification", "DNA pathogens"],
+        ["diagnostic-rna-pathogen-detection", "RNA pathogens"],
+        ["viral-microbial-sequence-classification", "Viral & microbial"],
+        ["diagnostic-genomics-model-execution", "Running models"],
+        ["plasma-ctdna-fragmentomics", "ctDNA fragments"],
+        ["plasma-ctdna-methylation", "ctDNA methylation"],
+        ["mass-spectrum-molecule-shortlisting", "Mass spectra"],
+    ]),
+]
+
+
+def board_groups(boards):
+    slugs = {b["use_case"] for b in boards}
+    groups = []
+    for gid, label, pairs in GROUPS:
+        present = [[slug, short] for slug, short in pairs if slug in slugs]
+        if present:
+            groups.append({"id": gid, "label": label, "use_cases": present})
+    return groups
 
 GROUP_QUERY = """
 SELECT o.study_id, o.assessment_id, o.metric, o.unit, o.metric_qualifier, o.aggregation, o.scoring_conditions,
@@ -441,7 +502,7 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     with open(out, "w") as handle:
         json.dump({"schema_version": SCHEMA_VERSION, "release_id": release_id, "released_at": released_at,
-                   "method": METHOD, "boards": boards}, handle, indent=1, ensure_ascii=False)
+                   "method": METHOD, "groups": board_groups(boards), "boards": boards}, handle, indent=1, ensure_ascii=False)
         handle.write("\n")
 
 

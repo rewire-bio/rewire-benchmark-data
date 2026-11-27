@@ -259,5 +259,17 @@ class Grades(unittest.TestCase):
         self.assertEqual([len(v) for v in groups.values()], [3])
 
 
+class Groups(unittest.TestCase):
+    def test_board_groups_filter_present_slugs_preserving_order(self):
+        sample = [
+            {"use_case": "brca1-brca2-germline-interpretation"},
+            {"use_case": "protein-variant-effect-prediction"},
+        ]
+        groups = board.board_groups(sample)
+        self.assertEqual([g["id"] for g in groups], ["variant", "protein"])
+        self.assertEqual(groups[0]["use_cases"], [["brca1-brca2-germline-interpretation", "BRCA1/BRCA2"]])
+        self.assertEqual(groups[1]["use_cases"], [["protein-variant-effect-prediction", "Protein variant effects"]])
+
+
 if __name__ == "__main__":
     unittest.main()

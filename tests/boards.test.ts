@@ -24,6 +24,10 @@ function file(): BoardsFile {
 describe("boards file", () => {
   it("accepts a well formed file and an empty board", () => {
     expect(boardsProblems(file(), release)).toEqual([]);
+    const withGroups = { ...file(), groups: [{ id: "variant", label: "Variant", use_cases: [["brca", "BRCA"]] as [string, string][] }] };
+    expect(boardsProblems(withGroups, release)).toEqual([]);
+    const badGroups = { ...file(), groups: [{ id: "variant", label: "Variant", use_cases: ["brca"] }] };
+    expect(boardsProblems(badGroups).join("\n")).toMatch(/use_cases must be/);
     const empty = file();
     empty.boards[0] = { ...empty.boards[0], rows: [], summary: "No ranking.",
       counts: { ...empty.boards[0].counts, models: 1, ranked: 0 } };
