@@ -77,6 +77,7 @@ def main():
                 rows.append([tier if tier else "none", len(group)] + [sum(bool(test(r)) for r in group) for _, test in columns])
         return table(["Tier", "Records"] + [name for name, _ in columns], rows)
 
+    benchmark_results = {b for p in protocols if per_protocol.get(p["id"]) for b in links(p, "part_of")}
     today = datetime.date.today().isoformat()
     with_results = [p for p in protocols if per_protocol.get(p["id"])]
     out = [
@@ -100,6 +101,7 @@ def main():
             ("Profile", lambda r: isinstance(r["attributes"].get("profile"), dict)),
             ("Run guide or recipe", lambda r: r["attributes"].get("run_guide") or r["attributes"].get("run_recipes")),
             ("Run documentation only", lambda r: r["attributes"].get("run_documentation") and not (r["attributes"].get("run_guide") or r["attributes"].get("run_recipes"))),
+            ("Has results", lambda r: r["id"] in benchmark_results),
         ]),
         "",
         "## Methods",

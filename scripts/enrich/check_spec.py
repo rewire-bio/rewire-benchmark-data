@@ -1,4 +1,4 @@
-"""Check one model folder's spec.json. Usage: python3 -I check_spec.py <folder>. Exit 0 means it passes."""
+"""Check one model or benchmark folder's spec.json. Usage: python3 -I check_spec.py <folder>. Exit 0 means it passes."""
 import hashlib, json, pathlib, re, sys
 
 d = pathlib.Path(sys.argv[1]); spec = json.loads((d / "spec.json").read_text()); inp = json.loads((d / "input.json").read_text())
@@ -40,7 +40,13 @@ for f in ("summary", "sections", "facts", "strengths", "limitations", "coverage"
 if p.get("summary_source_ids") is None or not p.get("summary_source_locator"): err("profile: summary needs summary_source_ids and summary_source_locator")
 if not p.get("summary_quotes"): err("profile: summary_quotes missing")
 else: check_ev({"source_ids": p.get("summary_source_ids"), "source_locator": p.get("summary_source_locator"), "quotes": p["summary_quotes"]}, "profile.summary")
-want = ["Model type", "Architecture", "Inputs", "Outputs", "Parameters", "Training data", "Known versions", "Training cutoff", "Context limits", "Weights licence", "Code licence", "Access"]
+kind = inp.get("kind", "model")
+if kind == "benchmark":
+    want = ["Datasets", "Splits", "Metrics", "Baselines", "Leakage controls", "Uncertainty", "Entity type", "Organisms", "Assays", "Allowed inputs", "Adaptation"]
+    titles = ["What it measures", "How it is built", "Evaluation methodology"] + (["How to run it"] if spec.get("run_guide") else [])
+else:
+    want = ["Model type", "Architecture", "Inputs", "Outputs", "Parameters", "Training data", "Known versions", "Training cutoff", "Context limits", "Weights licence", "Code licence", "Access"]
+    titles = ["How it works"]
 labels = [f.get("label") for f in p.get("facts", [])]
 for w in want:
     if w not in labels: err(f"profile.facts: missing label {w!r}")
@@ -50,7 +56,13 @@ for i, f in enumerate(p.get("facts", [])):
     check_ev(f, f"fact {f.get('label')}", need_quote=f.get("status") == "source_checked")
 for name in ("sections", "strengths", "limitations"):
     for i, o in enumerate(p.get(name, [])): check_ev(o, f"{name}[{i}]")
-if not any(s.get("title") == "How it works" for s in p.get("sections", [])): err("sections: need one titled 'How it works'")
+for t in titles:
+    if not any(s.get("title") == t for s in p.get("sections", [])): err(f"sections: need one titled {t!r}")
+if kind == "benchmark":
+    if not spec.get("structured"): err("structured: need one entry per task or track")
+    for i, e in enumerate(spec.get("structured") or []):
+        if e.get("metric_direction") not in ("higher", "lower", None): err(f"structured[{i}]: metric_direction must be higher, lower or null")
+        check_ev({"source_ids": ["@" + (q.get("source") or "").lstrip("@") for q in e.get("quotes") or []] or None, "source_locator": "structured", "quotes": e.get("quotes")}, f"structured[{i}]")
 if p.get("diagram"):
     if not 2 <= len(p["diagram"].get("steps", [])) <= 8: err("diagram: 2 to 8 steps")
     check_ev(p["diagram"], "diagram")

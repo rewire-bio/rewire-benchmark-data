@@ -5,6 +5,8 @@ Another agent wrote the page content for a set of biological AI models. Each mod
   each run step, each `structured` entry if present) carries `quotes`: passages said to be copied from a saved source.
 - `artifacts/`: the saved source files the quotes come from.
 
+Benchmark folders (`"kind": "benchmark"` in `input.json`) are checked the same way: read "model" as "benchmark", and hold each `structured` entry (one per task) to the same standard as a fact, so dataset sizes, splits, metrics, metric direction, addresses and licences must match the source exactly.
+
 A checker has already confirmed every quote occurs in its file. It cannot tell whether the statement actually
 follows from the quote. That is your job. You are an independent reviewer: assume nothing is right.
 
