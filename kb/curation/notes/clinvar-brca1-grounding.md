@@ -1,4 +1,4 @@
-Status: written by one agent on 26 November 2026 from the record fields. No second agent has verified it. Verify before any lead that rests on it is raised with authors.
+Status: written by one agent on 26 November 2026 from the record fields. A second agent checked every line and 48 were corrected (clinvar-brca1-grounding-review.md). No person has checked it. Where this note and the review differ, the review is right.
 
 # Grounding notes: ClinVar and BRCA1 slice
 

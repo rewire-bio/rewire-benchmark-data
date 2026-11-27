@@ -12,6 +12,7 @@ Tables
   checkpoint         one released set of weights: parameters and context as numbers, licences, addresses
   grounding          for one result: the exact system that was run (family, size, version, scoring variant) and
                      the subset of the data the number is for. Both are free text in the record store
+  difference_review  what a review concluded about one difference between studies, and why
   lead               a disagreement someone or something has noticed, with its state
 
 Views
@@ -21,6 +22,8 @@ Views
   setting_pair_v          pairs of models that two or more studies both measured in a setting, and how each study orders them
   grounded_cell_v         as setting_cell_v, but one row per exact system and subset, for results that have grounding
   grounded_difference_v   the same exact system, setting, subset and metric with values from two or more studies that differ
+  grounded_lead_v         those differences with the verdict a review gave each: lead, artefact or unresolved. A difference
+                          no review covers shows as "not reviewed", which is how a new one is noticed
 """
 import argparse
 import json
@@ -32,6 +35,7 @@ TABLES = {
     "protocol_setting": ("kb/curation/protocol_settings.jsonl", ["protocol_id", "setting_id", "grade", "metric", "differences", "why", "basis"]),
     "checkpoint": ("kb/curation/checkpoints.jsonl", ["id", "model_id", "checkpoint", "parameters", "context_length", "context_unit", "code_licence", "weights_licence", "code_url", "weights_url", "gated", "released", "evidence"]),
     "grounding": ("kb/curation/grounding.jsonl", ["observation_id", "system_key", "system_label", "system_basis", "adaptation", "subset", "subset_basis", "confidence"]),
+    "difference_review": ("kb/curation/difference_reviews.jsonl", ["setting_id", "system_key", "subset", "metric", "verdict", "why", "basis"]),
     "lead": ("kb/curation/leads.jsonl", ["id", "setting_id", "kind", "model", "model_id", "metric", "values", "note", "state", "basis"]),
 }
 VIEWS = {
@@ -62,6 +66,10 @@ VIEWS = {
                min(lowest) AS lowest, max(highest) AS highest, max(highest) - min(lowest) AS spread
         FROM grounded_cell_v GROUP BY setting_id, system_key, subset, metric
         HAVING count(*) >= 2 AND max(highest) - min(lowest) > 0.005""",
+    "grounded_lead_v": """
+        SELECT d.*, COALESCE(r.verdict, 'not reviewed') AS verdict, r.why
+        FROM grounded_difference_v d LEFT JOIN difference_review r
+          ON r.setting_id = d.setting_id AND r.system_key = d.system_key AND r.subset = d.subset AND r.metric = d.metric""",
 }
 
 
@@ -91,6 +99,8 @@ def main():
         ("of those pairs, studies disagree on the order", "SELECT count(*) FROM setting_pair_v WHERE first_ahead > 0 AND second_ahead > 0"),
         ("results with an exact system and subset", "SELECT count(*) FROM grounding"),
         ("same exact system, setting, subset and metric, different value in another study", "SELECT count(*) FROM grounded_difference_v"),
+        ("of those, judged a lead worth raising", "SELECT count(*) FROM grounded_lead_v WHERE verdict = 'lead'"),
+        ("of those, not yet reviewed", "SELECT count(*) FROM grounded_lead_v WHERE verdict = 'not reviewed'"),
     ]:
         print(f"{label}: {db.execute(query).fetchone()[0]}")
 

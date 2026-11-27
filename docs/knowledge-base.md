@@ -100,6 +100,11 @@ flowchart LR
 6. **Score.** `python3 scripts/enrich/scorecard.py --write` rebuilds
    [scorecard.md](scorecard.md).
 
+Benchmark pages go through the same steps. Add `--kind benchmark` to `select` and `prepare`, give the
+research agents [scripts/enrich/briefs/benchmark-page.md](../scripts/enrich/briefs/benchmark-page.md),
+and apply with `python3 scripts/enrich/enrich.py benchmarks <batch name>` in place of `models`.
+Benchmarks are ordered by the results recorded through their protocols.
+
 Each batch leaves a folder under `data/omics/` with the content files (including the passages), and
 a review document under `docs/reviews/` that says what changed, how it was checked and what was
 left open.
@@ -201,6 +206,7 @@ it rests on `near` settings.
 | --- | --- |
 | See how complete the database is | Read [scorecard.md](scorecard.md) |
 | Fill in a batch of model pages | Follow the six steps above. A finished example is `data/omics/model-pages-20261126-batch1/` and its review in `docs/reviews/` |
+| Fill in a batch of benchmark pages | The same six steps with `--kind benchmark` and the benchmark brief, applied with `enrich.py benchmarks` |
 | Correct something on a page | Edit the record, write a short review saying why, run `npm run records -- change`. See [collection.md](collection.md), "Corrections and concerns" |
 | Add results from a paper | [collection.md](collection.md) |
 | Add a new model | Open an issue labelled `entity-request`; the intake agent opens the pull request |
@@ -223,7 +229,7 @@ it rests on `near` settings.
 
 ## Known gaps
 
-- Benchmarks, methods and most Tier 2 and Tier 3 models have no profile yet.
+- Methods, most benchmarks and most Tier 2 and Tier 3 models have no profile yet.
 - No run guide has been executed. An executed guide needs a status the schema does not have yet.
 - Settings are a pilot. No setting record or same-checkpoint rule exists yet.
 - The structured checkpoint facts are collected and not yet loaded into the records or the graph.
