@@ -4,7 +4,7 @@ Usage:
   python3 kb/queries.py --list
   python3 kb/queries.py <query name> [--param name=value ...] [--db kb/build/kb.sqlite]
                         [--use-cases FILE] [--discrepancies FILE] [--format json|table]
-  python3 kb/queries.py search|describe_resource|dataset_info [--param name=value ...]
+  python3 kb/queries.py search|describe_resource|dataset_info|duplicates [--param name=value ...]
                         [--db kb/build/kb.sqlite] [--discrepancies FILE]
 
 Each named query of the graph bundle (scripts/kg/build.py NAMED_QUERIES: the four discrepancy
@@ -12,9 +12,10 @@ queries and the five of scripts/kg/product_queries.py) has a function here with 
 parameters, returning rows as dicts with the columns the SPARQL query selects, in the same order.
 The comparison with the graph is kb/tools/compare_queries.py.
 
-Records holds the three rdf-kg-mcp tools the agents call besides the queries: search (ranked as
+Records holds the rdf-kg-mcp tools the agents call besides the queries: search (ranked as
 rdf-kg-mcp ranks, see kb/search.py), describe_resource (one record with its links out and in, by
-name) and dataset_info. They print one JSON object rather than rows.
+name), dataset_info, and duplicates (the possible duplicates draft_upsert reported, see
+kb/duplicates.py). They print JSON rather than rows.
 
 The graph the SPARQL queries read is replaced by the same facts taken from the database:
 
@@ -977,6 +978,15 @@ class Records:
         out["discrepancies"] = roles
         return out
 
+    def duplicates(self, records) -> list[dict]:
+        """The records each draft may duplicate, by rdf-kg-mcp's draft rules (kb/duplicates.py).
+        records is a list of drafts, or text kb/duplicates.py read_drafts reads: inline JSON, a
+        file of JSON lines or a JSON list, or "-" for standard input."""
+        from duplicates import Duplicates, read_drafts
+        if not hasattr(self, "_duplicates"):
+            self._duplicates = Duplicates(self)
+        return self._duplicates.check(read_drafts(records) if isinstance(records, str) else records)
+
     def dataset_info(self) -> dict:
         """What the agents print when they start: the commit of this checkout, the release the
         discrepancies file is for, when the database was built, and its record counts. The
@@ -1024,6 +1034,10 @@ TOOLS = {
                    {"name": "limit", "type": "integer"}, {"name": "offset", "type": "integer"}],
     },
     "dataset_info": {"title": "The release, the database and its record counts", "params": []},
+    "duplicates": {
+        "title": "Records each draft may duplicate, by the rules of rdf-kg-mcp's draft_upsert",
+        "params": [{"name": "records", "type": "json, file or -", "required": True}],
+    },
 }
 
 
