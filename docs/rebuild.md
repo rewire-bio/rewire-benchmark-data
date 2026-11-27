@@ -109,8 +109,8 @@ The first slice is in `kb/`.
 | --- | --- |
 | `kb/inventory.py`, `kb/INVENTORY.md` | Every record kind, attribute, link and status in the current store, with counts. Nothing is dropped by the migration without appearing here |
 | `kb/migrate.py` | Builds `kb/build/kb.sqlite` from the current store. `--check` reads every record back and compares it with the original |
-| `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `grounding.jsonl` (exact system and subset per result), `checkpoints.jsonl`, `leads.jsonl`. `notes/` holds the brief the grounding agent worked from and what it found |
-| `kb/curate.py` | Loads the curation files and creates the comparison views |
+| `kb/curation/` | The new information the old store has no place for: `settings.jsonl`, `protocol_settings.jsonl`, `grounding.jsonl` (exact system and subset per result), `difference_reviews.jsonl`, `leads.jsonl`. `notes/` holds the brief the grounding agent worked from and what it and its reviewer found |
+| `kb/curate.py` | Loads the curation files, loads the structured facts from the batch content files (`checkpoint`: 407 released checkpoints of 178 model records; `benchmark_task`: 535 tasks of 98 benchmarks), and creates the comparison and fact views |
 | `kb/board.py` | Estimates a leaderboard for each use case from within-study comparisons (Bradley-Terry), with each row labelled by how many studies it rests on |
 | `kb/report.py` | For one source: what it measured, which of its numbers another study also reports, and which pairs of models it orders differently |
 | `kb/discrepancies.py` | Finds disagreements between studies from `kb.sqlite` and writes `discrepancies.json`, with the same IDs and fields as `scripts/kg/contradictions.py` but without the graph or OWL inference (8 seconds instead of about 15 minutes) |
@@ -177,6 +177,25 @@ Two lessons for grounding at scale. A single agent's grounding is not good enoug
 line in ten was wrong, so the verifier pass is required, as it is for page content. And a
 difference is not a disagreement until someone has looked for a control. The queries are
 `SELECT * FROM grounded_lead_v` and, for new ones, `... WHERE verdict = 'not reviewed'`.
+
+### Facts as values
+
+Each page batch asks its research agents for a `structured` list beside the prose: one entry per
+released checkpoint (parameters and context length as numbers, licences as identifiers, addresses,
+gating, release date), or one per benchmark task (dataset, size, split rule, metric and direction,
+addresses, licences), each value with a copied passage behind it and each judged by a verifier.
+`kb/curate.py` loads them, so questions the prose could not answer are queries:
+
+```sh
+sqlite3 -header -column kb/build/kb.sqlite "SELECT name, checkpoints, largest_parameters, weights_licences FROM model_fact_v ORDER BY largest_parameters DESC LIMIT 10"
+sqlite3 -header -column kb/build/kb.sqlite "SELECT weights_licence, count(*) FROM checkpoint GROUP BY 1 ORDER BY 2 DESC"
+```
+
+On 27 November 2026: 407 checkpoints, 205 with a parameter count, 268 with a licence stated for
+the weights, 361 with an address for them, 9 gated. 535 benchmark tasks, 362 with a size, 526
+with a primary metric. The first three page batches predate the `structured` list and are not
+covered. Metric names are as the sources print them and are not yet normalised (`AUPRC`, `auPRC`).
+The website does not show these values yet.
 
 ## Plan
 
