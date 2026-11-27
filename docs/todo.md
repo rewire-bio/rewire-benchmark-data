@@ -58,7 +58,10 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 8. **Corrections to existing records** that the page work showed are needed and that were not
    made: ESCOTT's description (the allele frequency step belongs to PRESCOTT), ProGen3's
    description (figures no source supports), Graph_RG (not structure-based), BACPI (graph
-   attention network), BERTax (repository address), CIViC MCP (`executable_suite`).
+   attention network), BERTax (repository address), CIViC MCP (`executable_suite`). ProtBert's page says its
+   weights are not under an open-source licence; they are AFL-3.0, which is. The ESM-1b run guide
+   loads the original fair-esm file while the `rewirebench` adapter loads a pinned port; the two
+   weight files have not been compared.
 9. **One page on two records.** Eight Tier 1 models carry the same page on two records. A
    correction to one must be made on both. First step: make the batch tool do that itself.
 
@@ -94,13 +97,20 @@ the design it is moving to. [scorecard.md](scorecard.md) has the current counts.
 
 ## Running things
 
-18. **No run guide has been executed.** [run-guide-trials.md](run-guide-trials.md) runs a guide
-    on a clean GitHub runner with no credentials and returns a receipt. First step: try the
-    cheapest candidates, and correct each guide where it fails.
+18. **Run guides tried: 18 trials of 14 guides, 3 completed.** [run-guide-trials.md](run-guide-trials.md)
+    runs a guide on a clean GitHub runner with no credentials and returns a receipt. SAFFRON,
+    GPN-Promoter and MutBERT completed. Six guides missing an install line were corrected, and five
+    whose sources fail on a clean machine now say so
+    ([trial 2 review](reviews/2026-11-27-run-guide-trial-2.md)). Next: rerun the corrected guides,
+    and try the rest of the candidates.
 19. **Run guide status.** The schema has one status, `source_reviewed_not_executed`. An executed
     guide needs a second, with a receipt: commands, versions, hardware, output hash, time.
-20. **Recipes.** A run guide and a `rewirebench` recipe should share one identity so a guide that
-    runs becomes a recipe. Not designed.
+20. **Recipes.** A model can be rerun through `rewirebench` only when it has a registered adapter.
+    Ten pretrained models have one; six were written from run guides on 27 November and each ran
+    on a GitHub runner with a verified receipt (`docs/adapters.md` in rewire-benchmarks). Those
+    runs are small checks, not benchmark results. First step: full-protocol recipes for the six,
+    then more adapters. Of about 70 models surveyed, 23 have non-commercial or gated weights and
+    20 state no weights licence; whether to adapt non-commercial weights is the owner's decision.
 21. **GPU work is parked** until the value is shown. Nothing here needs it.
 
 ## Pipeline

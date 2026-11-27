@@ -217,7 +217,8 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
         r"ResolutionImpossible|Could not find a version that satisfies|No matching distribution|"
         r"Failed building wheel|Failed to build|subprocess-exited-with-error|"
         r"ModuleNotFoundError|ImportError|PackagesNotFoundError|UnsatisfiableError|"
-        r"conflicting dependencies|error: command '.*' failed|CMake Error|compilation terminated", re.I)),
+        r"conflicting dependencies|error: command '.*' failed|CMake Error|compilation terminated|"
+        r"Pip failed|Invalid requirement", re.I)),
     ("network", re.compile(
         r"Could not resolve host|Temporary failure in name resolution|Name or service not known|"
         r"Connection (refused|reset|timed out)|ConnectionError|ReadTimeout|Max retries exceeded|"
@@ -226,6 +227,9 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
     ("needs_root", re.compile(
         r"sudo: |is not in the sudoers|must be run as root|are you root|"
         r"permission denied while trying to connect to the Docker daemon", re.I)),
+    ("bad_arguments", re.compile(
+        r"Invalid value for|unrecognized arguments|error: argument|Missing (option|argument)|No such option|"
+        r"the following arguments are required", re.I)),
     ("missing_file", re.compile(
         r"No such file or directory|FileNotFoundError|can't open file|cannot access|does not exist", re.I)),
     ("code_raised_error", re.compile(r"Traceback \(most recent call last\)|^\w*(Error|Exception): ", re.M)),
@@ -234,9 +238,28 @@ CAUSE_RULES: list[tuple[str, re.Pattern]] = [
 ERROR_LINE_RE = re.compile(r"error|exception|traceback|failed|not found|fatal|killed|denied", re.I)
 
 
+BOX_CHARS = "╭╮╰╯─│┃━┏┓┗┛"
+
+
+def boxed_error(lines: list[str]) -> str:
+    """The message inside the last box titled Error, as command-line tools built on rich print it."""
+    for start in range(len(lines) - 1, -1, -1):
+        if lines[start].startswith("╭") and "Error" in lines[start]:
+            message = []
+            for line in lines[start + 1:]:
+                if line.startswith("╰"):
+                    break
+                message.append(line.strip(BOX_CHARS + " "))
+            return " ".join(part for part in message if part)
+    return ""
+
+
 def last_error_line(log_tail: str) -> str:
     """The last line that reads like an error, or the last line."""
     lines = [line.strip() for line in log_tail.splitlines() if line.strip()]
+    boxed = boxed_error(lines)
+    if boxed:
+        return boxed
     for line in reversed(lines):
         if ERROR_LINE_RE.search(line):
             return line
@@ -527,16 +550,18 @@ def summary(receipt: dict) -> str:
 
 
 def receipts_table(folder: Path) -> str:
-    """One row per receipt.json under a folder of downloaded receipts."""
+    """One row per receipt.json under a folder of downloaded receipts. The cause and error line are
+    worked out again from the log tail with the current rules, so older receipts read the same way."""
     rows = ["| Record | Result | Failed step | Likely cause | Last error line |", "| --- | --- | --- | --- | --- |"]
     for path in sorted(folder.rglob("receipt.json")):
         receipt = json.loads(path.read_text(encoding="utf-8"))
         bad = next((s for s in receipt["steps"] if s["status"] != "completed"), None)
         failed = f"{bad['number']}. {bad['title']}" if bad and receipt["result"] != "completed" else ""
-        error = receipt.get("last_error_line") or (last_error_line(bad["log_tail"]) if failed else "")
+        error = last_error_line(bad["log_tail"]) if failed else ""
+        cause = likely_cause(bad["log_tail"], bad["exit_code"]) if receipt["result"].startswith("failed_at_step_") else ""
         rows.append("| {} | {} | {} | {} | {} |".format(
             markdown_cell(receipt["record_id"]), markdown_cell(receipt["result"]), markdown_cell(failed),
-            markdown_cell(receipt.get("likely_cause", "")), markdown_cell(error[:200])))
+            markdown_cell(cause), markdown_cell(error[:200])))
     return "\n".join(rows) + "\n"
 
 
@@ -546,6 +571,8 @@ GPU_RE = re.compile(r"\bcuda\b|cuda:\d|\bgpus?\b|nvidia|\bA100\b|\bH100\b|flash[
 INSTALL_RE = re.compile(r"\bpip3? install\b|\bconda (env )?create\b|\bconda install\b|\bmamba (create|install)\b|\buv (pip|sync|add)\b", re.I)
 BLOCKED_RE = re.compile(r"\bsudo\b|\bdocker\b|\bsingularity\b|\bapptainer\b|\bpodman\b", re.I)
 PLACEHOLDER_RE = re.compile(r"<[A-Za-z][A-Za-z0-9_ .-]*>|/path/to\b|\byour\b|\bYOUR[_-]", re.I)
+# An option given an upper-case word such as --window-size WINDOW_SIZE: a value to fill in.
+CAPS_PLACEHOLDER_RE = re.compile(r"--[\w-]+[ =]+[A-Z][A-Z0-9]*_[A-Z0-9_]+\b")
 SIZE_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(GB|TB|GiB|TiB)\b")
 MAX_STEPS = 4
 # About 3 GB of fp32 weights.
@@ -599,7 +626,7 @@ def assess(record: dict, checkpoints: list[dict]) -> tuple[bool, list[str], int 
         return False, ["no pip or conda install"], None
     if BLOCKED_RE.search(shell):
         return False, ["needs sudo or a container runtime"], None
-    if PLACEHOLDER_RE.search(shell):
+    if PLACEHOLDER_RE.search(shell) or CAPS_PLACEHOLDER_RE.search(shell):
         return False, ["has a placeholder or refers to the reader's own data"], None
     if any(is_manual(s["shell"]) for s in guide["steps"]):
         return False, ["has a manual step (comments only)"], None

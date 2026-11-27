@@ -12,7 +12,7 @@ The code is `scripts/runs/trial.py` and `.github/workflows/run-guide-trial.yml`;
 
 `trial.py candidates --limit 25` lists guides that look cheap to try on a CPU runner. The rules: no step mentions CUDA or a GPU, and no prerequisite does unless it calls the GPU
 optional, recommended or unstated; at most 4 steps; a pip, conda, mamba or uv install; no sudo,
-docker or other container runtime; no placeholder such as `<file>`, `/path/to` or "your data"; no
+docker or other container runtime; no placeholder such as `<file>`, `/path/to`, "your data" or `--opt SOME_VALUE`; no
 step that is only comments; no size over 3 GB named in the guide; and no checkpoint over 750M
 parameters (about 3 GB of fp32 weights) or gated, taken from the `structured` checkpoint facts in
 `data/omics/*/specs/*.json`. When the steps name no checkpoint, the largest in the family counts.
@@ -78,7 +78,8 @@ conda: Miniforge (conda and mamba), pinned by version and checksum, is installed
 `likely_cause` is the first rule that matches the last error line, or failing that the whole log
 tail, in this order: `out_of_disk`, `out_of_memory` (also exit code 137), `gated_download`,
 `no_gpu`, `tool_not_installed` (also exit code 127), `python_version`, `dependency`, `network`,
-`needs_root`, `missing_file`; then `code_raised_error` for any other Python exception, and `other`.
+`needs_root`, `bad_arguments`, `missing_file`; then `code_raised_error` for any other Python
+exception, and `other`. An error printed in a box (as rich-based command lines do) gives its message.
 It is a guess; read the log tail before acting on it.
 
 Runners have no GPU. A guide that needs one fails with `no_gpu`. That is a real result: it says the
