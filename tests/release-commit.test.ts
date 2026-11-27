@@ -279,7 +279,7 @@ describe("release workflow", () => {
   it("tags a hand-cut release at the commit data.yml rebuilt it from", () => {
     const text = workflow("data.yml");
     const publish = text.slice(text.indexOf("\n  publish:"));
-    expect(publish).toContain("needs: [checks, release]");
+    expect(publish).toContain("needs: [checks, release, use-case-pages]");
     expect(publish).toContain("RELEASE_TARGET_SHA: ${{ github.sha }}");
     expect(publish).toMatch(/- uses: actions\/checkout@v4\n      - uses: actions\/setup-node/);
     const rebuild = text.slice(text.indexOf("\n  release:"), text.indexOf("\n  publish:"));
