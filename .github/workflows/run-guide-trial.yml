@@ -1,0 +1,124 @@
+name: Run guide trial
+# Runs records' run guides on clean runners and keeps a receipt of each run. The guides' commands
+# come from third-party repositories, so they run as a separate user with no sudo, no tokens and
+# no access to the checkout. See docs/run-guide-trials.md.
+on:
+  workflow_dispatch:
+    inputs:
+      record_ids:
+        description: Record ids whose run guides to try, separated by spaces (at most 10)
+        required: true
+        type: string
+      timeout_minutes:
+        description: Minutes each guide may run (at most 90)
+        required: false
+        type: number
+        default: 30
+
+permissions: {}
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      session_seconds: ${{ steps.plan.outputs.session_seconds }}
+      step_timeout_minutes: ${{ steps.plan.outputs.step_timeout_minutes }}
+      job_timeout_minutes: ${{ steps.plan.outputs.job_timeout_minutes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: plan
+        env:
+          RECORD_IDS: ${{ inputs.record_ids }}
+          TIMEOUT_MINUTES: ${{ inputs.timeout_minutes }}
+        run: python3 scripts/runs/trial.py matrix --ids "$RECORD_IDS" --timeout-minutes "$TIMEOUT_MINUTES" >> "$GITHUB_OUTPUT"
+
+  trial:
+    name: trial (${{ matrix.id }})
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: ${{ fromJSON(needs.setup.outputs.job_timeout_minutes) }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+    env:
+      RECORD_ID: ${{ matrix.id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      - name: Set up the Python the guide names
+        if: matrix.python != ''
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Prepare the trial user, script and environment
+        run: |
+          python3 --version
+          sudo useradd --no-create-home --shell /bin/bash trial
+          sudo install -d -m 755 -o root -g root /trial
+          sudo install -d -m 700 -o trial -g trial /trial/home
+          sudo install -d -m 755 -o trial -g trial /trial/run
+          python3 scripts/runs/trial.py script "$RECORD_ID" --out "$RUNNER_TEMP/run-guide.sh"
+          sudo install -m 644 -o root -g root "$RUNNER_TEMP/run-guide.sh" /trial/run-guide.sh
+          trial_path=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+          if [ -n "${pythonLocation:-}" ]; then trial_path="$pythonLocation/bin:$trial_path"; fi
+          echo "TRIAL_PATH=$trial_path" >> "$GITHUB_ENV"
+          cd /trial
+          sudo -u trial -- env -i HOME=/trial/home PATH="$trial_path" python3 -m venv /trial/home/venv
+
+      - name: Run the guide as the trial user
+        id: guide
+        continue-on-error: true
+        timeout-minutes: ${{ fromJSON(needs.setup.outputs.step_timeout_minutes) }}
+        env:
+          GITHUB_TOKEN: ""
+          SESSION_SECONDS: ${{ needs.setup.outputs.session_seconds }}
+        run: |
+          cd /trial
+          sudo -u trial -- env -i \
+            HOME=/trial/home USER=trial LOGNAME=trial SHELL=/bin/bash LANG=C.UTF-8 \
+            PATH="$TRIAL_PATH" \
+            TRIAL_TIMEOUT_SECONDS="$SESSION_SECONDS" \
+            TRIAL_VENV=/trial/home/venv \
+            TRIAL_CONDA="${CONDA:-}" \
+            bash /trial/run-guide.sh /trial/run > /dev/null 2> "$RUNNER_TEMP/harness.log"
+
+      - name: Stop the trial user's processes
+        if: always()
+        run: |
+          sudo pkill -KILL -u trial || true
+          sleep 2
+          sudo chown -R --no-dereference "$(id -u):$(id -g)" /trial/run
+          chmod -R u+rwX /trial/run
+
+      - name: Build the receipt
+        if: always()
+        run: |
+          python3 scripts/runs/trial.py receipt /trial/run "$RECORD_ID" --out-dir "$RUNNER_TEMP/receipt"
+          if [ -s "$RUNNER_TEMP/harness.log" ]; then cp "$RUNNER_TEMP/harness.log" "$RUNNER_TEMP/receipt/"; fi
+          python3 scripts/runs/trial.py summary "$RUNNER_TEMP/receipt/receipt.json" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the receipt and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-guide-receipt-${{ matrix.id }}
+          path: ${{ runner.temp }}/receipt
+          retention-days: 30
+          if-no-files-found: error
