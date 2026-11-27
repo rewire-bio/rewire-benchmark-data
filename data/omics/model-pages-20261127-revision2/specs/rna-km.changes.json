@@ -1,0 +1,110 @@
+[
+ {
+  "where": "sources",
+  "before": null,
+  "after": "added source paper-full-text (artifacts/paper-full-text.txt)",
+  "source": "paper",
+  "reason": "The paper's full text is now saved; its text layer is the quoted file."
+ },
+ {
+  "where": "section How it works",
+  "before": "RNA-km is a transformer encoder with 12 layers and model width 1024; the code sets the feed-forward width to four times the model width and uses relative position biases instead of absolute positions. Its token vocabulary covers A, T, C, G and X; the script converts U to T and other letters to N. It was trained by self-supervision on 23 million ncRNA sequences, using a k-mer masking strategy. A pair head projects the per-nucleotide representations to pairwise features. For structure prediction the paper uses the attention maps with a minimum-cost flow algorithm; that algorithm is not part of the repository files read.",
+  "after": "RNA-km is a BERT-style transformer encoder with 12 layers, embedding dimension 1024 and 16 attention heads, 152 million parameters in total according to the paper. It uses a relative positional encoding instead of absolute sinusoidal positions. It was pretrained by masked language modelling: 15% of bases are masked, and 80% of the masks are contiguous spans of k bases with k from 3 to 8, so the model has to recover whole k-mers. The paper describes the input as the bases A, C, G, U and N; the released code converts U to T and builds its vocabulary from A, T, C, G and X. For structure prediction the paper fits an L1-regularised logistic regression on the attention maps, using 5 RNAs, to give base-pair probabilities, then builds the structure with the minimum-cost flow algorithm of KnotFold; that step is not in the repository files read.",
+  "source": "paper",
+  "reason": "The paper's Methods give the head count, parameter count, masking settings and the structure step."
+ },
+ {
+  "where": "section Versions and reproducibility",
+  "before": "The repository offers one pretrained weight file, weight.pth, downloaded from Google Drive and placed in a weight folder. No version number, checksum or second checkpoint is given. A result should name the repository commit and note that the weight file comes from the Google Drive link in the README.",
+  "after": "The repository offers one pretrained weight file, weight.pth, downloaded from Google Drive and placed in a weight folder. No version number, checksum or second checkpoint is given. The paper describes one model, trained with a batch of 1 million tokens for 600,000 steps; the saved files do not tie weight.pth to that run explicitly. The zero-shot structure results also depend on the logistic regression fitted on 5 PDB RNAs, which the repository files read do not include. A result should name the repository commit and note that the weight file comes from the Google Drive link in the README.",
+  "source": "paper",
+  "reason": "The paper gives the training length and the fitted regression the structure step needs."
+ },
+ {
+  "where": "fact Architecture",
+  "before": "Transformer encoder: 12 layers, width 1024, the head count set to the width divided by 64, feed-forward width four times the model width, relative position bias (64 buckets, maximum distance 256), plus a pairwise projection of width 512.",
+  "after": "Transformer encoder: 12 layers, width 1024, 16 attention heads (the code sets the head count to the width divided by 64), feed-forward width four times the model width, relative position bias (64 buckets, maximum distance 256), plus a pairwise projection of width 512. The paper describes the same 12 layers, width 1024 and 16 heads.",
+  "source": "paper",
+  "reason": "The paper states the head count the code derives."
+ },
+ {
+  "where": "fact Parameters",
+  "before": "Not reported. The README, code and abstract read give no parameter count, and the weight file was not downloaded.",
+  "after": "152 million, as the paper states for the model with 12 layers, width 1024 and 16 heads. No count is given for the released weight.pth file, which was not downloaded.",
+  "source": "paper",
+  "reason": "The paper gives the parameter count; the page said it was not reported."
+ },
+ {
+  "where": "fact Training data",
+  "before": "23 million non-coding RNA (ncRNA) sequences, used without structure labels. The source database is not named in the sources read.",
+  "after": "Over 23 million non-coding RNA sequences from RNAcentral version 22.0, used without structure labels. Sequences longer than 512 bases were cut into non-overlapping 512-base fragments, which MMseqs2 clustered at 80% identity into 8.9 million clusters; 10,000 clusters were held out for validation and each cluster was sampled with equal probability.",
+  "source": "paper",
+  "reason": "The paper names the database, its version and the preparation; the page said the source was not named."
+ },
+ {
+  "where": "fact Training cutoff",
+  "before": "Not extracted. The abstract does not date the training data and the full preprint was not read.",
+  "after": "RNAcentral version 22.0. The paper gives no download date.",
+  "source": "paper",
+  "reason": "The paper names the database release, which dates the data; the page said not extracted."
+ },
+ {
+  "where": "fact Context limits",
+  "before": "No fixed maximum length stated. The model uses relative position biases (64 buckets, maximum distance 256) rather than a fixed-length position table.",
+  "after": "No fixed maximum length is stated. The model uses relative position biases (64 buckets, maximum distance 256) rather than a fixed-length position table. In training, sequences longer than 512 bases were cut into 512-base fragments.",
+  "source": "paper",
+  "reason": "The paper gives the training fragment length."
+ },
+ {
+  "where": "strengths[0]",
+  "before": "Designed for zero-shot structure prediction: the authors use attention maps directly, without training on labelled structures, and report that they capture pseudoknots and long-distance base pairs (the authors' claim).",
+  "after": "Designed for zero-shot structure prediction: base-pair probabilities come from the attention maps through a logistic regression fitted on only 5 RNAs, and the authors report F1 scores of 0.627 on 527 PDB RNAs and 0.456 on TR0, against 0.433 and 0.339 for RNA-FM run the same way (the authors' figures).",
+  "source": "paper",
+  "reason": "The paper's results replace the abstract's general claim, stated as the authors' figures."
+ },
+ {
+  "where": "limitations (added)",
+  "before": null,
+  "after": "The authors report that RNA-FM beat RNA-km mainly on sequences shorter than 100 bases (94 of 95 such cases), and suggest RNA-km was pretrained mainly on long sequences.",
+  "source": "paper",
+  "reason": "A limitation the paper states about its own model."
+ },
+ {
+  "where": "limitations[2] (removed)",
+  "before": "In the script the --cuda option defaults to true, so it moves the model to a CUDA GPU even when the flag is not given.",
+  "after": null,
+  "source": "other",
+  "reason": "The brief allows 2 to 4 limitations. The --cuda default is still stated in the run guide prerequisites."
+ },
+ {
+  "where": "profile.gaps",
+  "before": [
+   "Only the preprint abstract was read (through Europe PMC), not the full text, so training details, the k-mer masking settings, the data source and benchmark results are not taken from it.",
+   "No parameter count is given and the weight file was not downloaded.",
+   "The structure prediction step (minimum-cost flow) is not in the repository files read.",
+   "Whether the preprint has been published in a journal was not checked beyond Europe PMC."
+  ],
+  "after": [
+   "The paper's supplementary figures and tables (fine-tuning results, ablations) are not in the saved PDF.",
+   "No parameter count is given for the released weight.pth file, and the file was not downloaded.",
+   "The structure prediction step (logistic regression and minimum-cost flow) is not in the repository files read.",
+   "Whether the preprint has been published in a journal was not checked."
+  ],
+  "source": "paper",
+  "reason": "The full paper closes the gaps on training details, data source and masking settings; the rest are restated."
+ },
+ {
+  "where": "profile.review",
+  "before": null,
+  "after": "date and note updated",
+  "source": "paper",
+  "reason": "Records that the full text was read."
+ },
+ {
+  "where": "structured",
+  "before": null,
+  "after": "one entry for the released weight file",
+  "source": "paper",
+  "reason": "The page had no structured list. The parameter count is the paper's for the model it describes; no saved file counts the released file itself."
+ }
+]
