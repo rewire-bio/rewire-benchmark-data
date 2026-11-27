@@ -138,7 +138,7 @@ groups overlap where a benchmark spans two questions.
 | protein-representation-downstream | Which protein language model representation gives the best downstream property predictions? | 6 | 256 | 62 | **9** | Prot-T5-XL, CNN, ESMC |
 | mrna-construct-properties | Which sequence model predicts an mRNA construct's properties well enough to screen designs? | 2 | 32 | 68 | **9** | RNA-FM, utrbert-6mer, utrlm-te-el |
 | metagenomic-taxonomy-research | Which classifier assigns metagenomic reads to the right taxon in a research survey? | 9 | 56 | 74 | **6** | Evo 2, Kraken2, Evo |
-| grn-inference | Which method infers a gene regulatory network from single-cell expression that matches known regulation? | 5 | 184 | 34 | **3** | GENIE3, GRNBoost2, PPCOR |
+| grn-inference | Which method infers a gene regulatory network from single-cell expression that matches known regulation? | 3 | 184 | 34 | 0 | none once BEELINE counts as one study (section 8) |
 
 Three more would rank nothing today, every model being in one study: protein function annotation
 (3 studies, 156 systems, all from CAFA), protein-protein interaction prediction (3, 19) and glycan
@@ -187,6 +187,32 @@ Of the 1,573 unmapped tests and their 29,062 results: 182 tests (3,268 results) 
 (1,072 results), the Virtual Cell Challenge (1,048, see the subsection in 3), HyInv inverse folding (498), the rest of
 GFMBench-API (432), the Nucleotide Transformer 18-task benchmark outside its splice tasks (353),
 ProteinBench's generation tracks (172) and PepSpecBench (168).
+
+## 8. One paper counted as three studies: BEELINE
+
+The published discrepancy `discrepancy-0311356983b743d6` ("GRNBoost2 and PPCOR: BEELINE ... reverses
+the order") sets one source against two others, all three named "BEELINE: 10.1038/s41592-019-0690-6
+source data published 2020". They are `acquired-source-0f6c059ffdc338b70a5c`, `-31344fb7e5e8ae6b9666`
+and `-3156602fda847ae943b4`: three source-data CSVs of one Nature Methods paper (supplementary files
+MOESM12, MOESM14 and MOESM13). Each is its own source record with its own hash, which is right, but
+none has the `doi` field filled: the DOI appears only in the name and the URL.
+
+Both `kb/migrate.py` (study for the boards) and `kb/discrepancies.py` (`_studies`) join sources into one
+study by the `doi` field, by GitHub repository, by `companion_of`, and, in the finder, by appearing
+together on a result. `board.py` also joins study ids that share a part. None of these sees a DOI held
+only in a URL, so BEELINE is three studies to both. The "disagreement" is BEELINE's Figure 2 data
+against its other two figures, a difference inside one paper.
+
+How many: of 216 discrepancies, 1 has all its studies resolve to one publication once DOIs in URLs and
+names are read, and it is this one (public, unresolved). Store-wide, 292 sources carry a DOI only in
+the URL or name; BEELINE is the only DOI whose results are split over more than one study. On boards:
+BEELINE is mapped to no use case, so it counts on no board today. On the scratch GRN board of section 5
+it counted as three studies and produced the only 3 ranked rows; counted as one, that board ranks none.
+
+Proposed rule: sources whose `doi` field, or a DOI in a publisher supplementary URL, is the same are one
+study, for boards and for the finder. A difference between results of one paper is a different finding
+("inside one paper") and is not listed as a disagreement between studies. The data fix is to fill the
+`doi` field of the 292 sources, which makes the existing rule work without new code.
 
 ## Next steps, in order of what they buy
 
