@@ -436,8 +436,8 @@ compares numbers as numbers:
 
 | | Locators | Share of what it is a share of |
 | --- | --- | --- |
-| Stored result locators | 52,278 <!--figure:locators--> | |
-| Resolved | 18,667 <!--figure:resolved--> | 35.7% <!--figure:resolved_pct--> |
+| Stored result locators | 52,878 <!--figure:locators--> | |
+| Resolved | 18,667 <!--figure:resolved--> | 35.3% <!--figure:resolved_pct--> |
 | Prints the stored value and nothing else | 17,094 <!--figure:value_exact--> | 91.6% <!--figure:value_exact_pct--> |
 | Prints it somewhere | 18,662 <!--figure:value_present--> | 100.0% <!--figure:value_present_pct--> |
 | Commits to text that does not print it | 2 <!--figure:wrong_commits--> | |
@@ -449,7 +449,7 @@ The sheet resolver resolves 7,257 <!--figure:kind.sheet_cell.spans--> `sheet_cel
 the largest single gain this lane has had: `measure --no-sheet` over the same tree, run after the
 figures above, resolves 11,410
 of the same 52,278 locators, 21.8 percent, against 18,667 <!--figure:resolved--> and
-35.7 percent <!--figure:resolved_pct--> with the blocks read. Not one of the 7,257 prints a
+35.3 percent <!--figure:resolved_pct--> with the blocks read. Not one of the 7,257 prints a
 different number from the one its record keeps: 0 <!--figure:kind.sheet_cell.no_value--> of them
 print no part of the stored value, and the store-wide count of spans committed to text that does
 not print the value is 2 <!--figure:wrong_commits-->, which is what it was with the resolver off.
@@ -524,8 +524,8 @@ judged, and the rule rejects 0 of the 15,478 pairs.
 The 2 that remain wrong are quote spans, and both are the sentence the locator names: one record
 stores `75.5% (108/143)` where its sentence prints `108 of the 143 variants (75.5%)`, and one
 locator names one sentence fewer than the value needs. `no_column_geometry` refuses
-4,667 <!--figure:reason.no_column_geometry--> locators, 8.9 percent
-<!--figure:reason.no_column_geometry.pct--> of the store, against the 22,528 this file leads with
+4,804 <!--figure:reason.no_column_geometry--> locators,
+9.1% <!--figure:reason.no_column_geometry.pct--> of the store, against the 22,528 this file leads with
 and the 10,304, 19.7 percent, that `measure --no-sheet` refuses over the same tree. The table
 grids moved the first drop and the sheet blocks moved the second.
 
