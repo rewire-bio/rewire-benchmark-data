@@ -1,5 +1,6 @@
 import { validateRunRecipes } from "../../shared/omics/run-recipe";
 import { validateRunGuide } from "../../shared/omics/run-guide";
+import { validateStructuredFacts } from "../../shared/omics/structured-facts";
 import { assertNoPrivateFields } from "../../shared/omics/private-fields";
 import { z } from "zod";
 import { extensionsSchema } from "./extensions";
@@ -70,6 +71,7 @@ export function validateRecords(input: unknown[]): RecordEntry[] {
     const a = r.attributes;
     validateBenchmarkResearch(r, byId);
     validateRunGuide(r, byId);
+    validateStructuredFacts(r, byId);
     validateRunRecipes(r, byId);
     if (a.profile !== undefined)
       validateProfileSources(profileSchema.parse(a.profile), byId);

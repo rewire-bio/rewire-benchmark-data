@@ -10,10 +10,11 @@ Tables
   setting            one test that different papers could run and get comparable numbers on
   protocol_setting   a protocol's place in a setting, graded same, near or related, with the stated differences
   checkpoint         one released set of weights: parameters and context as numbers, licences, addresses.
-                     Read from the `structured` lists in data/omics/model-pages-*/specs/, where each
-                     value has a copied passage behind it
+                     Read from the `checkpoints` attribute of model records; for a record without it,
+                     from the `structured` lists in data/omics/model-pages-*/specs/
   benchmark_task     one task or track of a benchmark: dataset, size, split rule, metric and direction,
-                     addresses, licences. Read from data/omics/benchmark-pages-*/specs/
+                     addresses, licences. Read from the `benchmark_tasks` attribute of benchmark records,
+                     else from data/omics/benchmark-pages-*/specs/
   grounding          for one result: the exact system that was run (family, size, version, scoring variant) and
                      the subset of the data the number is for. Both are free text in the record store
   difference_review  what a review concluded about one difference between studies, and why
@@ -90,36 +91,42 @@ VIEWS = {
 }
 
 
+# Per table: the content files, the owner column, the fields and the record attribute that holds them.
 STRUCTURED = {
     "checkpoint": ("data/omics/model-pages-*/specs/*.json", "model_id",
-                   ["checkpoint", "parameters", "context_length", "context_unit", "code_licence", "weights_licence", "code_url", "weights_url", "gated", "released"]),
+                   ["checkpoint", "parameters", "context_length", "context_unit", "code_licence", "weights_licence", "code_url", "weights_url", "gated", "released"], "checkpoints"),
     "benchmark_task": ("data/omics/benchmark-pages-*/specs/*.json", "benchmark_id",
-                       ["task", "dataset", "size", "size_unit", "split", "primary_metric", "metric_direction", "results_url", "code_url", "data_url", "data_licence", "code_licence", "released"]),
+                       ["task", "dataset", "size", "size_unit", "split", "primary_metric", "metric_direction", "results_url", "code_url", "data_url", "data_licence", "code_licence", "released"], "benchmark_tasks"),
 }
 
 
 def batch_order(path):
-    """Batch folders in the order they were made: by date, then by the number in the name."""
+    """Batch folders in the order they were made: by date, then by the number in the name. A
+    corrections or revision folder revises pages, so it comes after the other batches of its date."""
     folder = path.split("/")[2]
     date = re.search(r"\d{8}", folder)
     number = re.search(r"(\d+)(?!.*\d)", folder.replace(date.group(0), "") if date else folder)
-    return (date.group(0) if date else "", int(number.group(1)) if number else 0, path)
+    return (date.group(0) if date else "", bool(re.search(r"-(corrections|revision)\d*$", folder)), int(number.group(1)) if number else 0, path)
 
 
 def load_structured(db):
-    """Fill the fact tables from the batch content files. A later batch replaces an earlier one's
-    rows for the same record."""
-    for table, (pattern, owner, columns) in STRUCTURED.items():
+    """Fill the fact tables from the records' attributes. A record without the attribute is read from
+    the batch content files, where a later batch replaces an earlier one's rows for the same record.
+    `evidence` holds the source ids of a row read from a record, or the content file it was read from."""
+    for table, (pattern, owner, columns, attribute) in STRUCTURED.items():
         by_record = {}
         for path in sorted(glob.glob(pattern), key=batch_order):
             spec = json.load(open(path))
             entries = spec.get("structured") or []
             if entries:
-                by_record[spec["record_id"]] = (path, entries)
+                by_record[spec["record_id"]] = [(e, path) for e in entries]
+        for record_id, entries in db.execute(
+                "SELECT id, json_extract(extra, ?) FROM record WHERE json_extract(extra, ?) IS NOT NULL", (f"$.{attribute}",) * 2):
+            by_record[record_id] = [(e, json.dumps(e["source_ids"])) for e in json.loads(entries)]
         db.execute(f"DROP TABLE IF EXISTS {table}")
         db.execute(f"CREATE TABLE {table} ([{owner}], position, {', '.join(f'[{c}]' for c in columns)}, evidence)")
-        rows = [[record_id, i] + [e.get(c) for c in columns] + [path]
-                for record_id, (path, entries) in by_record.items() for i, e in enumerate(entries)]
+        rows = [[record_id, i] + [e.get(c) for c in columns] + [evidence]
+                for record_id, entries in by_record.items() for i, (e, evidence) in enumerate(entries)]
         db.executemany(f"INSERT INTO {table} VALUES ({', '.join('?' * (len(columns) + 3))})", rows)
         unknown = db.execute(f"SELECT count(*) FROM {table} t WHERE NOT EXISTS (SELECT 1 FROM record r WHERE r.id = t.[{owner}])").fetchone()[0]
         if unknown:
