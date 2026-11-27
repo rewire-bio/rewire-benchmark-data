@@ -114,15 +114,19 @@ jobs:
           # night and fails if its discrepancies differ from the ones served. A manual run with
           # full_build builds the bundle here instead, as every release did before.
           reused=false
+          python3 kb/migrate.py --out "$RUNNER_TEMP/kb.sqlite"
           if [ "${FULL_BUILD:-false}" != true ]; then
             mkdir -p public/kg
-            python3 kb/migrate.py --out "$RUNNER_TEMP/kb.sqlite"
             python3 kb/discrepancies.py --db "$RUNNER_TEMP/kb.sqlite" --release "$candidate" --out public/kg/discrepancies.json
             reused=true
           else
             npm run kg:bundle
             npm run kg:verify
           fi
+          # The use-case boards (docs/boards.md), written under public/omics so the website package
+          # below lists them as public/omics/boards/<id>.json.
+          python3 kb/board.py --db "$RUNNER_TEMP/kb.sqlite" --manifest public/omics/manifest.json
+          npm run boards:check
           # The prepared file with the discrepancies, then the website package.
           npm run serving -- --require-discrepancies
           npm run validate:benchmark-literature

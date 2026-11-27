@@ -6,8 +6,8 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "build": "npm run omics:release && npm run serving && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
-    "build:release": "npm run omics:release && npm run kg:bundle && npm run kg:verify && npm run serving -- --require-discrepancies && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
+    "build": "npm run omics:release && npm run serving && npm run boards && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
+    "build:release": "npm run omics:release && npm run kg:bundle && npm run kg:verify && npm run serving -- --require-discrepancies && npm run boards && npm run validate:benchmark-literature && npm run export:benchmark-literature && npm run refresh -- export && node scripts/package-website.mjs --current-only",
     "omics:release": "tsx scripts/omics/release.ts",
     "validate:benchmark-literature": "node scripts/validate-benchmark-literature.mjs",
     "export:benchmark-literature": "node scripts/export-benchmark-literature.mjs",
@@ -16,6 +16,8 @@
     "typecheck": "tsc --noEmit",
     "test:python": "python3 -m unittest discover -s scripts/omics/tests -p \"test_*.py\" && python3 -m unittest discover -s scripts/runs/tests -p \"test_*.py\"",
     "verify:package": "tsx scripts/release/files-cli.ts verify",
+    "boards": "python3 kb/migrate.py && python3 kb/board.py --manifest public/omics/manifest.json && npm run boards:check",
+    "boards:check": "tsx scripts/release/check-boards.ts",
     "release:fetch": "tsx scripts/release/files-cli.ts fetch",
     "refresh": "tsx scripts/refresh/cli.ts",
     "omics:check-updates": "tsx scripts/omics/check-updates.ts",

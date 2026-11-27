@@ -23,6 +23,7 @@ The website and API that display this data live in [rewire-database](https://git
 | [docs/evidence-tables.md](docs/evidence-tables.md) | The per-claim evidence export |
 | [docs/refresh.md](docs/refresh.md) | The bounded monthly refresh cycle |
 | [docs/release.md](docs/release.md) | When and how to cut a release |
+| [docs/boards.md](docs/boards.md) | Use-case boards: models ordered by the comparisons studies made, how to read a row, the rules and the file each release publishes |
 | [docs/discrepancies.md](docs/discrepancies.md) | Discrepancies between studies: how they are inferred, served and followed up |
 | [docs/linked-data.md](docs/linked-data.md) | Ontology mapping, vocabulary, inference and the knowledge-graph bundle for MCP clients |
 | [docs/serving-contract.md](docs/serving-contract.md) | Prepared release file the website and API read (issue #31) |
