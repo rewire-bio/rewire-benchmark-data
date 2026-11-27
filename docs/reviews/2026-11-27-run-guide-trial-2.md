@@ -171,3 +171,56 @@ These test the corrected guides:
 So far there have been 18 trials (8 in trial 1, 10 in trial 2) of 14 distinct guides.
 DNALONGBENCH, Akita, IgLM and LOL-EVE were tried in both. Three guides completed: SAFFRON,
 GPN-Promoter and MutBERT.
+
+## Rerun results
+
+Workflow run 45982556374 reran four of the corrected guides on the same kind of runner, with
+Python 3.11.18. MIF-ST was not rerun.
+
+| Record | Result | Last error line | Fault | Change |
+| --- | --- | --- | --- | --- |
+| `uc20260930-model-esm-1b` | Completed | | | Limitation updated |
+| `uc20260930-model-carp` | Failed at step 2 | `ModuleNotFoundError: No module named 'numpy'` | Source | Install line extended |
+| `uc20260930-model-mif` | Failed at step 3 | `ModuleNotFoundError: No module named 'numpy'` | Source | Install line extended |
+| `hycell-20261106-model-stack` | Failed at step 3 | `FileNotFoundError: Checkpoint not found: checkpoints/pretrained.ckpt` | Guide | Checkpoint path corrected |
+
+CARP and MIF. `pip install torch sequence-models` installed sequence-models 1.8.0 and torch
+2.15.0 and no numpy. `sequence_models/constants.py` line 4 imports numpy. The package declares no
+dependencies. I fetched `setup.py` and `requirements.txt` at commit af69577 to check this; they are
+not saved as sources. `setup.py` (SHA-256 71c1f8d0...) has no `install_requires`, and
+`requirements.txt` is empty (SHA-256 e3b0c442..., the hash of an empty file). The saved README
+says: "If you installed into a clean conda environment, you may also need to install pandas,
+scipy, and wget."
+
+Step 1 of CARP, MIF and MIF-ST now reads `pip install torch sequence-models pandas scipy wget`.
+The step's explanation says the three packages are added by Rewire on the README's advice and
+that numpy comes with pandas and scipy. Each guide also gets a limitation recording the
+undeclared dependency.
+
+Stack. Step 2 downloads the released model into `Stack-Large`, as the model card's snippet does.
+Step 3 kept the README's `--checkpoint "./checkpoints/pretrained.ckpt"`. That path is the folder
+the README's training command saves to, not a released file. The step's own explanation already
+said to replace it. The saved Hugging Face file list for Stack-Large (revision 6e1f352) shows the
+checkpoint is `bc_large.ckpt`. Step 3 now uses `--checkpoint "Stack-Large/bc_large.ckpt"` and
+cites the model card and the file list. Its `data.h5ad` and `hvg_genes.pkl` are still
+placeholders, so the step cannot complete without the reader's own data.
+
+ESM-1b. Its limitation said that the commands as now written had not been executed. It now says
+they ran to completion on 27 November 2026. Its status stays `source_reviewed_not_executed`,
+because the schema has no status for an executed guide.
+
+The five records (CARP, MIF, MIF-ST, Stack and ESM-1b) changed in one `npm run records -- change`
+call.
+The before and after of each guide are in
+`data/omics/run-guide-trials-20261127/run-guide-changes-rerun.jsonl`.
+
+Rerun next: `uc20260930-model-carp`, `uc20260930-model-mif`, `uc20260930-model-mif-st` and
+`hycell-20261106-model-stack`.
+
+So far there have been 18 trials and 4 reruns. Four guides completed: SAFFRON, GPN-Promoter,
+MutBERT and ESM-1b.
+
+## Candidate reports to developers (drafts)
+
+Six reports are drafted from the failures above (ProSST, basenji, Plant Genomic Benchmark, IgLM,
+LOL-EVE and sequence-models) and held by the owner until he posts them.
