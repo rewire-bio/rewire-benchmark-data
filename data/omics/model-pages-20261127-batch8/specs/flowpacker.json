@@ -1,0 +1,786 @@
+{
+ "record_id": "torchcraft-20261115-model-flowpacker",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "mjslee0921/flowpacker README.md at commit 03421c7f",
+   "description": "Official repository README on GitLab, pinned to a commit.",
+   "file": "artifacts/readme.md",
+   "url": "https://gitlab.com/mjslee0921/flowpacker",
+   "version": "git commit 03421c7fdda73862994aa54fb3077f3f6561408c",
+   "media_type": "text/markdown",
+   "licence": "MIT",
+   "store_bytes": true,
+   "artifact_url": "https://gitlab.com/mjslee0921/flowpacker/-/raw/03421c7fdda73862994aa54fb3077f3f6561408c/README.md",
+   "retrieved_at": "2026-11-27T00:53:33Z",
+   "sha256": "18011ecfd8bdc6167ef4017c6339acbc6f5318f2a610d1daad9660f82e4f5d5a"
+  },
+  {
+   "key": "license",
+   "name": "mjslee0921/flowpacker LICENSE at commit 03421c7f",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "url": "https://gitlab.com/mjslee0921/flowpacker",
+   "version": "git commit 03421c7fdda73862994aa54fb3077f3f6561408c",
+   "media_type": "text/plain",
+   "licence": "MIT",
+   "store_bytes": true,
+   "artifact_url": "https://gitlab.com/mjslee0921/flowpacker/-/raw/03421c7fdda73862994aa54fb3077f3f6561408c/LICENSE",
+   "retrieved_at": "2026-11-27T00:53:36Z",
+   "sha256": "803f322a5d7f45af2b2c4d98909f7b1d40813d8babdc24a235c41d4f3797f9f1"
+  },
+  {
+   "key": "requirements",
+   "name": "mjslee0921/flowpacker requirements.txt at commit 03421c7f",
+   "description": "Dependency list of the official repository, pinned to a commit.",
+   "file": "artifacts/requirements.txt",
+   "url": "https://gitlab.com/mjslee0921/flowpacker",
+   "version": "git commit 03421c7fdda73862994aa54fb3077f3f6561408c",
+   "media_type": "text/plain",
+   "licence": "MIT",
+   "store_bytes": true,
+   "artifact_url": "https://gitlab.com/mjslee0921/flowpacker/-/raw/03421c7fdda73862994aa54fb3077f3f6561408c/requirements.txt",
+   "retrieved_at": "2026-11-27T00:53:40Z",
+   "sha256": "db1781febe5b596921cf3b28b8f3d41faed115468ab31080661beaf1643441d4"
+  },
+  {
+   "key": "paper",
+   "name": "FlowPacker paper, PMC11886813 full text (Lee and Kim 2025, Bioinformatics)",
+   "description": "Full text of the FlowPacker paper, as served by the NCBI efetch API. The article is open access under CC BY.",
+   "file": "artifacts/paper-pmc.xml",
+   "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11886813/",
+   "version": "As served on 2026-11-27; the response may change",
+   "media_type": "application/xml",
+   "licence": "CC BY 4.0",
+   "store_bytes": true,
+   "artifact_url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=11886813&rettype=xml",
+   "retrieved_at": "2026-11-27T00:53:04Z",
+   "sha256": "cc8cdc6c7c180e95125597e019fb132cf6bb506bdb86a7e1319a92124aaa04c2"
+  }
+ ],
+ "profile": {
+  "summary": "FlowPacker predicts the side-chain conformations of a protein when the sequence and the backbone coordinates are already known, a task called side-chain packing. It treats the four chi torsion angles of each residue as the only degrees of freedom and generates them with torsional flow matching over an equivariant graph attention network, then writes out the all-atom structure. Two trained checkpoints are published with the code, along with a confidence model that scores several samples so the best can be chosen. It can also fill in only part of a structure, which the authors call inpainting, and works on multi-chain complexes although it was trained on single chains.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "Paper: Abstract and Introduction; README.md: Inference",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "we apply torsional flow matching and equivariant graph attention to develop FlowPacker, a fast and performant model to predict protein side-chain conformations conditioned on the protein sequence and backbone"
+   },
+   {
+    "source": "@paper",
+    "text": "torsion angles that constitute the only degrees of freedom for side-chain conformations"
+   },
+   {
+    "source": "@paper",
+    "text": "We further show that FlowPacker can be used to inpaint missing side-chain coordinates and also for multimeric targets"
+   },
+   {
+    "source": "@readme",
+    "text": "We provide two checkpoints: one trained on BC40 (`bc40.pth`) and one trained on a PDB snapshot clustered at 40% sequence identity, denoted as PDB-S40 in the paper (`cluster.pth`)."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The model is built on the Equiformerv2 architecture with maximum degree 3, channel dimension 256 and 4 blocks, giving 18.0M trainable parameters. Node features are the amino acid identity, the backbone torsion angles and a timestep embedding; the chi angles are produced by flow matching on the torus rather than in Cartesian space, which keeps the side-chain geometry valid by construction. The authors report no gain from raising the maximum degree to 6, and no gain from higher-order solvers such as Heun or RK45 over the plain solver, which cost more runtime. A separate confidence model of 2.2M parameters, trained to regress residue-level side-chain RMSD, is used to pick the best of several samples: unless stated otherwise the authors generate four samples per test case and keep the one with the lowest predicted RMSD.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: sections 2.3.2, 2.3.6 and 2.3.7, and Figure 2 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "channel dimension of 256, and 4 blocks, resulting in a total of 18.0M trainable parameters."
+     },
+     {
+      "source": "@paper",
+      "text": "The model takes in the amino acid identity, backbone torsion angles, and timestep embeddings as node features"
+     },
+     {
+      "source": "@paper",
+      "text": "suggesting that higher-order features are not informative for side-chain packing"
+     },
+     {
+      "source": "@paper",
+      "text": "The confidence model is trained in a similar manner to the main model, except we regress on the residue-level sidechain RMSDs rather than"
+     },
+     {
+      "source": "@paper",
+      "text": "Unless otherwise noted, we generate four samples per test case and select the highest confidence sample."
+     }
+    ]
+   },
+   {
+    "title": "What it was trained on",
+    "body": "Two training sets were used, each giving one published checkpoint. BC40 is a set of representative PDB structures clustered at 40 per cent sequence identity, released on 28 July 2020 and used by earlier work; after filtering it gives 36 451 training examples. PDB-S40 is a PDB snapshot clustered the same way, giving 23 191 clusters containing 309 467 structures. Filtering removes structures with more than a quarter of residues unknown, residues with missing backbone coordinates or overlapping alpha carbons, and proteins shorter than 40 residues. The test set is 99 structures: 20 from CASP13, 34 from CASP14 and 45 from CASP15. The authors report that the larger PDB-S40 data improves most metrics over BC40, and the README recommends the cluster.pth checkpoint for most cases.",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: section 2.3.1 and Results; README.md: checkpoints paragraph",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "BC40 dataset (release date 28 July 2020"
+     },
+     {
+      "source": "@paper",
+      "text": "This results in 36 451 training examples for the BC40 dataset and 23 191 clusters containing 309 467 structures for the PDB-S40 dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "The test set consists of 99 structures, with 20, 34, and 45 targets in CASP13, 14, and 15, respectively."
+     },
+     {
+      "source": "@paper",
+      "text": "We additionally observe that the increased training data available in the PDB-S40 dataset consistently improves performance across most metrics over the widely used BC40 dataset"
+     },
+     {
+      "source": "@readme",
+      "text": "We recommend using `cluster.pth` for most cases."
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The repository holds three checkpoints: bc40.pth, cluster.pth and a confidence model checkpoint, which is switched on or off by setting its path in the config file. The README says checkpoints with other ablations can be provided on request, so only these are public. A result should name the checkpoint, whether confidence sampling was on, how many samples were drawn, and the commit; this page read commit 03421c7fdda73862994aa54fb3077f3f6561408c. Two run options change the output: by default the model masks according to coordinates missing from the input PDB, which suits benchmarking, while the use_gt_masks flag generates all chi angles regardless. The README also warns that its preprocessing may cause minor differences from the input structure.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference and checkpoints paragraphs",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Checkpoints with other ablations can be provided upon request."
+     },
+     {
+      "source": "@readme",
+      "text": "To turn on and off confidence sampling, simply add (or remove) the path to the confidence model checkpoint in the config file."
+     },
+     {
+      "source": "@readme",
+      "text": "By default, the model will run with masks based on missing coordinates found in the supplied PDBs for benchmarking purposes."
+     },
+     {
+      "source": "@readme",
+      "text": "NOTE: we do some preprocessing of the structures that may cause minor differences from the input structure."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Generative side-chain packing model: torsional flow matching over an equivariant graph attention network, conditioned on sequence and backbone.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract and Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we apply torsional flow matching and equivariant graph attention to develop FlowPacker"
+     },
+     {
+      "source": "@paper",
+      "text": "we focus on the problem of side-chain packing, which seeks to predict the side-chain conformations given the amino acid sequence and backbone coordinates of a protein structure"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Equiformerv2 with maximum degree 3, channel dimension 256 and 4 blocks. Node features: amino acid identity, backbone torsion angles and timestep embedding. A separate confidence model uses maximum degree 2 and hidden dimension 64.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: sections 2.3.2 and 2.3.7",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "FlowPacker uses the Equiformerv2 model architecture as described previously."
+     },
+     {
+      "source": "@paper",
+      "text": "channel dimension of 256, and 4 blocks"
+     },
+     {
+      "source": "@paper",
+      "text": "and hidden dimension of 64"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "PDB files holding the sequence and backbone coordinates, read in batch from the folder named by test_path in the inference config. Residues to redesign can be listed with the inpaint flag, using 1-based inclusive ranges per chain.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All PDB files found in the folder specified under `test_path` in `./config/inference/base.yaml` is used for inference."
+     },
+     {
+      "source": "@readme",
+      "text": "For instance, if you want to design res 10-25 of chain A, 40 of chain B, and the entire chain C, the format is as follows:"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted side-chain conformations, that is the chi torsion angles and the resulting all-atom coordinates, for the residues being packed; with confidence sampling, the sample with the lowest predicted side-chain RMSD out of those generated. The samples land in ./samples/<name>/, with the confidence-selected structures in best_run and the run metrics in output_dict.pkl.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Abstract and section 2.3.7; README.md: Inference",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We identify the best sample by simply taking the mean predicted RMSD across all residues and selecting the sample with the lowest predicted RMSD."
+     },
+     {
+      "source": "@readme",
+      "text": "In case you want to generate samples with all chi angles regardless of whether they are missing in the PDB file, add the flag `--use_gt_masks True`."
+     },
+     {
+      "source": "@readme",
+      "text": "Samples can be found in `./samples/<name>/`, with `best_run` containing the PDBs selected by the confidence model."
+     },
+     {
+      "source": "@readme",
+      "text": "After sampling, `output_dict.pkl` contains all metrics for the inference run that are also described in the paper."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "18.0M trainable parameters for the packing model, plus 2.2M for the confidence model. Both figures are the authors' own.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: sections 2.3.2 and 2.3.7",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "resulting in a total of 18.0M trainable parameters"
+     },
+     {
+      "source": "@paper",
+      "text": "The confidence model trained in this work contains 2.2M trainable parameters"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "BC40 (representative PDB structures clustered at 40 per cent identity, released 28 July 2020): 36 451 training examples. PDB-S40 (a PDB snapshot clustered at 40 per cent identity): 23 191 clusters containing 309 467 structures. Both are single-chain proteins.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: section 2.3.1 and Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "which are representative PDB structures clustered by MMseqs2"
+     },
+     {
+      "source": "@paper",
+      "text": "This results in 36 451 training examples for the BC40 dataset and 23 191 clusters containing 309 467 structures for the PDB-S40 dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "Although FlowPacker was specifically trained on single-chain proteins"
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Two packing checkpoints, bc40.pth and cluster.pth (PDB-S40), plus a confidence model checkpoint, all in the repository. Other ablation checkpoints are available on request only. This page read commit 03421c7fdda73862994aa54fb3077f3f6561408c, dated 12 February 2025.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: checkpoints paragraphs",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We provide two checkpoints: one trained on BC40 (`bc40.pth`) and one trained on a PDB snapshot clustered at 40% sequence identity, denoted as PDB-S40 in the paper (`cluster.pth`)."
+     },
+     {
+      "source": "@readme",
+      "text": "Checkpoints with other ablations can be provided upon request."
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "BC40 carries a release date of 28 July 2020. For PDB-S40 the paper gives no snapshot date; the only related date is the antibody test set filter, which keeps SAbDab structures released after 1 January 2021.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: sections 2.3.1 and Results",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "BC40 dataset (release date 28 July 2020"
+     },
+     {
+      "source": "@paper",
+      "text": "filter for structures released after 1 January 2021"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No fixed limit, but memory bound: the README reports testing on an RTX3060 with 12 GB of VRAM up to 1000 residues, and says extremely long proteins or complexes cause GPU memory problems.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Extremely long proteins/complexes (tested on RTX3060 12GB VRAM up to 1000 residues) - GPU memory issues"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "MIT applies to the repository, which is where the checkpoints are held; the LICENSE file is the only licence statement in the sources read, and it covers the repository contents, copyright 2024 Jin Sub Lee.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE; README.md: checkpoints paragraph",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License Copyright (c) 2024 Jin Sub Lee"
+     },
+     {
+      "source": "@readme",
+      "text": "We provide two checkpoints: one trained on BC40 (`bc40.pth`)"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "MIT, in the LICENSE file of the GitLab repository, copyright 2024 Jin Sub Lee.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "MIT License Copyright (c) 2024 Jin Sub Lee"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and checkpoints: https://gitlab.com/mjslee0921/flowpacker (checkpoints under checkpoints/). The paper names the same address for the code and for the training and evaluation data.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "Paper: Availability and implementation, Data availability; README.md: Installation",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Availability and implementation</title><p>Code is available at"
+     },
+     {
+      "source": "@paper",
+      "text": "The data used to train and evaluate the model are available in GitLab at"
+     },
+     {
+      "source": "@readme",
+      "text": "Install the environment using pip:"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "The model is small, 18.0M parameters, and the authors report better runtime than the baselines they compared against, which is their own claim.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract and section 2.3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We show that FlowPacker outperforms previous state-of-the-art baselines across most metrics with improved runtime."
+     },
+     {
+      "source": "@paper",
+      "text": "resulting in a total of 18.0M trainable parameters"
+     }
+    ]
+   },
+   {
+    "text": "Part of a structure can be packed and the rest left alone: the inpaint flag takes residue ranges per chain, which the authors say is not readily available in other packing methods.",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README.md: Inference; Paper: Conclusion",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "For conditioning on specific regions, you have to add the flag `--inpaint` which is just a list of residues that you wish to design (all other residues will be fixed to the native PDB file)."
+     },
+     {
+      "source": "@paper",
+      "text": "We show that FlowPacker can be used for partial inpainting of side-chain conformations, a feature not readily available with other packing methods."
+     }
+    ]
+   },
+   {
+    "text": "Both the code and the two trained checkpoints are in the repository under MIT, with no gate or request step.",
+    "source_ids": [
+     "@readme",
+     "@license"
+    ],
+    "source_locator": "README.md: checkpoints paragraph; LICENSE",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We provide two checkpoints: one trained on BC40 (`bc40.pth`) and one trained on a PDB snapshot clustered at 40% sequence identity, denoted as PDB-S40 in the paper (`cluster.pth`)."
+     },
+     {
+      "source": "@license",
+      "text": "Permission is hereby granted, free of charge, to any person obtaining a copy"
+     }
+    ]
+   },
+   {
+    "text": "The authors report that it transfers to antibody-antigen complexes, with improvements on CDR-H3 and the full variable domain, despite being trained on single chains.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Abstract and Conclusion",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "exhibits strong performance on a test set of antibody–antigen complexes"
+     },
+     {
+      "source": "@paper",
+      "text": "specifically with antibody–antigen complexes and show significant performance improvements in CDRH3 and full variable chain (Fv) side-chain packing"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "It needs a backbone: the model predicts side chains for a supplied sequence and backbone, so it cannot produce a structure on its own.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Introduction",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "we focus on the problem of side-chain packing, which seeks to predict the side-chain conformations given the amino acid sequence and backbone coordinates of a protein structure"
+     }
+    ]
+   },
+   {
+    "text": "Inputs must be cleaned first. The README says unknown or nonstandard amino acids are ignored, overlapping alpha carbons are dropped, and its own preprocessing can introduce minor differences from the input structure.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "unknown or nonstandard amino acids - these will simply just be ignored"
+     },
+     {
+      "source": "@readme",
+      "text": "overlapping Ca atoms - all of these will be dropped"
+     },
+     {
+      "source": "@readme",
+      "text": "NOTE: we do some preprocessing of the structures that may cause minor differences from the input structure."
+     }
+    ]
+   },
+   {
+    "text": "Long chains run out of GPU memory: the README's tested limit is about 1000 residues on a 12 GB card, and inference is batch-only over a folder, with single-file runs done by putting one PDB in a folder alone.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference and notes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Currently, we only support batch inference on a folder containing the PDBs of interest."
+     },
+     {
+      "source": "@readme",
+      "text": "Extremely long proteins/complexes (tested on RTX3060 12GB VRAM up to 1000 residues) - GPU memory issues"
+     }
+    ]
+   },
+   {
+    "text": "The model was trained on single-chain proteins, so multimeric and antibody-antigen use is transfer beyond the training distribution, as the authors state themselves.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "Paper: Results, antibody section",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Although FlowPacker was specifically trained on single-chain proteins, we tested whether the model can be used to generate side-chain conformations of antigen-antibody complexes."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "FlowPacker workflow",
+   "steps": [
+    "folder of PDB files with sequence and backbone",
+    "node features: amino acid identity, backbone torsion angles, timestep",
+    "Equiformerv2 equivariant graph attention, 4 blocks",
+    "torsional flow matching integrates the four chi angles",
+    "several samples scored by the confidence model",
+    "all-atom structure with packed side chains"
+   ],
+   "caption": "The inference path described by the README, with the architecture and sampling choices stated in the paper.",
+   "source_ids": [
+    "@readme",
+    "@paper"
+   ],
+   "source_locator": "README.md: Inference; Paper: sections 2.3.2 and 2.3.7",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "All PDB files found in the folder specified under `test_path` in `./config/inference/base.yaml` is used for inference."
+    },
+    {
+     "source": "@paper",
+     "text": "The model takes in the amino acid identity, backbone torsion angles, and timestep embeddings as node features"
+    },
+    {
+     "source": "@paper",
+     "text": "Unless otherwise noted, we generate four samples per test case and select the highest confidence sample."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "The repository has no model card and no stated version numbers, so the checkpoints are identified only by file name.",
+   "The config file that sets test_path, the number of samples and the confidence checkpoint was not fetched, so the default values of those settings are not stated here.",
+   "The paper's accuracy tables were not extracted, so no angle error or RMSD figure is quoted on this page.",
+   "The README does give training commands, python trainer.py vf for the flow model and python trainer_conf.py confidence for the confidence model; this page covers inference only, and the training scripts themselves were not read."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: mjslee0921/flowpacker README.md, LICENSE and requirements.txt at commit 03421c7fdda73862994aa54fb3077f3f6561408c on GitLab, and the full text of the paper from PMC11886813. No command was executed and no human review is claimed."
+  }
+ },
+ "run_guide": {
+  "summary": "Install the dependencies, put the structures to pack in the folder named by the inference config, and run the sampler to generate side chains.",
+  "prerequisites": [
+   "Python with pip, and torch and torch_geometric builds matching the local CUDA version, installed as the README instructs.",
+   "The other packages in requirements.txt, including e3nn, biotite, biopython and numpy 1.22.4.",
+   "A GPU: the README reports testing on an RTX3060 with 12 GB of VRAM up to 1000 residues.",
+   "PDB files holding sequence and backbone, free of nonstandard residues and overlapping alpha carbons."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://gitlab.com/mjslee0921/flowpacker.git\ncd flowpacker\ngit checkout --detach 03421c7fdda73862994aa54fb3077f3f6561408c",
+    "explanation": "The README gives no clone command, so the clone and the checkout of the commit this page read were added here. The checkpoints bc40.pth and cluster.pth come with the repository.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: opening lines and checkpoints paragraph",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repository contains the codebase for the codebase for FlowPacker, our method for protein side-chain packing with"
+     },
+     {
+      "source": "@readme",
+      "text": "We provide two checkpoints: one trained on BC40 (`bc40.pth`) and one trained on a PDB snapshot clustered at 40% sequence identity, denoted as PDB-S40 in the paper (`cluster.pth`)."
+     }
+    ]
+   },
+   {
+    "title": "Install the environment",
+    "shell": "pip install -r requirements.txt",
+    "explanation": "The README's install command. It adds that the appropriate torch and torch_geometric packages should be installed for the local CUDA version, which requirements.txt lists without versions.",
+    "source_ids": [
+     "@readme",
+     "@requirements"
+    ],
+    "source_locator": "README.md: Installation; requirements.txt",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Note that you should install the appropriate `torch` and `torch_geometric` packages based on your CUDA version."
+     },
+     {
+      "source": "@requirements",
+      "text": "torch_geometric"
+     }
+    ]
+   },
+   {
+    "title": "Point the config at your structures",
+    "shell": "mkdir -p my_pdbs\ncp /path/to/structure.pdb my_pdbs/\n# then set test_path: my_pdbs in ./config/inference/base.yaml",
+    "explanation": "Inference reads every PDB file in the folder named by test_path in the inference config, so a single structure is run by putting it in a folder on its own. The directory commands here are added; the config setting is the README's.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "All PDB files found in the folder specified under `test_path` in `./config/inference/base.yaml` is used for inference."
+     },
+     {
+      "source": "@readme",
+      "text": "To perform single-file inference, you can simply place the PDB file in a folder in isolation and run the command below."
+     }
+    ]
+   },
+   {
+    "title": "Run the sampler",
+    "shell": "python sampler_pdb.py base my_run",
+    "explanation": "The README's inference command: base names the config and the second argument is any label for the run. Add --use_gt_masks True to generate all chi angles regardless of what is missing in the input, or --inpaint A_10-25/B_40/C to pack only those residues and keep the rest native.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README.md: Inference",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "`python sampler_pdb.py base <name>`"
+     },
+     {
+      "source": "@readme",
+      "text": "where `<name>` is just any name to label the sampling run"
+     },
+     {
+      "source": "@readme",
+      "text": "`--inpaint A_10-25/B_40/C`"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Packed structures written to ./samples/<run name>/, with the confidence-selected structures in best_run.",
+   "After sampling, output_dict.pkl holds all the metrics for the inference run. With a confidence checkpoint set in the config, the selected sample is the one with the lowest predicted side-chain RMSD, and --save_traj keeps the whole sampling trajectory."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The config file was not fetched, so the default test_path, sample count and confidence setting are unknown; the config must be edited before the run.",
+   "Inference is batch-only over a folder, and the README reports GPU memory limits beyond roughly 1000 residues on a 12 GB card.",
+   "Generation is stochastic, so repeated runs give different side-chain conformations."
+  ],
+  "source_ids": [
+   "@readme",
+   "@requirements",
+   "@paper"
+  ]
+ },
+ "structured": [
+  {
+   "checkpoint": "cluster.pth (PDB-S40)",
+   "parameters": 18000000,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://gitlab.com/mjslee0921/flowpacker",
+   "weights_url": "https://gitlab.com/mjslee0921/flowpacker",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "resulting in a total of 18.0M trainable parameters"
+    },
+    {
+     "source": "@readme",
+     "text": "one trained on a PDB snapshot clustered at 40% sequence identity, denoted as PDB-S40 in the paper (`cluster.pth`)"
+    },
+    {
+     "source": "@license",
+     "text": "MIT License Copyright (c) 2024 Jin Sub Lee"
+    }
+   ]
+  },
+  {
+   "checkpoint": "bc40.pth",
+   "parameters": 18000000,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://gitlab.com/mjslee0921/flowpacker",
+   "weights_url": "https://gitlab.com/mjslee0921/flowpacker",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "resulting in a total of 18.0M trainable parameters"
+    },
+    {
+     "source": "@readme",
+     "text": "We provide two checkpoints: one trained on BC40 (`bc40.pth`)"
+    },
+    {
+     "source": "@license",
+     "text": "MIT License Copyright (c) 2024 Jin Sub Lee"
+    }
+   ]
+  },
+  {
+   "checkpoint": "confidence model",
+   "parameters": 2200000,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "MIT",
+   "weights_licence": "MIT",
+   "code_url": "https://gitlab.com/mjslee0921/flowpacker",
+   "weights_url": "https://gitlab.com/mjslee0921/flowpacker",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "The confidence model trained in this work contains 2.2M trainable parameters"
+    },
+    {
+     "source": "@readme",
+     "text": "To turn on and off confidence sampling, simply add (or remove) the path to the confidence model checkpoint in the config file."
+    }
+   ]
+  }
+ ],
+ "notes": "The code is on GitLab, not GitHub, so the commit was taken from the GitLab API (03421c7f, dated 12 February 2025) and the files were fetched from the GitLab raw endpoint at that commit. The 18.0M parameter figure is the paper's for the architecture it describes and is recorded for both packing checkpoints, which share that architecture; the paper does not give per-checkpoint counts. The GitLab project reports no licence in its API metadata, but the repository holds an MIT LICENSE file, which is what the licence facts rest on, and it covers the checkpoints held in the same repository. The paper is open access under CC BY, so its text is stored. The record reached this database through the TorchCraft paper, which used FlowPacker; nothing on this page comes from that paper."
+}

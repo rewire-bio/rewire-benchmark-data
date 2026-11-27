@@ -1,0 +1,820 @@
+{
+ "record_id": "poisk-20261115-model-alphafold-multimer",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "google-deepmind/alphafold README.md at commit c77e5d2a",
+   "description": "Official repository README, pinned to a commit. Holds the databases, the parameter sets, the licences and the multimer commands.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/README.md",
+   "url": "https://github.com/google-deepmind/alphafold",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/markdown",
+   "sha256": "39a82c6f8ecfaf16872275167e98ff00109321f8de150edf5212dc9ed36f3763",
+   "retrieved_at": "2026-11-27T00:45:57Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "google-deepmind/alphafold LICENSE at commit c77e5d2a",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/LICENSE",
+   "url": "https://github.com/google-deepmind/alphafold",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/plain",
+   "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+   "retrieved_at": "2026-11-27T00:46:00Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "technical-note",
+   "name": "google-deepmind/alphafold docs/technical_note_v2.3.0.md at commit c77e5d2a",
+   "description": "The developers' technical note for AlphaFold v2.3.0, which describes the current AlphaFold-Multimer weights, their training cutoff and the changes from the paper version.",
+   "file": "artifacts/technical-note.md",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/docs/technical_note_v2.3.0.md",
+   "url": "https://github.com/google-deepmind/alphafold/blob/c77e5d2a8961d1a353632c462914ff0a32a950f6/docs/technical_note_v2.3.0.md",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/markdown",
+   "sha256": "8ab96dfd4925acc0878b558c6dbd8a2fd0f62bbe72dd2a6ced68b8cddc421de0",
+   "retrieved_at": "2026-11-27T02:21:30Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "config",
+   "name": "google-deepmind/alphafold alphafold/model/config.py at commit c77e5d2a",
+   "description": "Model configuration source, read for the names of the five multimer models, the deprecated version presets and the prediction heads.",
+   "file": "artifacts/config.py",
+   "artifact_url": "https://raw.githubusercontent.com/google-deepmind/alphafold/c77e5d2a8961d1a353632c462914ff0a32a950f6/alphafold/model/config.py",
+   "url": "https://github.com/google-deepmind/alphafold",
+   "version": "git commit c77e5d2a8961d1a353632c462914ff0a32a950f6",
+   "media_type": "text/x-python",
+   "sha256": "484a39304af8f1e3c7e3c47800f7787214bb172ef4f277ddc1603a6bca107c10",
+   "retrieved_at": "2026-11-27T02:21:33Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "AlphaFold-Multimer predicts the structure of a protein complex. It is the multi-chain mode of AlphaFold v2: the input is a FASTA file holding every chain of the complex, alignments are built against several sequence databases, and the system returns coordinates together with per-residue and per-pair confidence estimates, pTM and predicted aligned error. Five trained parameter sets are shipped, and by default each is run with five random seeds, giving 25 predictions that are ranked. It is the same code base as single chain AlphaFold, selected with one flag, and the developers call the multimer implementation a work in progress that is less stable than the monomer system.",
+  "summary_source_ids": [
+   "@readme",
+   "@config"
+  ],
+  "summary_source_locator": "README: header, Model parameters and Running AlphaFold-Multimer; config.py: MODEL_PRESETS",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "An implementation of AlphaFold-Multimer. This represents a work in progress\n    and AlphaFold-Multimer isn't expected to be as stable as our monomer\n    AlphaFold system."
+   },
+   {
+    "source": "@readme",
+    "text": "*   provide an input fasta with multiple sequences,\n*   set `--model_preset=multimer`,"
+   },
+   {
+    "source": "@readme",
+    "text": "5 AlphaFold-Multimer models that produce pTM and PAE values alongside their\n    structure predictions."
+   },
+   {
+    "source": "@readme",
+    "text": "By default the multimer system will run 5 seeds per model (25 total predictions)"
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The pipeline has two halves. First a data pipeline searches genetic databases to build alignments and find templates: BFD, MGnify, PDB70, the PDB in mmCIF format, UniRef30, UniRef90, and for the multimer mode also PDB seqres and UniProt. Then the neural network predicts the structure, and the multimer models carry heads for a distogram, masked MSA, experimentally resolved atoms, predicted aligned error and predicted lDDT. The current weights come from the v2.3.0 update: the same architecture and training method as the AlphaFold-Multimer paper, fine tuned on PDB structures up to 2021-09-30 instead of 2018-04-30, with the training crop raised from 384 to 640 residues, the number of chains used at training raised from 8 to 20, and the maximum number of alignment sequences raised from 1,152 to 2,048 for three of the five models. The self-distillation set was also rebuilt from clustered MGnify with a looser cluster filter.",
+    "source_ids": [
+     "@readme",
+     "@technical-note",
+     "@config"
+    ],
+    "source_locator": "README: Genetic databases; technical note: whole document; config.py: heads",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "*   [PDB seqres](https://www.rcsb.org/) – only for AlphaFold-Multimer,"
+     },
+     {
+      "source": "@readme",
+      "text": "*   [UniProt](https://www.uniprot.org/uniprot/) – only for AlphaFold-Multimer,"
+     },
+     {
+      "source": "@technical-note",
+      "text": "We have fine-tuned new AlphaFold-Multimer weights using identical model\narchitecture but a new training cutoff of 2021-09-30."
+     },
+     {
+      "source": "@technical-note",
+      "text": "we are also able to increase the size of\ntraining crops (subsets of the structure used to train AlphaFold) from 384 to\n640 residues"
+     },
+     {
+      "source": "@technical-note",
+      "text": "we increase the number of chains used at training time from 8 to\n20 and increase the maximum number of MSA sequences from 1,152 to 2,048 for 3 of\nthe 5 AlphaFold-Multimer models"
+     },
+     {
+      "source": "@technical-note",
+      "text": "For v2.3.0, the same clustered MGnify dataset was used, but\nfiltered to clusters with more than 2 sequences."
+     },
+     {
+      "source": "@config",
+      "text": "'predicted_aligned_error': {"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The default multimer preset names five models, model_1_multimer_v3 through model_5_multimer_v3, and the parameter file for them is alphafold_params_2022-12-06.tar. Two older generations remain usable but deprecated: the v2.2.0 weights from alphafold_params_2022-03-02.tar, selected by changing _v3 to _v2 in the multimer presets, and the v2.1.0 weights from alphafold_params_2022-01-19.tar, selected by removing _v3. The code applies version-specific differences to the configuration, mostly for numerical stability. Reproducibility also depends on the database snapshot: the README warns that PDB seqres and the PDB mmCIF files must be from exactly the same date or template search for multimers can fail, and prediction uses a max_template_date cutoff given on the command line. A result should therefore name the parameter tar, the model preset, the number of seeds per model and the template date.",
+    "source_ids": [
+     "@config",
+     "@readme"
+    ],
+    "source_locator": "config.py: MODEL_PRESETS and the version difference comment; README: Model parameters, Using deprecated model weights, Updating existing installation and Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@config",
+      "text": "'model_1_multimer_v3',"
+     },
+     {
+      "source": "@config",
+      "text": "'model_5_multimer_v3',"
+     },
+     {
+      "source": "@config",
+      "text": "# Key differences between multimer v1/v2 and v3, mostly due to numerical"
+     },
+     {
+      "source": "@readme",
+      "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+     },
+     {
+      "source": "@readme",
+      "text": "To use the deprecated v2.2.0 AlphaFold-Multimer model weights:"
+     },
+     {
+      "source": "@readme",
+      "text": "It is needed to have PDB SeqRes and\n        PDB from exactly the same date. Failure to do this step will result in\n        potential errors when searching for templates when running\n        AlphaFold-Multimer."
+     }
+    ]
+   },
+   {
+    "title": "When to prefer it",
+    "body": "The developers give a rule. The v2.3.0 multimer models are expected to be preferred whenever the stoichiometry of the complex is known, including for structures known to be monomeric. Where the stoichiometry is unknown, for instance in genome-scale prediction, single chain AlphaFold is likely to be more accurate on average, unless the chain runs to several thousand residues. For very large or difficult targets they suggest raising the number of seeds per model to 20, which is not the default because of the cost.",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical note: closing paragraphs",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "we expect these new models to be the preferred models whenever the\nstoichiometry of the complex is known, including known monomeric structures."
+     },
+     {
+      "source": "@technical-note",
+      "text": "In\ncases where the stoichiometry is unknown, such as in genome-scale prediction, it\nis likely that single chain AlphaFold will be more accurate on average unless\nthe chain has several thousand residues."
+     },
+     {
+      "source": "@technical-note",
+      "text": "Increasing the number of seeds to 20\nis recommended for very large or difficult targets but is not the default due to\nincreased computational time."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Protein complex structure prediction, the multi-chain mode of AlphaFold v2, run through the same inference pipeline with a model preset flag.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header and Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This package provides an implementation of the inference pipeline of AlphaFold\nv2."
+     },
+     {
+      "source": "@readme",
+      "text": "set `--model_preset=multimer`,"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "The AlphaFold-Multimer architecture of the paper, unchanged in the current weights. The configuration runs in multimer mode with heads for the distogram, masked MSA, experimentally resolved atoms, predicted aligned error and predicted lDDT.",
+    "status": "source_checked",
+    "source_ids": [
+     "@technical-note",
+     "@config"
+    ],
+    "source_locator": "technical note: first paragraphs; config.py: multimer global_config and heads",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "even though we use the\nsame model architecture and training methodology as our previously released\nAlphaFold-Multimer paper"
+     },
+     {
+      "source": "@config",
+      "text": "'multimer_mode': True,"
+     },
+     {
+      "source": "@config",
+      "text": "'predicted_lddt': {"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A FASTA file containing every chain of the complex, a data directory of downloaded genetic databases, and a maximum template date. The multimer mode additionally needs the PDB seqres and UniProt databases.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running AlphaFold-Multimer and Genetic databases",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "provide an input fasta with multiple sequences,"
+     },
+     {
+      "source": "@readme",
+      "text": "  --max_template_date=2020-05-14 \\"
+     },
+     {
+      "source": "@readme",
+      "text": "*   [UniProt](https://www.uniprot.org/uniprot/) – only for AlphaFold-Multimer,"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Predicted complex structures in the output directory, with pTM and predicted aligned error values alongside the coordinates, from 25 predictions by default (five seeds for each of five models).",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model parameters and Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "5 AlphaFold-Multimer models that produce pTM and PAE values alongside their\n    structure predictions."
+     },
+     {
+      "source": "@readme",
+      "text": "By default the multimer system will run 5 seeds per model (25 total predictions)"
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated in the repository, the v2.3.0 technical note or the configuration. These name five multimer parameter sets and the tar file that holds them but give no parameter count for the network. The AlphaFold-Multimer paper was not read, so a published count may exist there.",
+    "status": "unreported",
+    "source_ids": [
+     "@readme",
+     "@config"
+    ],
+    "source_locator": "README: Model parameters; config.py: MODEL_PRESETS",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "PDB structures released before 2021-09-30 for the current v2.3.0 multimer weights, about 30 per cent more data than the previous 2018-04-30 cutoff, including four times as many electron microscopy structures and twice as many structures over 2,000 residues. Training also used a self-distillation set from clustered MGnify, filtered to clusters with more than 2 sequences.",
+    "status": "source_checked",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical note: training data paragraphs",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "a new training cutoff of 2021-09-30"
+     },
+     {
+      "source": "@technical-note",
+      "text": "The new training cutoff represents ~30%\nmore data to train AlphaFold and more importantly includes much more data on\nlarge protein complexes. The new training cutoff includes 4× the number of\nelectron microscopy structures and in aggregate twice the number of large\nstructures (more than 2,000 residues)"
+     },
+     {
+      "source": "@technical-note",
+      "text": "The original AF-Multimer self-distillation set\nwas created using the clustered MGnify dataset filtered to clusters with more\nthan 10 sequences."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Three generations of multimer weights: v3 (current default, model_1_multimer_v3 to model_5_multimer_v3, in alphafold_params_2022-12-06.tar), v2 (deprecated, alphafold_params_2022-03-02.tar) and v1 (deprecated, alphafold_params_2022-01-19.tar). Each generation is selected by editing the model presets and the download URL.",
+    "status": "source_checked",
+    "source_ids": [
+     "@config",
+     "@readme"
+    ],
+    "source_locator": "config.py: MODEL_PRESETS and model updates; README: Using deprecated model weights",
+    "quotes": [
+     {
+      "source": "@config",
+      "text": "'model_1_multimer_v3',"
+     },
+     {
+      "source": "@config",
+      "text": "{f'model_{i}_multimer_v2': common_updates for i in range(1, 6)}"
+     },
+     {
+      "source": "@readme",
+      "text": "`https://storage.googleapis.com/alphafold/alphafold_params_2022-03-02.tar`,\n    and download the old parameters."
+     },
+     {
+      "source": "@readme",
+      "text": "`https://storage.googleapis.com/alphafold/alphafold_params_2022-01-19.tar`,"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "2021-09-30 for the current multimer weights. Earlier releases of AlphaFold and AlphaFold-Multimer used PDB structures released before 2018-04-30, chosen to match the start of CASP13.",
+    "status": "source_checked",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical note: second paragraph",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "Previously released\nversions of AlphaFold and AlphaFold-Multimer were trained using PDB structures\nwith a release date before 2018-04-30, a cutoff date chosen to coincide with the\nstart of the 2018 CASP13 assessment."
+     },
+     {
+      "source": "@technical-note",
+      "text": "a new training cutoff of 2021-09-30"
+     }
+    ]
+   },
+   {
+    "label": "Context limits",
+    "value": "No declared maximum complex size. The figures the sources give are training settings: crops of 640 residues, up to 20 chains at training time, and a maximum of 2,048 alignment sequences for three of the five models. Memory is the practical limit. The developers' reference machine had 12 vCPUs, 85 GB of system RAM and an A100 GPU.",
+    "status": "source_checked",
+    "source_ids": [
+     "@technical-note",
+     "@readme"
+    ],
+    "source_locator": "technical note: architecture paragraphs; README: Running AlphaFold",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "from 384 to\n640 residues"
+     },
+     {
+      "source": "@technical-note",
+      "text": "increase the maximum number of MSA sequences from 1,152 to 2,048 for 3 of\nthe 5 AlphaFold-Multimer models"
+     },
+     {
+      "source": "@readme",
+      "text": "with 12 vCPUs, 85 GB of RAM, a 100 GB boot disk, the databases on an additional\n3 TB disk, and an A100 GPU"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "CC BY 4.0. The README states that the AlphaFold parameters and the CASP15 prediction data are made available under those terms, separately from the code.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model parameters and License and Disclaimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "While the AlphaFold code is licensed under the Apache 2.0 License, the AlphaFold\nparameters and CASP15 prediction data are made available under the terms of the\nCC BY 4.0 license."
+     },
+     {
+      "source": "@readme",
+      "text": "Commons Attribution 4.0 International (CC BY 4.0) license. You can find details\nat: https://creativecommons.org/licenses/by/4.0/legalcode"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, as the repository LICENSE file holds and the README states. Third-party components carry their own terms, and the README lists several under CC BY-SA 4.0.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license",
+     "@readme"
+    ],
+    "source_locator": "LICENSE header; README: Model parameters and License and Disclaimer",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License Version 2.0, January 2004"
+     },
+     {
+      "source": "@readme",
+      "text": "the AlphaFold code is licensed under the Apache 2.0 License"
+     },
+     {
+      "source": "@readme",
+      "text": "[Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/)."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/google-deepmind/alphafold. Parameters as a tar from https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar, downloaded by scripts/download_all_data.sh with no sign-in. The genetic databases are separate downloads of terabyte scale.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model parameters and Genetic databases",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The AlphaFold parameters are available from\nhttps://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar, and\nare downloaded as part of the `scripts/download_all_data.sh` script."
+     },
+     {
+      "source": "@readme",
+      "text": "We provide a script `scripts/download_all_data.sh` that can be used to download\nand set up all of these databases:"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Five independently trained parameter sets are shipped and run with several seeds each, so a prediction comes with alternatives to rank rather than a single answer.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model parameters and Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "5 AlphaFold-Multimer models that produce pTM and PAE values alongside their\n    structure predictions."
+     },
+     {
+      "source": "@readme",
+      "text": "By default the multimer system will run 5 seeds per model (25 total predictions)"
+     }
+    ]
+   },
+   {
+    "text": "The current weights were refitted for large complexes: a later training cutoff, four times the electron microscopy structures, twice the structures over 2,000 residues, and training crops raised to 640 residues.",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical note: training data paragraphs",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "These new AlphaFold-Multimer models are expected to be\nsubstantially more accurate on large protein complexes"
+     },
+     {
+      "source": "@technical-note",
+      "text": "The new training cutoff includes 4× the number of\nelectron microscopy structures"
+     }
+    ]
+   },
+   {
+    "text": "The developers state plainly when not to use it: single chain AlphaFold is likely more accurate when the stoichiometry is unknown, as in genome-scale prediction.",
+    "source_ids": [
+     "@technical-note"
+    ],
+    "source_locator": "technical note: closing paragraphs",
+    "quotes": [
+     {
+      "source": "@technical-note",
+      "text": "In\ncases where the stoichiometry is unknown, such as in genome-scale prediction, it\nis likely that single chain AlphaFold will be more accurate on average"
+     }
+    ]
+   },
+   {
+    "text": "Older weight generations stay reachable. The README documents how to install the v2.2.0 and v2.1.0 multimer parameters, so a historical result can be reproduced.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Using deprecated model weights",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "To use the deprecated v2.1.0 AlphaFold-Multimer model weights:"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The developers call the multimer implementation a work in progress and say it is not expected to be as stable as the monomer system.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This represents a work in progress\n    and AlphaFold-Multimer isn't expected to be as stable as our monomer\n    AlphaFold system."
+     }
+    ]
+   },
+   {
+    "text": "The weights are CC BY 4.0, not Apache-2.0 like the code. Attribution terms apply to the parameters separately from the software.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Model parameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "the AlphaFold\nparameters and CASP15 prediction data are made available under the terms of the\nCC BY 4.0 license"
+     }
+    ]
+   },
+   {
+    "text": "Running it is heavy. Linux only, terabytes of genetic databases, and the developers' own reference machine had 12 vCPUs, 85 GB of RAM, a 3 TB disk for the databases and an A100 GPU.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation and running your first prediction, Running AlphaFold",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You will need a machine running Linux, AlphaFold does not support other"
+     },
+     {
+      "source": "@readme",
+      "text": "the databases on an additional\n3 TB disk, and an A100 GPU"
+     }
+    ]
+   },
+   {
+    "text": "Database hygiene matters: PDB seqres and the PDB mmCIF files must come from the same date, or template search can fail for multimers.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Updating existing installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "It is needed to have PDB SeqRes and\n        PDB from exactly the same date. Failure to do this step will result in\n        potential errors when searching for templates when running\n        AlphaFold-Multimer."
+     }
+    ]
+   },
+   {
+    "text": "Selecting an older weight generation means editing source files, both the download script's URL and the model presets in config.py, rather than passing a flag.",
+    "source_ids": [
+     "@readme",
+     "@config"
+    ],
+    "source_locator": "README: Using deprecated model weights; config.py: MODEL_PRESETS",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Change the `_v3` to `_v2` in the multimer `MODEL_PRESETS` in `config.py`."
+     },
+     {
+      "source": "@config",
+      "text": "'model_2_multimer_v3',"
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "AlphaFold-Multimer prediction workflow",
+   "steps": [
+    "FASTA file holding every chain of the complex",
+    "Alignment and template search over BFD, MGnify, UniRef, UniProt, PDB and PDB seqres",
+    "Five multimer parameter sets, five seeds each by default",
+    "25 predictions with pTM and predicted aligned error",
+    "Ranked structures in the output directory"
+   ],
+   "caption": "The multimer mode reuses the AlphaFold v2 pipeline: the same data pipeline plus two extra databases, then five parameter sets run with several seeds and ranked by confidence.",
+   "source_ids": [
+    "@readme"
+   ],
+   "source_locator": "README: Genetic databases, Model parameters and Running AlphaFold-Multimer",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "provide an input fasta with multiple sequences,"
+    },
+    {
+     "source": "@readme",
+     "text": "*   [PDB seqres](https://www.rcsb.org/) – only for AlphaFold-Multimer,"
+    },
+    {
+     "source": "@readme",
+     "text": "By default the multimer system will run 5 seeds per model (25 total predictions)"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The AlphaFold-Multimer paper was not read: the open copy is a bioRxiv preprint, and bioRxiv is rate-limiting this address. The architecture is therefore described only as the repository and the technical note describe it. The preprint address is https://www.biorxiv.org/content/10.1101/2021.10.04.463034v1.",
+   "No parameter count is published for the multimer models.",
+   "No accuracy figures are recorded here: the README's own speed table and the CASP15 baseline predictions were not read.",
+   "AlphaFold 3, the current DeepMind model for complexes, is a separate repository and is not covered here."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the README, LICENSE, docs/technical_note_v2.3.0.md and alphafold/model/config.py of google-deepmind/alphafold at commit c77e5d2a8961d1a353632c462914ff0a32a950f6. The AlphaFold-Multimer preprint was not fetched. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "model_1_multimer_v3",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@config",
+     "text": "'model_1_multimer_v3',"
+    },
+    {
+     "source": "@readme",
+     "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+    }
+   ]
+  },
+  {
+   "checkpoint": "model_2_multimer_v3",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@config",
+     "text": "'model_2_multimer_v3',"
+    },
+    {
+     "source": "@readme",
+     "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+    }
+   ]
+  },
+  {
+   "checkpoint": "model_3_multimer_v3",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@config",
+     "text": "'model_3_multimer_v3',"
+    },
+    {
+     "source": "@readme",
+     "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+    }
+   ]
+  },
+  {
+   "checkpoint": "model_4_multimer_v3",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@config",
+     "text": "'model_4_multimer_v3',"
+    },
+    {
+     "source": "@readme",
+     "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+    }
+   ]
+  },
+  {
+   "checkpoint": "model_5_multimer_v3",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "CC-BY-4.0",
+   "code_url": "https://github.com/google-deepmind/alphafold",
+   "weights_url": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@config",
+     "text": "'model_5_multimer_v3',"
+    },
+    {
+     "source": "@readme",
+     "text": "https://storage.googleapis.com/alphafold/alphafold_params_2022-12-06.tar"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Download the databases and parameters, then fold a multi-chain FASTA file with the multimer preset through the provided Docker script.",
+  "prerequisites": [
+   "A Linux machine: the README states AlphaFold does not support other systems.",
+   "A GPU and plenty of memory: the developers' reference machine had 12 vCPUs, 85 GB of RAM and an A100.",
+   "About 3 TB of disk for the genetic databases, and aria2c installed for the download step.",
+   "Apache-2.0 for the code and CC BY 4.0 for the parameters."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/google-deepmind/alphafold.git\ncd alphafold\ngit checkout --detach c77e5d2a8961d1a353632c462914ff0a32a950f6",
+    "explanation": "The clone and checkout lines are added here to pin the commit that was read. The README's own update instructions assume a cloned repository.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Updating existing installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Go to the directory with the cloned AlphaFold repository and run `git\n        fetch origin main` to get all code updates."
+     }
+    ]
+   },
+   {
+    "title": "Download the databases and parameters",
+    "shell": "scripts/download_all_data.sh <DOWNLOAD_DIR>",
+    "explanation": "The README's recommended default, which fetches the full genetic databases and the parameter tar, including the five multimer parameter sets. It needs aria2c.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Genetic databases and Model parameters",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "scripts/download_all_data.sh <DOWNLOAD_DIR>"
+     },
+     {
+      "source": "@readme",
+      "text": "are downloaded as part of the `scripts/download_all_data.sh` script"
+     }
+    ]
+   },
+   {
+    "title": "Fold a complex",
+    "shell": "python3 docker/run_docker.py \\\n  --fasta_paths=multimer.fasta \\\n  --max_template_date=2020-05-14 \\\n  --model_preset=multimer \\\n  --data_dir=$DOWNLOAD_DIR \\\n  --output_dir=/home/user/absolute_path_to_the_output_dir",
+    "explanation": "The README's multimer example. The FASTA file holds every chain of the complex, and the template date caps which structures the template search may use.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python3 docker/run_docker.py \\\n  --fasta_paths=multimer.fasta \\\n  --max_template_date=2020-05-14 \\\n  --model_preset=multimer \\\n  --data_dir=$DOWNLOAD_DIR \\\n  --output_dir=/home/user/absolute_path_to_the_output_dir"
+     }
+    ]
+   },
+   {
+    "title": "Optional: run one seed per model instead of five",
+    "shell": "python3 docker/run_docker.py \\\n  --fasta_paths=multimer.fasta \\\n  --max_template_date=2020-05-14 \\\n  --model_preset=multimer \\\n  --num_multimer_predictions_per_model=1 \\\n  --data_dir=$DOWNLOAD_DIR \\\n  --output_dir=/home/user/absolute_path_to_the_output_dir",
+    "explanation": "The README's flag for cutting the run from 25 predictions to 5, which it says costs a small drop in accuracy. The surrounding command is the example above.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running AlphaFold-Multimer",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "for a small drop in accuracy you may wish to run a single seed per model. This\ncan be done via the `--num_multimer_predictions_per_model` flag, e.g. set it to\n`--num_multimer_predictions_per_model=1` to run a single seed per model."
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Predicted complex structures in the output directory, with pTM and predicted aligned error values.",
+   "25 predictions by default, five seeds for each of the five multimer parameter sets."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The download step is terabyte scale and must be finished before any prediction.",
+   "Running a deprecated weight generation needs source edits in scripts/download_alphafold_params.sh and alphafold/model/config.py, not a flag."
+  ],
+  "source_ids": [
+   "@readme",
+   "@config"
+  ]
+ },
+ "notes": "The record is for AlphaFold-Multimer as one of the folding models in the POISK benchmark (existing source poisk-20261115-source-manuscript-v1). There is no separate repository or model hub entry: the multimer system is a model preset of google-deepmind/alphafold, and the parameters sit in the same tar as the monomer and pTM weights. The AlphaFold-Multimer paper is only openly available as a bioRxiv preprint, which was not fetched because bioRxiv is rate-limiting this address, so coverage is marked limited. Statements about the current weights come from the repository's own v2.3.0 technical note, which describes a refit of the paper's architecture rather than a new model. Do not confuse this record with AlphaFold 3, which is a different repository with different terms."
+}

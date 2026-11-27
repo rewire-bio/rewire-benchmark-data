@@ -1,0 +1,826 @@
+{
+ "record_id": "lit-structure-20261011-scaffoldlab-model-genie",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "aqlaboratory/genie README.md at commit 42e4c996",
+   "description": "Official repository README, pinned to a commit. Holds the install, the data download, the training, sampling and evaluation commands and the weight loading snippet.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/aqlaboratory/genie/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c/README.md",
+   "url": "https://github.com/aqlaboratory/genie",
+   "version": "git commit 42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c",
+   "media_type": "text/markdown",
+   "sha256": "c17715decdae84ac4095c45b6a85bc6fdddd6cedf2a923d496aa0d05f2b03c4d",
+   "retrieved_at": "2026-11-27T00:45:51Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "aqlaboratory/genie LICENSE.md at commit 42e4c996",
+   "description": "Licence file of the official repository, pinned to a commit.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/aqlaboratory/genie/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c/LICENSE.md",
+   "url": "https://github.com/aqlaboratory/genie",
+   "version": "git commit 42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c",
+   "media_type": "text/plain",
+   "sha256": "35cbb3246a8087c3216f76b4b801dab3062fe8cc0f403e6378eeccd9603d5304",
+   "retrieved_at": "2026-11-27T00:45:54Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "repo-tree",
+   "name": "GitHub listing of aqlaboratory/genie at commit 42e4c996",
+   "description": "Recursive GitHub API listing of the repository, read for the weight folders and checkpoint file names shipped with the code.",
+   "file": "artifacts/repo-tree.json",
+   "artifact_url": "https://api.github.com/repos/aqlaboratory/genie/git/trees/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c?recursive=1",
+   "url": "https://github.com/aqlaboratory/genie",
+   "version": "git commit 42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c",
+   "media_type": "application/json",
+   "sha256": "ecbe08af7710f6d1339b8fa80997a9ac7f30522902cb24171aa1e29921d1f8a6",
+   "retrieved_at": "2026-11-27T02:04:00Z",
+   "store_bytes": true
+  },
+  {
+   "key": "config",
+   "name": "aqlaboratory/genie weights/scope_l_256/configuration at commit 42e4c996",
+   "description": "Configuration file shipped with the SCOPe 256-residue weights, read for the maximum residue count and the training settings.",
+   "file": "artifacts/config-scope-l-256",
+   "artifact_url": "https://raw.githubusercontent.com/aqlaboratory/genie/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c/weights/scope_l_256/configuration",
+   "url": "https://github.com/aqlaboratory/genie",
+   "version": "git commit 42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c",
+   "media_type": "text/plain",
+   "sha256": "de3ddd78fb95ba3dba61d77043eea4807fa124d88b0b02de777c4bf5ee2dee37",
+   "retrieved_at": "2026-11-27T02:04:06Z",
+   "licence": "Apache-2.0",
+   "store_bytes": true
+  },
+  {
+   "key": "paper",
+   "name": "Lin and AlQuraishi 2023, Generating Novel, Designable, and Diverse Protein Structures by Equivariantly Diffusing Oriented Residue Clouds, text of arXiv:2301.12485v3 PDF",
+   "description": "The ICML paper the repository implements, as text extracted with pdftotext from the arXiv PDF.",
+   "file": "artifacts/paper.txt",
+   "artifact_url": "https://arxiv.org/pdf/2301.12485",
+   "url": "https://arxiv.org/abs/2301.12485",
+   "version": "arXiv:2301.12485v3, text layer extracted with pdftotext",
+   "media_type": "text/plain",
+   "sha256": "42ada29e198b5c4a51a9d5e1ebe711f387560b759268647588d53d11c5d410d8",
+   "retrieved_at": "2026-11-27T02:04:03Z",
+   "store_bytes": false
+  }
+ ],
+ "profile": {
+  "summary": "Genie generates new protein backbones with a diffusion model. It represents a structure as a cloud of oriented residues: noise is added to and removed from the alpha carbon coordinates, while the network reasons over Frenet-Serret frames built from the backbone geometry, which give each residue a position and an orientation. Sampling runs the reverse diffusion for 1,000 steps and writes alpha carbon coordinates, with no sequence input. The published models were trained from scratch on filtered SCOPe domains or on AlphaFold predictions of SwissProt, and the authors report designability, diversity and novelty against RFdiffusion, FrameDiff and other generators. The model is small, 4.1 million parameters against RFdiffusion's 59.8 million.",
+  "summary_source_ids": [
+   "@paper",
+   "@readme"
+  ],
+  "summary_source_locator": "paper: title, Sections 2.2, 2.3, 3.2 and Datasets; README: header and Sampling",
+  "summary_quotes": [
+   {
+    "source": "@paper",
+    "text": "Generating Novel, Designable, and Diverse Protein Structures\nby Equivariantly Diffusing Oriented Residue Clouds"
+   },
+   {
+    "source": "@paper",
+    "text": "Frenet-Serret (FS) frames based on the backbone geometry encoded by xt . Each FS frame represents the position and orientation of a residue relative to the global reference frame."
+   },
+   {
+    "source": "@paper",
+    "text": "where the total number of diffusion steps T is set to 1,000:"
+   },
+   {
+    "source": "@paper",
+    "text": "RFDiffusion\nalso contains around 14 times more parameters than Genie\n(59.8M versus 4.1M)."
+   },
+   {
+    "source": "@readme",
+    "text": "Here, the input directory contains a subdirectory named `coords`, which contains Ca coordinates generated by Genie."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "The forward process adds Gaussian noise to the alpha carbon coordinates of a domain over a fixed variance schedule with 1,000 steps. The network is trained to predict the noise added at each step, following the usual denoising diffusion objective, so training reduces to fitting that noise prediction model. What makes the representation asymmetric is that the input is a point cloud while the reasoning is frame based: Frenet-Serret frames are constructed from the backbone geometry of the noised structure, giving each residue an orientation as well as a position, which the authors call equivariantly diffusing oriented residue clouds. The architecture uses pair transform layers, with triangular attention switched off in the shipped configuration. At sampling time the noise vector can be multiplied by a constant factor, in the manner of low temperature sampling, which trades designability against diversity.",
+    "source_ids": [
+     "@paper",
+     "@config"
+    ],
+    "source_locator": "paper: Sections 2.2, 2.3, Loss and 3.2; weights/scope_l_256/configuration",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Since the forward diffusion process is predefined with a\nfixed variance schedule, training Genie reduces to training the noise prediction model."
+     },
+     {
+      "source": "@paper",
+      "text": "By minimizing the error\nin noise prediction for each diffusion step, Genie learns to\niteratively reverse the forward process and generate structures."
+     },
+     {
+      "source": "@paper",
+      "text": "Once constructed, these FS frames enable"
+     },
+     {
+      "source": "@config",
+      "text": "numPairTransformLayers 5\nincludeTriangularAttention False"
+     },
+     {
+      "source": "@paper",
+      "text": "we adjust the\nnoise scale at sampling time by multiplying the sampled\nnoise vector with a constant factor η, analogous to lowtemperature sampling"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "The weights ship inside the repository rather than on a model hub. At the commit read here there are three sets, each with its own configuration file: weights/scope_l_128 with epoch=49999.ckpt, weights/scope_l_256 with epoch=29999.ckpt, and weights/swissprot_l_256 with epoch=99.ckpt. The names match the paper's variants: a model trained on SCOPe with a maximum length of 128, and the two long models, Genie-SCOPe and Genie-SwissProt, both with the maximum sequence length set to 256. The shipped configuration for scope_l_256 sets maximumNumResidues to 256, five pair transform layers, no triangular attention and a learning rate of 1e-4. A result should name the weight folder, the checkpoint epoch, the repository commit and the sampling noise scale, since that scale changes the output distribution.",
+    "source_ids": [
+     "@repo-tree",
+     "@paper",
+     "@config"
+    ],
+    "source_locator": "repository listing: weights folders; paper: Section 3.2; weights/scope_l_256/configuration",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_128/epoch=49999.ckpt\""
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/swissprot_l_256/epoch=99.ckpt\""
+     },
+     {
+      "source": "@paper",
+      "text": "we term these two models GenieSCOPe and Genie-SwissProt, respectively. For both models, we use the same Genie architecture as before but set\nthe maximum sequence length to 256."
+     },
+     {
+      "source": "@config",
+      "text": "maximumNumResidues 256"
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "Diffusion model for de novo protein backbone generation, unconditional, trained from scratch.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@paper"
+    ],
+    "source_locator": "README: header; paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "# Genie: De Novo Protein Design by Equivariantly Diffusing Oriented Residue Clouds"
+     },
+     {
+      "source": "@paper",
+      "text": "RFDiffusion is pretrained on predicting protein\nstructures while Genie is trained from scratch."
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "Denoising diffusion over alpha carbon coordinates with Frenet-Serret frames built from the backbone, and pair transform layers; the shipped configuration uses five such layers with triangular attention disabled.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@config"
+    ],
+    "source_locator": "paper: Section 2.2; weights/scope_l_256/configuration",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "Frenet-Serret (FS) frames based on the backbone geometry encoded by xt ."
+     },
+     {
+      "source": "@config",
+      "text": "numPairTransformLayers 5"
+     },
+     {
+      "source": "@config",
+      "text": "includeTriangularAttention False"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "None for generation beyond the lengths to sample and the number of samples: sampling draws new structures from noise. Training takes a configuration file and a processed dataset of domains.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Training and Sampling",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This would sample 10 domains per sequence length between 50 and 128, with a sampling batch size of 5."
+     },
+     {
+      "source": "@readme",
+      "text": "Create a configuration file with name `configuration`."
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Generated domains as alpha carbon coordinates, written under runs/[RUN_NAME]/version_[VERSION]/samples/epoch_[EPOCH]. The repository's evaluation pipeline then scores them with ProteinMPNN and ESMFold.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Sampling and Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The output are stored in the directory `runs/[RUN_NAME]/version_[VERSION]/samples/epoch_[EPOCH]`."
+     },
+     {
+      "source": "@readme",
+      "text": "To evaluate generated samples, we set up an evaluation pipeline based on ProteinMPNN and ESMFold."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "4.1M for Genie, as the paper states when comparing with RFdiffusion's 59.8M. The paper reports 4.1M for Genie-SCOPe and Genie-SwissProt, the length 256 models, and describes the length 128 model as the same architecture, so the same count is carried over to it.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RFDiffusion\nalso contains around 14 times more parameters than Genie\n(59.8M versus 4.1M)."
+     },
+     {
+      "source": "@paper",
+      "text": "we use the same Genie architecture as before but set\nthe maximum sequence length to 256"
+     },
+     {
+      "source": "@paper",
+      "text": "we use the same Genie architecture as before but set\nthe maximum sequence length to 256"
+     }
+    ]
+   },
+   {
+    "label": "Training data",
+    "value": "Two datasets. SCOPe domains, filtered so that no two share more than 40 per cent sequence identity and with multi-chain or incomplete domains removed, giving 8,766 domains of which 3,942 have at most 128 residues and 7,249 at most 256. And AlphaFold predictions of SwissProt, filtered at an average pLDDT above 80, leaving 195,214 structures of at most 256 residues.",
+    "status": "source_checked",
+    "source_ids": [
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "paper: Datasets; README: Data Download",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "For SCOPe, we filter protein domains so that no two share\n>40% sequence identity"
+     },
+     {
+      "source": "@paper",
+      "text": "Our resulting training set comprises 8,766 domains,\nwith 3,942 domains having at most 128 residues and 7,249\ndomains having at most 256 residues."
+     },
+     {
+      "source": "@paper",
+      "text": "For AlphaFold-SwissProt, we remove structures with low\nconfidence scores based on the predicted local distance difference test score averaged across all residues (pLDDT)."
+     },
+     {
+      "source": "@readme",
+      "text": "We provide scripts that we use for downloading and cleaning SCOPe dataset."
+     },
+     {
+      "source": "@paper",
+      "text": "We use a cutoff of pLDDT > 80.\nThe resulting training set contains 195,214 protein structures having at most 256 residues."
+     }
+    ]
+   },
+   {
+    "label": "Known versions",
+    "value": "Three weight sets in the repository: scope_l_128 (epoch=49999.ckpt), scope_l_256 (epoch=29999.ckpt) and swissprot_l_256 (epoch=99.ckpt), each with its own configuration file. The paper calls the two long models Genie-SCOPe and Genie-SwissProt.",
+    "status": "source_checked",
+    "source_ids": [
+     "@repo-tree",
+     "@paper"
+    ],
+    "source_locator": "repository listing: weights folders; paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_128/epoch=49999.ckpt\""
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_256/epoch=29999.ckpt\""
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/swissprot_l_256/epoch=99.ckpt\""
+     },
+     {
+      "source": "@paper",
+      "text": "we term these two models GenieSCOPe and Genie-SwissProt, respectively"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated. The sources read cite SCOPe and the AlphaFold SwissProt database but give no release version or date for either snapshot.",
+    "status": "unreported",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Datasets",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "256 residues at most for the long models, set as maximumNumResidues in the shipped configuration, and 128 for the shorter SCOPe model. The sampling script defaults to 10 domains per length between 50 and 128 residues, whichever checkpoint is used.",
+    "status": "source_checked",
+    "source_ids": [
+     "@config",
+     "@paper",
+     "@readme"
+    ],
+    "source_locator": "weights/scope_l_256/configuration; paper: Section 3.2; README: Sampling",
+    "quotes": [
+     {
+      "source": "@config",
+      "text": "maximumNumResidues 256"
+     },
+     {
+      "source": "@paper",
+      "text": "set\nthe maximum sequence length to 256"
+     },
+     {
+      "source": "@readme",
+      "text": "This would sample 10 domains per sequence length between 50 and 128"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "Apache-2.0 by position: the checkpoints are committed inside the repository, whose LICENSE.md is the Apache License 2.0. No separate statement about the weights is made in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@repo-tree",
+     "@license"
+    ],
+    "source_locator": "repository listing: weights folders; LICENSE.md header",
+    "quotes": [
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_128/epoch=49999.ckpt\""
+     },
+     {
+      "source": "@license",
+      "text": "Apache License Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "Apache-2.0, as the repository LICENSE.md file holds.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE.md header",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "Apache License Version 2.0, January 2004"
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code and weights at https://github.com/aqlaboratory/genie, with the checkpoints under the weights directory of the repository itself. No model hub entry, no gate and no hosted service in the sources read.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Installation and Sampling; repository listing: weights folders",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We also provide the weights for our trained model, which are available under the `weights` directory, together with the corresponding configuration file."
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/swissprot_l_256/configuration\""
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "Very small for a backbone generator: 4.1 million parameters, about a fourteenth of RFdiffusion's, and trained from scratch rather than from a structure prediction network.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "RFDiffusion\nalso contains around 14 times more parameters than Genie\n(59.8M versus 4.1M)."
+     }
+    ]
+   },
+   {
+    "text": "The weights are committed in the repository with their configuration files, so a sample can be reproduced without a separate download.",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Sampling; repository listing: weights folders",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "We also provide the weights for our trained model, which are available under the `weights` directory, together with the corresponding configuration file."
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_256/configuration\""
+     }
+    ]
+   },
+   {
+    "text": "The designability evaluation is included, not left to the reader: a script sets up a ProteinMPNN and ESMFold pipeline and a second script scores a directory of samples.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "./scripts/setup_evaluation_pipeline.sh"
+     },
+     {
+      "source": "@readme",
+      "text": "python evaluations/pipeline/evaluate.py --input_dir INPUT_DIR --output_dir OUTPUT_DIR"
+     }
+    ]
+   },
+   {
+    "text": "Two training sets are offered, a small curated one and a large predicted one, and the authors report the tradeoff: training on the larger set raises designability but lowers diversity.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "When trained with a larger dataset, Genie\nachieves higher designablity at the cost of reduced diversity, likely due to small model size."
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "Short proteins only. The released models cap at 128 or 256 residues, set in the configuration as maximumNumResidues.",
+    "source_ids": [
+     "@config",
+     "@paper"
+    ],
+    "source_locator": "weights/scope_l_256/configuration; paper: Section 3.2",
+    "quotes": [
+     {
+      "source": "@config",
+      "text": "maximumNumResidues 256"
+     },
+     {
+      "source": "@paper",
+      "text": "set\nthe maximum sequence length to 256"
+     }
+    ]
+   },
+   {
+    "text": "Alpha carbons only. The output is a coordinate set for the alpha carbon trace, with no full backbone, no side chains and no sequence.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "which contains Ca coordinates generated by Genie"
+     }
+    ]
+   },
+   {
+    "text": "Single chain domains. Multi-chain domains were removed from the training set, so complexes are out of scope.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Datasets",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "We remove domains with multiple chains and missing backbone"
+     }
+    ]
+   },
+   {
+    "text": "Sampling is long: the reverse process runs 1,000 diffusion steps, and sampling time in the paper is reported as a function of those steps and the protein length.",
+    "source_ids": [
+     "@paper"
+    ],
+    "source_locator": "paper: Section 2.1 and Table 2 caption",
+    "quotes": [
+     {
+      "source": "@paper",
+      "text": "where the total number of diffusion steps T is set to 1,000:"
+     },
+     {
+      "source": "@paper",
+      "text": "T denotes the total number of diffusion steps in the sampling process and L denotes the number of residues in the structure."
+     }
+    ]
+   },
+   {
+    "text": "The README's weight loading snippet names a file, weights/genie_l_128_epoch=49999.ckpt, that does not exist at the commit read; the checkpoints live in per-model subfolders instead.",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Sampling; repository listing: weights folders",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "model = Genie.load_from_checkpoint('weights/genie_l_128_epoch=49999.ckpt', config=config)"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_128/epoch=49999.ckpt\""
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "Genie sampling workflow",
+   "steps": [
+    "Gaussian noise over alpha carbon coordinates",
+    "Frenet-Serret frames built from the noised backbone",
+    "Noise prediction network, 1,000 reverse diffusion steps",
+    "Alpha carbon coordinates for each sampled domain",
+    "Optional ProteinMPNN and ESMFold scoring"
+   ],
+   "caption": "Sampling reverses a fixed 1,000 step noise schedule. The network sees oriented residue frames derived from the noised coordinates, and the repository's own pipeline scores the result for designability.",
+   "source_ids": [
+    "@paper",
+    "@readme"
+   ],
+   "source_locator": "paper: Sections 2.1, 2.2 and 2.3; README: Sampling and Evaluation",
+   "quotes": [
+    {
+     "source": "@paper",
+     "text": "where the total number of diffusion steps T is set to 1,000:"
+    },
+    {
+     "source": "@paper",
+     "text": "Frenet-Serret (FS) frames based on the backbone geometry encoded by xt ."
+    },
+    {
+     "source": "@readme",
+     "text": "To evaluate generated samples, we set up an evaluation pipeline based on ProteinMPNN and ESMFold."
+    }
+   ]
+  },
+  "coverage": "reviewed",
+  "gaps": [
+   "No release dates for the three checkpoints, and no statement of which checkpoint produced which table in the paper.",
+   "No inference hardware requirement or sampling time in absolute terms for a given machine.",
+   "The SCOPe and AlphaFold SwissProt snapshots are not versioned in the sources read, so the training data cannot be reconstructed exactly.",
+   "Genie 2, if one exists, was not looked for: this page describes the repository and paper of the first Genie only."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the README, LICENSE.md, the recursive GitHub listing and weights/scope_l_256/configuration of aqlaboratory/genie at commit 42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c, and the text layer of the arXiv PDF for arXiv:2301.12485v3. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "weights/scope_l_128/epoch=49999.ckpt",
+   "parameters": 4100000,
+   "context_length": 128,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/aqlaboratory/genie",
+   "weights_url": "https://github.com/aqlaboratory/genie/tree/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c/weights/scope_l_128",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "\"path\":\"weights/scope_l_128/epoch=49999.ckpt\""
+    },
+    {
+     "source": "@paper",
+     "text": "(59.8M versus 4.1M)"
+    },
+    {
+     "source": "@readme",
+     "text": "This would sample 10 domains per sequence length between 50 and 128"
+    },
+    {
+     "source": "@license",
+     "text": "Apache License Version 2.0, January 2004"
+    }
+   ]
+  },
+  {
+   "checkpoint": "weights/scope_l_256/epoch=29999.ckpt (Genie-SCOPe)",
+   "parameters": 4100000,
+   "context_length": 256,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/aqlaboratory/genie",
+   "weights_url": "https://github.com/aqlaboratory/genie/tree/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c/weights/scope_l_256",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "\"path\":\"weights/scope_l_256/epoch=29999.ckpt\""
+    },
+    {
+     "source": "@config",
+     "text": "maximumNumResidues 256"
+    },
+    {
+     "source": "@paper",
+     "text": "(59.8M versus 4.1M)"
+    },
+    {
+     "source": "@license",
+     "text": "Apache License Version 2.0, January 2004"
+    }
+   ]
+  },
+  {
+   "checkpoint": "weights/swissprot_l_256/epoch=99.ckpt (Genie-SwissProt)",
+   "parameters": 4100000,
+   "context_length": 256,
+   "context_unit": "residues",
+   "code_licence": "Apache-2.0",
+   "weights_licence": "Apache-2.0",
+   "code_url": "https://github.com/aqlaboratory/genie",
+   "weights_url": "https://github.com/aqlaboratory/genie/tree/42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c/weights/swissprot_l_256",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@repo-tree",
+     "text": "\"path\":\"weights/swissprot_l_256/epoch=99.ckpt\""
+    },
+    {
+     "source": "@paper",
+     "text": "we use the same Genie architecture as before but set\nthe maximum sequence length to 256"
+    },
+    {
+     "source": "@paper",
+     "text": "(59.8M versus 4.1M)"
+    },
+    {
+     "source": "@license",
+     "text": "Apache License Version 2.0, January 2004"
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Install the package from the repository and sample domains with one of the shipped checkpoints.",
+  "prerequisites": [
+   "A GPU, since the sampling command selects one by index.",
+   "The SCOPe dataset only for training, through the repository's download script.",
+   "For designability scoring, the extra setup script that installs ProteinMPNN and ESMFold.",
+   "Apache-2.0 terms for the code and the committed weights."
+  ],
+  "steps": [
+   {
+    "title": "Get the code at the pinned commit",
+    "shell": "git clone https://github.com/aqlaboratory/genie.git\ncd genie\ngit checkout --detach 42e4c996d6e0e1f8c4987b2db84f133f66f8ad4c",
+    "explanation": "The README asks for a clone and for work in the root directory; the checkout line is added here to pin the commit that was read. The clone also brings the weights.",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Installation; repository listing: weights folders",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Clone this repository and go into the root directory."
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_128/epoch=49999.ckpt\""
+     }
+    ]
+   },
+   {
+    "title": "Install the package",
+    "shell": "pip install -e .",
+    "explanation": "The README's install, which pulls in the dependencies including the logging packages.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Installation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Set up the package by running `pip install -e .`."
+     }
+    ]
+   },
+   {
+    "title": "Load a shipped checkpoint",
+    "shell": "python - <<'PY'\nfrom genie.config import Config\nfrom genie.diffusion.genie import Genie\n\nconfig = Config('weights/scope_l_256/configuration')\nmodel = Genie.load_from_checkpoint('weights/scope_l_256/epoch=29999.ckpt', config=config)\nPY",
+    "explanation": "The README's loading snippet, wrapped here in a shell heredoc, with the configuration and checkpoint paths corrected to the folders that exist at this commit: the README's own snippet names a file that is not in the repository.",
+    "source_ids": [
+     "@readme",
+     "@repo-tree"
+    ],
+    "source_locator": "README: Sampling; repository listing: weights folders",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "from genie.config import Config\nfrom genie.diffusion.genie import Genie"
+     },
+     {
+      "source": "@readme",
+      "text": "config = Config('weights/configuration')"
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_256/epoch=29999.ckpt\""
+     },
+     {
+      "source": "@repo-tree",
+      "text": "\"path\":\"weights/scope_l_256/configuration\""
+     }
+    ]
+   },
+   {
+    "title": "Sample domains from a training run",
+    "shell": "python genie/sample.py -n RUN_NAME -g0",
+    "explanation": "The README's sampling command, which works from a runs/[RUN_NAME] directory produced by training and by default takes the latest version and epoch. Substitute your own run name.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Sampling",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python genie/sample.py -n RUN_NAME -g0"
+     },
+     {
+      "source": "@readme",
+      "text": "By default, it uses the checkpoint with the latest version and epoch."
+     }
+    ]
+   },
+   {
+    "title": "Optional: score the samples",
+    "shell": "./scripts/setup_evaluation_pipeline.sh\npython evaluations/pipeline/evaluate.py --input_dir INPUT_DIR --output_dir OUTPUT_DIR",
+    "explanation": "The README's evaluation route. The input directory must hold a coords subdirectory of generated alpha carbon coordinates.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Evaluation",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "./scripts/setup_evaluation_pipeline.sh"
+     },
+     {
+      "source": "@readme",
+      "text": "python evaluations/pipeline/evaluate.py --input_dir INPUT_DIR --output_dir OUTPUT_DIR"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "Sampled domains as alpha carbon coordinates under runs/[RUN_NAME]/version_[VERSION]/samples/epoch_[EPOCH].",
+   "Evaluation results in the output directory of the evaluation pipeline."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The sampling script is written around a training run directory, so sampling from a shipped checkpoint alone needs the loading route or a run directory arranged to match.",
+   "The README's own checkpoint path in the loading snippet does not exist at this commit; the paths used above come from the repository listing."
+  ],
+  "source_ids": [
+   "@readme",
+   "@repo-tree",
+   "@config"
+  ]
+ },
+ "notes": "The record came from the Scaffold-Lab benchmark (existing source lit-structure-20261011-scaffoldlab-source-zheng2026) and dates Genie to 2023-01, which matches the first arXiv posting. One inconsistency in the developers' own text: the README loads 'weights/configuration' and 'weights/genie_l_128_epoch=49999.ckpt', neither of which exists at the commit read; the repository holds per-model folders scope_l_128, scope_l_256 and swissprot_l_256, each with a configuration file and one checkpoint. The 4.1M parameter figure is given once in the paper for the architecture and is applied here to all three checkpoints, which the paper says share the architecture. A later Genie 2 was not searched for. The sampling range of 50 to 128 residues is the default of genie/sample.py and is not tied to a checkpoint in the README."
+}

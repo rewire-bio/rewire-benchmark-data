@@ -1,0 +1,761 @@
+{
+ "record_id": "lit-structure-20261011-lipp-model-rosettafold-aa",
+ "sources": [
+  {
+   "key": "readme",
+   "name": "baker-laboratory/RoseTTAFold-All-Atom README.md at commit d69ab3a7",
+   "description": "Official repository README, pinned to a commit. Holds the scope, the install, the input configurations and the output description.",
+   "file": "artifacts/readme.md",
+   "artifact_url": "https://raw.githubusercontent.com/baker-laboratory/RoseTTAFold-All-Atom/d69ab3a73f8ede31a4cc005fbc076a341d848469/README.md",
+   "url": "https://github.com/baker-laboratory/RoseTTAFold-All-Atom",
+   "version": "git commit d69ab3a73f8ede31a4cc005fbc076a341d848469",
+   "media_type": "text/markdown",
+   "sha256": "032783f9ab19a8da30be69915e2ac17aeb059731a0ed8815535c468d12a60173",
+   "retrieved_at": "2026-11-27T00:46:03Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "license",
+   "name": "baker-laboratory/RoseTTAFold-All-Atom LICENSE at commit d69ab3a7",
+   "description": "Licence file of the official repository, pinned to a commit. It states explicitly that it covers both the source code and the model weights.",
+   "file": "artifacts/license.txt",
+   "artifact_url": "https://raw.githubusercontent.com/baker-laboratory/RoseTTAFold-All-Atom/d69ab3a73f8ede31a4cc005fbc076a341d848469/LICENSE",
+   "url": "https://github.com/baker-laboratory/RoseTTAFold-All-Atom",
+   "version": "git commit d69ab3a73f8ede31a4cc005fbc076a341d848469",
+   "media_type": "text/plain",
+   "sha256": "bbb2a065491b91148407eec7c1529f870dc5a92a26b57459ef82d7e6693fe066",
+   "retrieved_at": "2026-11-27T00:46:06Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "base-config",
+   "name": "baker-laboratory/RoseTTAFold-All-Atom rf2aa/config/inference/base.yaml at commit d69ab3a7",
+   "description": "The default inference configuration, read for the checkpoint path, the recycling and alignment settings and the network block and channel sizes.",
+   "file": "artifacts/base.yaml",
+   "artifact_url": "https://raw.githubusercontent.com/baker-laboratory/RoseTTAFold-All-Atom/d69ab3a73f8ede31a4cc005fbc076a341d848469/rf2aa/config/inference/base.yaml",
+   "url": "https://github.com/baker-laboratory/RoseTTAFold-All-Atom",
+   "version": "git commit d69ab3a73f8ede31a4cc005fbc076a341d848469",
+   "media_type": "text/plain",
+   "sha256": "f725579f38799ed65c3df7d8dcd77ba0c6dfc884d0dff167fe5da6b06bff84f4",
+   "retrieved_at": "2026-11-27T02:44:10Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  },
+  {
+   "key": "environment",
+   "name": "baker-laboratory/RoseTTAFold-All-Atom environment.yaml at commit d69ab3a7",
+   "description": "Mamba environment file of the official repository, read for the Python version.",
+   "file": "artifacts/environment.yaml",
+   "artifact_url": "https://raw.githubusercontent.com/baker-laboratory/RoseTTAFold-All-Atom/d69ab3a73f8ede31a4cc005fbc076a341d848469/environment.yaml",
+   "url": "https://github.com/baker-laboratory/RoseTTAFold-All-Atom",
+   "version": "git commit d69ab3a73f8ede31a4cc005fbc076a341d848469",
+   "media_type": "text/plain",
+   "sha256": "00f8090f299ad48da8480bfda19f04438c2a56f0ceddd06c29a5b0a15968f933",
+   "retrieved_at": "2026-11-27T02:44:13Z",
+   "licence": "BSD-3-Clause",
+   "store_bytes": true
+  }
+ ],
+ "profile": {
+  "summary": "RoseTTAFold All-Atom predicts the structure of a biomolecular assembly from its parts. Inputs are given per chain: protein sequences as FASTA, nucleic acid strands as DNA or RNA FASTA, small molecules as SDF files, plus covalent bonds between a protein chain and a small molecule. The output is a PDB file with predicted lDDT in the B-factor column and a separate PyTorch file of confidence metrics, of which the developers' main one is pae_inter, the mean error of protein residues with respect to atom frames together with atom coordinates with respect to protein frames. They warn that the model is not accurate for all cases and say the error estimates are there to let users tell the good predictions from the bad, with pae_inter below 10 expected to mean a high quality dock.",
+  "summary_source_ids": [
+   "@readme"
+  ],
+  "summary_source_locator": "README: header, Inference Configs Using Hydra and Understanding model outputs",
+  "summary_quotes": [
+   {
+    "source": "@readme",
+    "text": "RoseTTAFold All-Atom is a biomolecular structure prediction neural network that can predict a broad range of biomolecular assemblies including proteins, nucleic acids, small molecules, covalent modifications and metals"
+   },
+   {
+    "source": "@readme",
+    "text": "RFAA is not accurate for all cases, but produces useful error estimates to allow users to identify accurate predictions."
+   },
+   {
+    "source": "@readme",
+    "text": "- PDB file with predicted structure (bfactors represent predicted lddt at each position)\n- pytorch file with confidence metrics stored"
+   },
+   {
+    "source": "@readme",
+    "text": "This was the primary confidence metric we used in the paper and expect cases with pae_inter <10 to have high quality docks."
+   }
+  ],
+  "sections": [
+   {
+    "title": "How it works",
+    "body": "Inference is driven by Hydra configuration files: a job inherits the base configuration and adds one entry per chain under protein_inputs, na_inputs, sm_inputs and covale_inputs. Alignments and templates are built by a script against UniRef30, BFD and a 2021 March snapshot of PDB100. The network settings in rf2aa/config/inference/base.yaml, the only model configuration in the sources read, sit under the key legacy_model_param and describe a RoseTTAFold style stack: 4 extra blocks, 32 main blocks and 4 refinement blocks, with MSA channels 256, full MSA channels 64, pair channels 192 and template channels 64, and SE(3) transformer layers of 32 channels and 2 degrees for structure refinement. It uses atom frames, chirality and Lennard-Jones terms. At inference the loader keeps up to 128 latent and 1,024 total alignment sequences and 4 templates, and recycles 4 times by default. The developers recommend keeping the defaults because they match the training task, but say raising MAXCYCLE to 10 gives better results on hard cases.",
+    "source_ids": [
+     "@base-config",
+     "@readme"
+    ],
+    "source_locator": "base.yaml: loader_params and legacy_model_param; README: Inference Configs Using Hydra and Setup",
+    "quotes": [
+     {
+      "source": "@base-config",
+      "text": "n_extra_block: 4\n  n_main_block: 32\n  n_ref_block: 4"
+     },
+     {
+      "source": "@base-config",
+      "text": "d_msa: 256\n  d_msa_full: 64\n  d_pair: 192\n  d_templ: 64"
+     },
+     {
+      "source": "@base-config",
+      "text": "MAXLAT: 128\n  MAXSEQ: 1024\n  MAXCYCLE: 4"
+     },
+     {
+      "source": "@base-config",
+      "text": "n_templ: 4"
+     },
+     {
+      "source": "@base-config",
+      "text": "use_atom_frames: True"
+     },
+     {
+      "source": "@readme",
+      "text": "We highly suggest using the default parameters since those are closest to the training task for RFAA but we have found that increasing loader_params.MAXCYCLE=10 (default set to 4) gives better results for hard cases (as noted in the paper)."
+     },
+     {
+      "source": "@readme",
+      "text": "The main inputs into the model are split into:\n- protein inputs (protein_inputs)\n- nucleic acid inputs (na_inputs)\n- small molecule inputs (sm_inputs)"
+     }
+    ]
+   },
+   {
+    "title": "Versions and reproducibility",
+    "body": "One released checkpoint, RFAA_paper_weights.pt, downloaded from files.ipd.uw.edu and named as checkpoint_path in the default configuration. The sources read list no other weights, and the developers say they will share new models as they create them. Reproducibility also depends on the databases, which are pinned by name: UniRef30_2020_06, BFD, and PDB100 at 2021 March 03, plus legacy BLAST 2.2.26. A result should name the checkpoint, the repository commit, the MAXCYCLE setting and the database versions, and should state whether signalp6 was installed, since the Docker route leaves it out for licensing reasons and the predictions then do not use it.",
+    "source_ids": [
+     "@readme",
+     "@base-config"
+    ],
+    "source_locator": "README: Setup, Running In Docker and Conclusion; base.yaml: checkpoint_path and database_params",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "wget http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt"
+     },
+     {
+      "source": "@base-config",
+      "text": "checkpoint_path: RFAA_paper_weights.pt"
+     },
+     {
+      "source": "@base-config",
+      "text": "hhdb: \"pdb100_2021Mar03/pdb100_2021Mar03\""
+     },
+     {
+      "source": "@readme",
+      "text": "wget http://wwwuser.gwdg.de/~compbiol/uniclust/2020_06/UniRef30_2020_06_hhsuite.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "Note: Due to licensing issues signalp6 is not included in the docker container and will not be utilized when using it."
+     },
+     {
+      "source": "@readme",
+      "text": "We expect that RFAA will continue to improve and will share new models as we create them."
+     }
+    ]
+   }
+  ],
+  "facts": [
+   {
+    "label": "Model type",
+    "value": "All-atom biomolecular structure prediction network for assemblies of proteins, nucleic acids, small molecules, covalent modifications and metals.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "a biomolecular structure prediction neural network that can predict a broad range of biomolecular assemblies"
+     }
+    ]
+   },
+   {
+    "label": "Architecture",
+    "value": "RoseTTAFold style three-track network with SE(3) transformer refinement. The only model configuration in the sources read, the legacy_model_param block of base.yaml, gives 4 extra blocks, 32 main blocks and 4 refinement blocks, MSA dimension 256, pair dimension 192 and template dimension 64, with atom frames so that ligand atoms are treated as nodes.",
+    "status": "source_checked",
+    "source_ids": [
+     "@base-config"
+    ],
+    "source_locator": "base.yaml: legacy_model_param",
+    "quotes": [
+     {
+      "source": "@base-config",
+      "text": "n_main_block: 32"
+     },
+     {
+      "source": "@base-config",
+      "text": "d_pair: 192"
+     },
+     {
+      "source": "@base-config",
+      "text": "SE3_ref_param:\n    num_layers: 2\n    num_channels: 32\n    num_degrees: 2"
+     },
+     {
+      "source": "@base-config",
+      "text": "use_atom_frames: True"
+     }
+    ]
+   },
+   {
+    "label": "Inputs",
+    "value": "A Hydra configuration naming, per chain: protein FASTA files, nucleic acid FASTA files with input type dna or rna, small molecule SDF files, and covalent bonds between protein and small molecule chains. A chain letter for each entry is required.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@base-config"
+    ],
+    "source_locator": "README: Inference Configs Using Hydra, Predicting Protein Monomers and Predicting Protein Nucleic Acid Complexes; base.yaml: input keys",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This represents a chain letter and is absolutely **required**, this is important when users are specifying multiple chains."
+     },
+     {
+      "source": "@readme",
+      "text": "In this case, the allowed input types are dna and rna."
+     },
+     {
+      "source": "@base-config",
+      "text": "protein_inputs: null\nna_inputs: null\nsm_inputs: null\ncovale_inputs:  null"
+     }
+    ]
+   },
+   {
+    "label": "Outputs",
+    "value": "Two files: a PDB file whose B-factors hold the predicted lDDT per position, and a PyTorch file of confidence metrics, which include per-node plddts, an L by L pae matrix, an L by L pde matrix, and the means mean_plddt, mean_pae, pae_prot and pae_inter.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Understanding model outputs",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "The model returns two files:"
+     },
+     {
+      "source": "@readme",
+      "text": "2. pae, a LxL tensor where the model predicts the error of every j position if the ith position's frame is aligned (or atom frame for atom nodes)"
+     },
+     {
+      "source": "@readme",
+      "text": "7. pae_inter, the mean over all the errors of protein residues with respect to atom frames and atom coordinates with respect to protein frames."
+     }
+    ]
+   },
+   {
+    "label": "Parameters",
+    "value": "Not stated. The sources read give the block counts and channel widths in the configuration but no parameter count for the checkpoint.",
+    "status": "unreported",
+    "source_ids": [
+     "@base-config"
+    ],
+    "source_locator": "base.yaml: legacy_model_param",
+    "quotes": []
+   },
+   {
+    "label": "Training data",
+    "value": "Not stated in the sources read. The repository describes the databases used at inference, UniRef30 2020_06, BFD and PDB100 from 2021 March 03, but says nothing about what the released weights were trained on; the paper was not fetched.",
+    "status": "unextracted",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Setup, step 7",
+    "quotes": []
+   },
+   {
+    "label": "Known versions",
+    "value": "One released checkpoint, RFAA_paper_weights.pt, the weights used in the paper. The developers say new models will be shared as they are made, and point to RF-NA for paired protein-RNA alignments and to RFdiffusionAA as the related design model.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme",
+     "@base-config"
+    ],
+    "source_locator": "README: Setup step 6, Predicting Protein Nucleic Acid Complexes and Conclusion; base.yaml: checkpoint_path",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "RFAA_paper_weights.pt"
+     },
+     {
+      "source": "@base-config",
+      "text": "checkpoint_path: RFAA_paper_weights.pt"
+     },
+     {
+      "source": "@readme",
+      "text": "For now, please use RF-NA for modeling cases requiring paired protein-RNA MSAs."
+     },
+     {
+      "source": "@readme",
+      "text": "we are excited to see how the community uses RFAA and RFdiffusionAA"
+     }
+    ]
+   },
+   {
+    "label": "Training cutoff",
+    "value": "Not stated by the developers in the sources read. The repository pins database snapshots for inference, UniRef30 2020_06 and PDB100 at 2021 March 03, which are not training cutoffs.",
+    "status": "unextracted",
+    "source_ids": [
+     "@readme",
+     "@base-config"
+    ],
+    "source_locator": "README: Setup step 7; base.yaml: database_params",
+    "quotes": []
+   },
+   {
+    "label": "Context limits",
+    "value": "No stated maximum assembly size. The limits in the configuration are on the alignment and templates: 1,024 alignment sequences, 128 latent sequences and 4 templates, with 4 recycles by default and 10 suggested for hard cases.",
+    "status": "source_checked",
+    "source_ids": [
+     "@base-config",
+     "@readme"
+    ],
+    "source_locator": "base.yaml: loader_params; README: Inference Configs Using Hydra",
+    "quotes": [
+     {
+      "source": "@base-config",
+      "text": "MAXSEQ: 1024"
+     },
+     {
+      "source": "@base-config",
+      "text": "MAXLAT: 128"
+     },
+     {
+      "source": "@readme",
+      "text": "increasing loader_params.MAXCYCLE=10 (default set to 4) gives better results for hard cases"
+     }
+    ]
+   },
+   {
+    "label": "Weights licence",
+    "value": "BSD 3-Clause, stated in the LICENSE file to cover the model weights as well as the source code, copyright 2024 University of Washington.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE: header paragraph",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "This copyright\nand license covers both the source code and model weights referenced for \ndownload in the README file."
+     },
+     {
+      "source": "@license",
+      "text": "Copyright (c) 2024 University of Washington."
+     }
+    ]
+   },
+   {
+    "label": "Code licence",
+    "value": "BSD 3-Clause, as the LICENSE file sets out with the usual three conditions, copyright University of Washington, developed at the Institute for Protein Design.",
+    "status": "source_checked",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE: header and conditions",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "BSD License"
+     },
+     {
+      "source": "@license",
+      "text": "Neither the name of the University of Washington nor the names of its\ncontributors may be used to endorse or promote products derived from this\nsoftware without specific prior written permission."
+     }
+    ]
+   },
+   {
+    "label": "Access",
+    "value": "Code at https://github.com/baker-laboratory/RoseTTAFold-All-Atom. Weights at http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt, no sign-in. Sequence databases are separate downloads of 46 GB, 272 GB and 81 GB. One dependency, signalp6, must be obtained as a licensed copy from https://services.healthtech.dtu.dk/services/SignalP-6.0/.",
+    "status": "source_checked",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Setup steps 2, 4, 6 and 7",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/baker-laboratory/RoseTTAFold-All-Atom"
+     },
+     {
+      "source": "@readme",
+      "text": "wget http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt"
+     },
+     {
+      "source": "@readme",
+      "text": "# uniref30 [46G]"
+     },
+     {
+      "source": "@readme",
+      "text": "Configure signalp6 after downloading a licensed copy of it from https://services.healthtech.dtu.dk/services/SignalP-6.0/"
+     }
+    ]
+   }
+  ],
+  "strengths": [
+   {
+    "text": "One model covers mixed assemblies: proteins, DNA or RNA strands, small molecules from SDF files, covalent modifications and metals, specified chain by chain in a single configuration.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header and Inference Configs Using Hydra",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "including proteins, nucleic acids, small molecules, covalent modifications and metals"
+     },
+     {
+      "source": "@readme",
+      "text": "- covalent bonds between protein chains and small molecule chains"
+     }
+    ]
+   },
+   {
+    "text": "The confidence output is detailed and the developers name the metric they trust: pae_inter, with a threshold of 10 for a high quality dock, alongside per-node plddt and full pae and pde matrices.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Understanding model outputs",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "expect cases with pae_inter <10 to have high quality docks"
+     },
+     {
+      "source": "@readme",
+      "text": "3. pde, a LxL tensor where the model predicts the unsigned error of the each pairwise distance"
+     }
+    ]
+   },
+   {
+    "text": "Both the code and the weights are BSD 3-Clause, with the licence saying so explicitly, which makes commercial use straightforward.",
+    "source_ids": [
+     "@license"
+    ],
+    "source_locator": "LICENSE: header paragraph",
+    "quotes": [
+     {
+      "source": "@license",
+      "text": "This copyright\nand license covers both the source code and model weights referenced for \ndownload in the README file."
+     }
+    ]
+   },
+   {
+    "text": "A Docker route avoids building the conda environment, mounting the databases and weights from the host.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running In Docker",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You can avoid creating a conda environment and installing the dependencies by instead utilizing a docker image."
+     },
+     {
+      "source": "@readme",
+      "text": "docker build . -t rosetta-fold-all-atom:latest"
+     }
+    ]
+   }
+  ],
+  "limitations": [
+   {
+    "text": "The developers say plainly that RFAA is not accurate for all cases and expect users to filter on the error estimates.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: header",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "RFAA is not accurate for all cases, but produces useful error estimates to allow users to identify accurate predictions."
+     }
+    ]
+   },
+   {
+    "text": "No RNA alignments and no paired protein-RNA alignments: for those cases the developers tell users to go to RF-NA instead.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Predicting Protein Nucleic Acid Complexes",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "This repo currently does not support making RNA MSAs or pairing protein MSAs with RNA MSAs but this is functionality that we are keen to add."
+     }
+    ]
+   },
+   {
+    "text": "Setting it up is a long job: a Mamba environment, a source install of the SE(3) transformer, a separately licensed signalp6 download, about 400 GB of sequence and template databases, and a legacy BLAST 2.2.26 binary.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Setup steps 3 to 8",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "cd rf2aa/SE3Transformer/\npip3 install --no-cache-dir -r requirements.txt\npython3 setup.py install"
+     },
+     {
+      "source": "@readme",
+      "text": "# BFD [272G]"
+     },
+     {
+      "source": "@readme",
+      "text": "Download BLAST [39M]"
+     }
+    ]
+   },
+   {
+    "text": "The Docker route is not identical to the conda route: signalp6 is left out for licensing reasons and is not used in predictions made inside the container.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running In Docker",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "Due to licensing issues signalp6 is not included in the docker container and will not be utilized when using it."
+     }
+    ]
+   },
+   {
+    "text": "Modified or unnatural amino acids are listed in the input types as coming soon rather than supported.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Inference Configs Using Hydra",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "- modified or unnatural amino acids (COMING SOON)"
+     }
+    ]
+   },
+   {
+    "text": "A GPU is assumed. The Docker instructions require a machine with GPUs and NVIDIA drivers, and no CPU-only route is described.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Running In Docker",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "You will need to run on a machine with gpus available and nvidia drivers installed."
+     }
+    ]
+   }
+  ],
+  "diagram": {
+   "title": "RoseTTAFold All-Atom prediction workflow",
+   "steps": [
+    "Hydra config listing protein, nucleic acid and small molecule chains",
+    "Alignments and templates from UniRef30, BFD and PDB100",
+    "Three-track network with atom frames, 32 main blocks, 4 recycles",
+    "SE(3) transformer refinement",
+    "PDB file with lDDT in the B-factors and a confidence file with pae_inter"
+   ],
+   "caption": "A single configuration file lists every component of the assembly; the network treats ligand atoms as nodes with their own frames, and the confidence file is what tells a user whether to trust the result.",
+   "source_ids": [
+    "@readme",
+    "@base-config"
+   ],
+   "source_locator": "README: Inference Configs Using Hydra and Understanding model outputs; base.yaml: loader_params and legacy_model_param",
+   "quotes": [
+    {
+     "source": "@readme",
+     "text": "We use a library called Hydra to compose config files for predictions."
+    },
+    {
+     "source": "@base-config",
+     "text": "n_main_block: 32"
+    },
+    {
+     "source": "@base-config",
+     "text": "use_atom_frames: True"
+    },
+    {
+     "source": "@readme",
+     "text": "- PDB file with predicted structure (bfactors represent predicted lddt at each position)"
+    }
+   ]
+  },
+  "coverage": "limited",
+  "gaps": [
+   "The RFAA paper in Science (https://www.science.org/doi/10.1126/science.adl2528) is not openly fetchable and has no PMC copy, so the training data, the training cutoff, the parameter count and the accuracy figures are not recorded here.",
+   "No parameter count or GPU memory requirement is given anywhere in the repository files read.",
+   "The example configurations for small molecules, higher order complexes and covalent modifications were read only as quoted in the README, not as files.",
+   "No release date is stated for RFAA_paper_weights.pt."
+  ],
+  "review": {
+   "method": "automated_source_review",
+   "date": "2026-11-27",
+   "note": "Read on 2026-11-27: the README, LICENSE, rf2aa/config/inference/base.yaml and environment.yaml of baker-laboratory/RoseTTAFold-All-Atom at commit d69ab3a73f8ede31a4cc005fbc076a341d848469. The Science paper was not fetched and a PMC search for it returned nothing. No command was executed and no human review is claimed."
+  }
+ },
+ "structured": [
+  {
+   "checkpoint": "RFAA_paper_weights.pt",
+   "parameters": null,
+   "context_length": null,
+   "context_unit": "residues",
+   "code_licence": "BSD-3-Clause",
+   "weights_licence": "BSD-3-Clause",
+   "code_url": "https://github.com/baker-laboratory/RoseTTAFold-All-Atom",
+   "weights_url": "http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt",
+   "gated": false,
+   "released": null,
+   "quotes": [
+    {
+     "source": "@base-config",
+     "text": "checkpoint_path: RFAA_paper_weights.pt"
+    },
+    {
+     "source": "@readme",
+     "text": "wget http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt"
+    },
+    {
+     "source": "@license",
+     "text": "This copyright\nand license covers both the source code and model weights referenced for \ndownload in the README file."
+    }
+   ]
+  }
+ ],
+ "run_guide": {
+  "summary": "Build the environment, download the weights and databases, and predict the bundled protein monomer example.",
+  "prerequisites": [
+   "A Linux machine with an NVIDIA GPU and drivers, as the Docker instructions require.",
+   "Mamba or Miniforge, and Python 3.10 as pinned in environment.yaml.",
+   "About 400 GB of disk for UniRef30 (46 GB), BFD (272 GB) and the PDB100 templates (81 GB), plus the legacy BLAST binary.",
+   "A separately licensed copy of signalp6 from https://services.healthtech.dtu.dk/services/SignalP-6.0/, for the full input pipeline.",
+   "BSD 3-Clause terms, which the licence states cover the weights as well as the code."
+  ],
+  "steps": [
+   {
+    "title": "Clone the repository at the pinned commit",
+    "shell": "git clone https://github.com/baker-laboratory/RoseTTAFold-All-Atom\ncd RoseTTAFold-All-Atom\ngit checkout --detach d69ab3a73f8ede31a4cc005fbc076a341d848469",
+    "explanation": "The clone and cd lines are the README's step 2; the checkout line is added here to pin the commit that was read.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Setup step 2",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "git clone https://github.com/baker-laboratory/RoseTTAFold-All-Atom\ncd RoseTTAFold-All-Atom"
+     }
+    ]
+   },
+   {
+    "title": "Create the environment and install the SE(3) transformer",
+    "shell": "mamba env create -f environment.yaml\nconda activate RFAA\n\ncd rf2aa/SE3Transformer/\npip3 install --no-cache-dir -r requirements.txt\npython3 setup.py install\ncd ../../",
+    "explanation": "The README's step 3 in full. The environment file pins Python 3.10.13.",
+    "source_ids": [
+     "@readme",
+     "@environment"
+    ],
+    "source_locator": "README: Setup step 3; environment.yaml: python",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "mamba env create -f environment.yaml"
+     },
+     {
+      "source": "@readme",
+      "text": "cd rf2aa/SE3Transformer/\npip3 install --no-cache-dir -r requirements.txt\npython3 setup.py install"
+     },
+     {
+      "source": "@environment",
+      "text": "python=3.10.13"
+     }
+    ]
+   },
+   {
+    "title": "Install the input preparation dependencies and the weights",
+    "shell": "bash install_dependencies.sh\nwget http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt",
+    "explanation": "The README's steps 5 and 6. The configuration expects the weight file at the path given by checkpoint_path, which defaults to RFAA_paper_weights.pt in the working directory.",
+    "source_ids": [
+     "@readme",
+     "@base-config"
+    ],
+    "source_locator": "README: Setup steps 5 and 6; base.yaml: checkpoint_path",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "bash install_dependencies.sh"
+     },
+     {
+      "source": "@readme",
+      "text": "wget http://files.ipd.uw.edu/pub/RF-All-Atom/weights/RFAA_paper_weights.pt"
+     },
+     {
+      "source": "@base-config",
+      "text": "checkpoint_path: RFAA_paper_weights.pt"
+     }
+    ]
+   },
+   {
+    "title": "Download the databases and set the environment variables",
+    "shell": "wget http://wwwuser.gwdg.de/~compbiol/uniclust/2020_06/UniRef30_2020_06_hhsuite.tar.gz\nmkdir -p UniRef30_2020_06\ntar xfz UniRef30_2020_06_hhsuite.tar.gz -C ./UniRef30_2020_06\n\nwget https://files.ipd.uw.edu/pub/RoseTTAFold/pdb100_2021Mar03.tar.gz\ntar xfz pdb100_2021Mar03.tar.gz\n\nexport DB_UR30=`pwd`/UniRef30_2020_06\nexport DB_BFD=`pwd`/bfd/\nexport BLASTMAT=`pwd`/blast-2.2.26/data/",
+    "explanation": "The UniRef30 and template downloads and the three environment variable exports, all from the README. BFD (272 GB) and the BLAST binary are two more downloads in the same step of the README and are left out of this command for length.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Setup steps 7, 8 and 9",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "wget http://wwwuser.gwdg.de/~compbiol/uniclust/2020_06/UniRef30_2020_06_hhsuite.tar.gz\nmkdir -p UniRef30_2020_06\ntar xfz UniRef30_2020_06_hhsuite.tar.gz -C ./UniRef30_2020_06"
+     },
+     {
+      "source": "@readme",
+      "text": "wget https://files.ipd.uw.edu/pub/RoseTTAFold/pdb100_2021Mar03.tar.gz\ntar xfz pdb100_2021Mar03.tar.gz"
+     },
+     {
+      "source": "@readme",
+      "text": "export DB_UR30=`pwd`/UniRef30_2020_06\nexport DB_BFD=`pwd`/bfd/\nexport BLASTMAT=`pwd`/blast-2.2.26/data/"
+     }
+    ]
+   },
+   {
+    "title": "Predict the example monomer",
+    "shell": "python -m rf2aa.run_inference --config-name protein",
+    "explanation": "The README's monomer example, which uses rf2aa/config/inference/protein.yaml with the bundled FASTA file for chain A and the default base configuration.",
+    "source_ids": [
+     "@readme"
+    ],
+    "source_locator": "README: Predicting Protein Monomers",
+    "quotes": [
+     {
+      "source": "@readme",
+      "text": "python -m rf2aa.run_inference --config-name protein"
+     },
+     {
+      "source": "@readme",
+      "text": "job_name: \"7u7w_protein\"\nprotein_inputs: \n  A:\n    fasta_file: examples/protein/7u7w_A.fasta"
+     }
+    ]
+   }
+  ],
+  "outputs": [
+   "A PDB file of the predicted structure, with predicted lDDT per position in the B-factor column.",
+   "A PyTorch file of confidence metrics, loadable with torch.load, holding plddts, pae, pde and the summary means including pae_inter."
+  ],
+  "limitations": [
+   "These commands were read from the repository and have not been executed by Rewire.",
+   "The database step is abridged here: BFD and the BLAST binary are two further downloads in the same README step, and the configuration's sequencedb and hhdb paths must be edited before a run outside the main directory.",
+   "Without a licensed signalp6 the input pipeline is not the one the README describes, which is also true inside the Docker image."
+  ],
+  "source_ids": [
+   "@readme",
+   "@base-config",
+   "@environment"
+  ]
+ },
+ "notes": "The record came from the LiPP lipid-protein benchmark (existing source evidence-expansion-p2-lipp-2026-6ff34f2f709a), which reports a 2020-04-30 training cutoff for RoseTTAFold All-Atom in its Table 1. The developers' own files read here do not state a training cutoff or a training set, so this page records those as not extracted rather than repeating the benchmark's figure; the Science paper would settle it but is not openly fetchable and has no PMC copy. The repository is rf2aa in its module names and RoseTTAFold-All-Atom in its address. GitHub reports the licence as NOASSERTION, but the LICENSE file is a BSD 3-Clause text that says in terms that it covers the weights as well as the code. The block counts and channel widths come from the legacy_model_param key of rf2aa/config/inference/base.yaml, the only model configuration in the sources read; no saved file states that the released checkpoint uses that parameter set."
+}
