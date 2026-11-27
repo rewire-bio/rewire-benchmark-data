@@ -8,7 +8,7 @@ stated on the page concerned; the eight whose evidence comes from the upgrade pa
 `upgrade1`) are not yet on a committed page.
 
 The register holds 65 leads. None has been raised with anyone. The owner of this repository raises them himself;
-`docs/leads/drafts/` holds drafts for the ten judged most worth raising.
+Reports for the ten judged most worth raising are drafted and held by the owner until he posts them.
 
 ## How a lead was admitted
 
